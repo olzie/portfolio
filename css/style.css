@@ -115,6 +115,8 @@ body::after{
 .hero{position:relative;height:320vh}
 .hero__pin{position:sticky;top:0;height:100vh;height:100lvh;overflow:hidden;background:#000}
 .hero__bg{position:absolute;inset:0}
+/* the scene fades to pure black at the bottom, behind the cat and the button, so it meets the next block without a step */
+.hero__bg::after{content:"";position:absolute;left:0;right:0;bottom:0;height:16%;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,0),#000 85%)}
 
 /* atmosphere (full bleed, outside the artboard) */
 /* dollar pattern on the wall: thin, very faint, diagonal, static.
@@ -277,7 +279,7 @@ body::after{
 /* ============ NUMBERS ============ */
 .nums{position:relative;z-index:1;overflow:hidden;
   background:linear-gradient(180deg,#000 0,var(--bg) 360px);   /* starts exactly where the hero ends: no line, no colour step */
-  padding:clamp(96px,12vw,180px) 0 clamp(80px,10vw,150px)}
+  padding:clamp(40px,4.5vw,72px) 0 clamp(80px,10vw,150px)}
 /* a soft electric-blue glow behind the big number, so the block carries on the hero's light */
 .nums::before{content:"";position:absolute;left:50%;top:0;width:min(1400px,120vw);height:1100px;translate:-50% 0;pointer-events:none;
   background:radial-gradient(ellipse 45% 34% at 50% 48%,rgba(23,71,255,.15),rgba(23,71,255,.04) 55%,transparent 72%)}   /* fades out well before the top edge */
