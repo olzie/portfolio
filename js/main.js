@@ -305,7 +305,8 @@
     title.style.setProperty("--fs", "100px");
     const w = last.getBoundingClientRect().width;
     if (!w) return;
-    const fs = Math.min(100 * (title.clientWidth / w), innerHeight * 0.26);   // never taller than ~a quarter of the screen
+    const share = isMobile() ? 1 : 0.74;                                       // surname takes ~3/4 of the width
+    const fs = Math.min(100 * (title.clientWidth * share / w), innerHeight * 0.19);
     title.style.setProperty("--fs", fs.toFixed(2) + "px");
     const bottom = title.offsetTop + title.offsetHeight;          // layout box, ignores scroll transforms
     $(".hero__pin").style.setProperty("--list-top", Math.round(bottom + innerHeight * 0.04) + "px");
