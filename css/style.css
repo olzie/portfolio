@@ -111,7 +111,7 @@ body::after{
 
 /* ============ HERO ============ */
 .hero{position:relative;height:320vh}
-.hero__pin{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;background:#000}
+.hero__pin{position:sticky;top:0;height:100vh;height:100lvh;overflow:hidden;background:#000}
 .hero__bg{position:absolute;inset:0}
 
 /* atmosphere (full bleed, outside the artboard) */

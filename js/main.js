@@ -206,16 +206,25 @@
       left: (390 - size) / 2 + "px", top: Math.round(soles - BASE * size) + "px"
     });
   }
+  /* Mobile browsers hide their bars while scrolling, so the visible area grows and shrinks.
+     The scene's background fills the largest size (100lvh), while the content is laid out in
+     the smallest one (100svh, measured by a probe), so nothing ends up under the bars and no
+     empty strip shows below the scene when they collapse. */
+  const probe = document.createElement("div");
+  probe.style.cssText = "position:fixed;left:0;top:0;width:1px;height:100vh;height:100svh;visibility:hidden;pointer-events:none";
+  body.appendChild(probe);
+  const safeH = () => Math.min(probe.offsetHeight || innerHeight, pin.clientHeight);
   function setScale() {
-    const mob = isMobile();
+    const mob = isMobile(), H = safeH();
     const bw = mob ? 390 : 1440;
-    const s = mob ? pin.clientWidth / bw : Math.min(pin.clientWidth / bw, pin.clientHeight / 900);
-    const bh = mob ? pin.clientHeight / s : 900;
+    const s = mob ? pin.clientWidth / bw : Math.min(pin.clientWidth / bw, H / 900);
+    const bh = mob ? H / s : 900;
     board.style.setProperty("--s", s.toFixed(4));
     board.style.height = mob ? bh.toFixed(1) + "px" : "";
+    board.style.top = (H / 2).toFixed(1) + "px";
     if (mob) placeStageMobile(bh); else stage.removeAttribute("style");
     if (cw) fit();
-    const boardTop = (pin.clientHeight - bh * s) / 2;  // wall/floor line behind the cat, a bit above the soles
+    const boardTop = (H - bh * s) / 2;  // wall/floor line behind the cat, a bit above the soles
     const horizon = stage.offsetTop + stage.offsetHeight * (BASE - 0.085);
     pin.style.setProperty("--horizon", Math.round(boardTop + horizon * s) + "px");
   }
