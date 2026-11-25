@@ -11,8 +11,8 @@
   <meta property="og:image" content="assets/cat/poster.webp">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preload" href="assets/fonts/unbounded-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="assets/fonts/jetbrains-mono-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="assets/cat/poster.webp" as="image">
+  <link rel="preload" href="assets/fonts/unbounded-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/cat/seq/000.webp" as="image">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="is-loading">
@@ -130,20 +130,7 @@
         </ul>
 
         <div class="hero__stage">
-          <div class="reticle" id="reticle" aria-hidden="true">
-            <svg viewBox="0 0 400 400">
-              <path class="reticle__arc" d="M 58 258 A 150 150 0 1 1 342 258"/>
-              <circle class="reticle__ring reticle__ring--dash" cx="200" cy="200" r="168"/>
-              <g class="reticle__ticks"></g>
-              <path class="reticle__cross" d="M200 22v46M28 200h46M326 200h46"/>
-            </svg>
-            <span class="reticle__label mono"><b id="angle">000°</b></span>
-          </div>
-          <video class="cat" id="cat" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto"
-                 poster="assets/cat/poster.webp" aria-label="Black cat mascot in a hoodie, turning around">
-            <source src="assets/cat/cat.mp4" type="video/mp4">
-            <source src="assets/cat/cat.webm" type="video/webm">
-          </video>
+          <canvas class="cat" id="cat" role="img" aria-label="Black cat mascot in a hoodie"></canvas>
         </div>
 
         <div class="haze haze--front" aria-hidden="true"></div>

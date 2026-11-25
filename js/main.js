@@ -19,15 +19,6 @@
   tick(); setInterval(tick, 1000);
 
   /* ---------- decorative bits ---------- */
-  const svgNS = "http://www.w3.org/2000/svg";
-  const ticks = $(".reticle__ticks");
-  for (let i = 0; i < 72; i++) {
-    const a = (i / 72) * Math.PI * 2, r1 = 190, r2 = i % 6 === 0 ? 176 : 184;
-    const l = document.createElementNS(svgNS, "line");
-    l.setAttribute("x1", 200 + Math.cos(a) * r1); l.setAttribute("y1", 200 + Math.sin(a) * r1);
-    l.setAttribute("x2", 200 + Math.cos(a) * r2); l.setAttribute("y2", 200 + Math.sin(a) * r2);
-    ticks.appendChild(l);
-  }
   /* ---------- text scramble (HUD labels) ---------- */
   const GLYPHS = "!<>-_\\/[]{}—=+*^?#01ABCDEFXZ";
   function scramble(el) {
@@ -124,22 +115,73 @@
     });
   }
 
-  /* ---------- cat video ----------
-     A muted 10-second 360° turn that loops. The reticle angle follows the video. */
-  const video = $("#cat");
-  video.muted = true;
-  const angleEl = $("#angle");
-  let heroP = 0;
-  gsap.ticker.add(() => {
-    if (!video.duration) return;
-    angleEl.textContent = String(Math.round((video.currentTime / video.duration) * 360) % 360).padStart(3, "0") + "°";
+  /* ---------- cat: 120 frames of a 360° turn, driven by scroll ----------
+     Frames load in two passes (every 4th first) so the page can start sooner.
+     The canvas draws the nearest frames, cross-fades between neighbours and
+     paints a soft mirror reflection on the floor. */
+  const FRAMES = 120, BASE = 0.80;                 // feet sit at 80% of the frame height
+  const canvas = $("#cat"), ctx = canvas.getContext("2d");
+  const imgs = new Array(FRAMES);
+  const src = i => `assets/cat/seq/${String(i).padStart(3, "0")}.webp`;
+  const load = i => new Promise(res => {
+    const im = new Image(); im.decoding = "async";
+    im.onload = () => { imgs[i] = im; res(); }; im.onerror = res; im.src = src(i);
   });
-  // pause when the hero is off screen, resume when it comes back
-  new IntersectionObserver(([e]) => {
-    if (reduce) return;
-    e.isIntersecting ? video.play().catch(() => {}) : video.pause();
-  }, { threshold: 0.05 }).observe($("#hero"));
-  if (reduce) { video.removeAttribute("autoplay"); video.pause(); }
+  const firstPass = [], rest = [];
+  for (let i = 0; i < FRAMES; i++) (i % 4 === 0 ? firstPass : rest).push(i);
+  const firstLoads = firstPass.map(load);
+  const firstReady = Promise.all(firstLoads);
+  firstReady.then(() => rest.reduce((p, i) => p.then(() => load(i)), Promise.resolve()));
+
+  const nearest = i => {                            // closest loaded frame
+    for (let d = 0; d < FRAMES; d++) {
+      const a = imgs[(i + d) % FRAMES]; if (a) return a;
+      const b = imgs[(i - d + FRAMES) % FRAMES]; if (b) return b;
+    }
+    return null;
+  };
+  let cw = 0, ch = 0;
+  const fit = () => {
+    const r = canvas.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+    cw = canvas.width = Math.round(r.width * dpr); ch = canvas.height = Math.round(r.height * dpr);
+    drawn = -1;
+  };
+  const drawOne = (im, alpha) => {
+    if (!im) return;
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(im, 0, 0, cw, ch);
+    // reflection: mirrored below the floor line, faded out
+    ctx.save();
+    ctx.globalAlpha = alpha * 0.22;
+    ctx.translate(0, ch * BASE * 2);
+    ctx.scale(1, -1);
+    ctx.drawImage(im, 0, 0, cw, ch);
+    ctx.restore();
+  };
+  const turn = { target: 0, cur: 0 };               // in frames
+  let drawn = -1;
+  function renderCat() {
+    turn.cur += (turn.target - turn.cur) * 0.14;
+    if (Math.abs(turn.target - turn.cur) < 0.002) turn.cur = turn.target;
+    if (turn.cur === drawn || !cw) return;
+    drawn = turn.cur;
+    const v = ((turn.cur % FRAMES) + FRAMES) % FRAMES;
+    const f = Math.floor(v), frac = v - f;
+    ctx.clearRect(0, 0, cw, ch);
+    drawOne(nearest(f), 1);
+    if (frac > 0.01) drawOne(nearest((f + 1) % FRAMES), frac);
+    ctx.globalAlpha = 1;
+    // fade the reflection into the floor
+    ctx.globalCompositeOperation = "destination-out";
+    const y0 = ch * BASE, g = ctx.createLinearGradient(0, y0, 0, ch);
+    g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(0.55, "rgba(0,0,0,1)");
+    ctx.fillStyle = g; ctx.fillRect(0, y0, cw, ch - y0);
+    ctx.globalCompositeOperation = "source-over";
+  }
+  fit(); addEventListener("resize", fit);
+  firstReady.then(() => { drawn = -1; });
+  gsap.ticker.add(renderCat);
+  let heroP = 0;
 
   if (hover) {
     const stageX = gsap.quickTo(".hero__stage", "x", { duration: 1.4, ease: "power3" });
@@ -156,13 +198,7 @@
   const countEl = $("#loaderCount"), barEl = $("#loaderBar"), statusEl = $("#loaderStatus");
   const shown = { v: 0 };
   let target = 0;
-  const videoReady = new Promise(res => {
-    if (video.readyState >= 3) return res();
-    video.addEventListener("canplay", res, { once: true });
-    video.addEventListener("error", res, { once: true });
-  });
-  const posterReady = new Promise(res => { const i = new Image(); i.onload = i.onerror = res; i.src = video.poster; });
-  const jobs = [videoReady, posterReady, document.fonts ? document.fonts.ready : Promise.resolve()];
+  const jobs = [...firstLoads, document.fonts ? document.fonts.ready : Promise.resolve()];
   let done = 0;
   jobs.forEach(p => p.then(() => { done++; target = Math.round((done / jobs.length) * 100); }));
   const minTime = reduce ? 300 : 1900, t0 = performance.now();
@@ -199,9 +235,6 @@
   }
 
   /* ---------- hero entrance ---------- */
-  const arc = $(".reticle__arc");
-  const arcLen = arc.getTotalLength();
-  gsap.set(arc, { strokeDasharray: arcLen, strokeDashoffset: arcLen });
   function heroIntro() {
     return gsap.timeline()
       // the light flickers on, like a studio spot
@@ -209,8 +242,6 @@
       .to(".hero__light", { opacity: 1, duration: 0.6 }, 0.25)
       .from("#cat", { opacity: 0, scale: 1.04, filter: "brightness(0)", duration: 1.8, ease: "power2.out" }, 0.15)
       .from(".crowd", { opacity: 0, duration: 2.2, ease: "power2.out" }, 0.4)
-      .to(arc, { strokeDashoffset: 0, duration: 1.4, ease: "power3.inOut" }, 0.5)
-      .from(".reticle__cross", { opacity: 0, scale: 0.6, transformOrigin: "50% 50%", duration: 0.8, ease: "expo.out" }, 0.8)
       .from(".hero__name--l .hero__word", { yPercent: 105, duration: 1.2, ease: "expo.out" }, 0.55)
       .from(".hero__name--r .hero__word", { yPercent: 105, duration: 1.2, ease: "expo.out" }, 0.62)
       .from(".hero__role", { yPercent: 110, duration: 1, ease: "expo.out" }, 0.8)
@@ -240,6 +271,7 @@
         trigger: "#hero", start: "top top", end: "bottom bottom", scrub: 0.6, invalidateOnRefresh: true,
         onUpdate: self => {
           heroP = self.progress;
+          turn.target = gsap.utils.clamp(0, 1, (heroP - 0.04) / 0.88) * FRAMES;
           huds.forEach((h, i) => setHud(i, isMobile()
             ? heroP >= hudAt[i] && heroP < (hudAt[i + 1] ?? 0.9)
             : heroP >= hudAt[i]));
@@ -252,13 +284,10 @@
       .to(".hero__list", { opacity: 0, x: -30, duration: 0.25 }, 0)
       .to(".crowd--l", { xPercent: -18, duration: 1 }, 0)
       .to(".crowd--r", { xPercent: 18, duration: 1 }, 0)
-      .to(".reticle svg", { rotate: 90, duration: 0.9 }, 0.05)
-      .to([".reticle__ticks", ".reticle__ring--dash", ".reticle__label"], { opacity: 1, duration: 0.12 }, 0.08)
       .to(".hero__stage", { scale: 1.12, yPercent: 3, duration: 1 }, 0)        // slow camera push-in
       .to(".hero__light--core", { scaleX: 1.25, duration: 0.5 }, 0.1)
       .to([".hero__scroll", ".cta"], { opacity: 0, duration: 0.1 }, 0.02)
       .to(".cta", { opacity: 1, duration: 0.1 }, 0.9)
-      .to([".reticle__ticks", ".reticle__ring--dash", ".reticle__label"], { opacity: 0, duration: 0.1 }, 0.9)
       .to(".hero__name--l, .hero__name--r", { xPercent: 0, yPercent: 0, opacity: 1, duration: 0.1 }, 0.9);
   } else {
     huds.forEach(h => { h.classList.add("is-in"); gsap.set(h, { opacity: 1, x: 0 }); });
