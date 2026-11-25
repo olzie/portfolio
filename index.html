@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Olha Akimova — Senior SMM Manager</title>
+  <meta name="description" content="Olha Akimova (Olzie) — Senior SMM Manager. iGaming, travel, HoReCa, FMCG. Strategy, content, community and growth across 7 markets.">
+  <meta name="theme-color" content="#04060c">
+  <meta property="og:title" content="Olha Akimova — Senior SMM Manager">
+  <meta property="og:description" content="Social media that grows brands. 5+ years, 7 markets, iGaming LATAM & Africa.">
+  <meta property="og:image" content="assets/cat/f0.webp">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/unbounded-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/jetbrains-mono-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/cat/f0.webp" as="image">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="is-loading">
+
+  <!-- ================= LOADER ================= -->
+  <div class="loader" id="loader" aria-hidden="true">
+    <div class="loader__panel loader__panel--top"></div>
+    <div class="loader__panel loader__panel--bottom"></div>
+
+    <div class="loader__hud loader__hud--tl mono">// OLZIE <span data-i18n="loader.loading">LOADING</span><span class="blink">_</span></div>
+    <div class="loader__hud loader__hud--tr mono">SMM_SYSTEM v1.0</div>
+    <div class="loader__hud loader__hud--bl mono"><span data-i18n="loader.tz">LOCAL TIME</span> <span class="js-clock">00:00:00</span> UTC+2</div>
+    <div class="loader__hud loader__hud--br mono">NO_000 / <span data-i18n="loader.boot">BOOTING PORTFOLIO</span></div>
+
+    <div class="loader__core">
+      <div class="loader__eyes" aria-hidden="true"><i></i><i></i></div>
+      <div class="loader__count"><span id="loaderCount">000</span><sup>%</sup></div>
+      <div class="loader__bar"><i id="loaderBar"></i></div>
+      <div class="loader__status mono" id="loaderStatus">INIT_ASSETS</div>
+    </div>
+  </div>
+
+  <!-- ================= HEADER ================= -->
+  <header class="header" id="header">
+    <div class="header__line"><i class="header__progress" id="scrollProgress"></i></div>
+    <a class="header__logo" href="#top" aria-label="Olzie — home">
+      <span class="header__logo-word">OLZIE</span>
+      <span class="header__logo-sub mono">SMM / ©2026</span>
+    </a>
+
+    <div class="header__center mono" aria-hidden="true">
+      <span class="header__cross">×</span>
+    </div>
+
+    <nav class="header__right" aria-label="Main">
+      <div class="lang" role="group" aria-label="Language">
+        <button class="lang__btn" data-lang="en" type="button">EN</button>
+        <button class="lang__btn" data-lang="uk" type="button">UA</button>
+        <i class="lang__pill" aria-hidden="true"></i>
+      </div>
+      <a class="pill pill--cta magnetic" href="#contact">
+        <span data-i18n="nav.talk">Let’s talk</span>
+        <span class="pill__icon" aria-hidden="true">
+          <svg viewBox="0 0 16 16"><path d="M4 12L12 4M6 4h6v6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        </span>
+      </a>
+      <button class="pill pill--menu" id="menuBtn" type="button" aria-expanded="false" aria-controls="menu">
+        <span data-i18n="nav.menu">Menu</span>
+        <span class="burger" aria-hidden="true"><i></i><i></i></span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- ================= MENU OVERLAY ================= -->
+  <div class="menu" id="menu" aria-hidden="true">
+    <div class="menu__grid"></div>
+    <ul class="menu__list">
+      <li><a href="#top"><span class="mono">NO_001</span><b data-i18n="menu.home">Home</b></a></li>
+      <li><a href="#numbers"><span class="mono">NO_002</span><b data-i18n="menu.numbers">Numbers</b></a></li>
+      <li><a href="#cases"><span class="mono">NO_003</span><b data-i18n="menu.cases">Cases</b></a></li>
+      <li><a href="#skills"><span class="mono">NO_004</span><b data-i18n="menu.skills">Skills</b></a></li>
+      <li><a href="#contact"><span class="mono">NO_005</span><b data-i18n="menu.contact">Contact</b></a></li>
+    </ul>
+    <div class="menu__foot mono">
+      <a href="https://www.linkedin.com/in/olha-akimova" target="_blank" rel="noopener">LinkedIn ↗</a>
+      <span data-i18n="menu.soon">More blocks coming soon</span>
+    </div>
+  </div>
+
+  <main id="top">
+    <!-- ================= HERO ================= -->
+    <section class="hero" id="hero">
+      <div class="hero__pin">
+        <div class="hero__bg" aria-hidden="true">
+          <div class="hero__grid"></div>
+          <div class="hero__beam"></div>
+          <div class="hero__beam hero__beam--wide"></div>
+          <div class="hero__spot" id="heroSpot"></div>
+          <div class="hero__stars" id="heroStars"></div>
+        </div>
+
+        <h1 class="hero__title" aria-label="Olzie — Olha Akimova, Senior SMM Manager">
+          <span class="hero__word" aria-hidden="true">
+            <span class="hero__char">O</span><span class="hero__char">L</span><span class="hero__char">Z</span><span class="hero__char">I</span><span class="hero__char">E</span>
+          </span>
+        </h1>
+
+        <div class="hero__stage">
+          <div class="reticle" id="reticle" aria-hidden="true">
+            <svg viewBox="0 0 400 400">
+              <circle class="reticle__ring" cx="200" cy="200" r="190"/>
+              <circle class="reticle__ring reticle__ring--dash" cx="200" cy="200" r="168"/>
+              <g class="reticle__ticks"></g>
+              <path class="reticle__cross" d="M200 0v40M200 360v40M0 200h40M360 200h40"/>
+            </svg>
+            <span class="reticle__label mono">TARGET_LOCK // <b id="angle">000°</b></span>
+          </div>
+
+          <div class="cat" id="cat">
+            <div class="cat__floor" aria-hidden="true"></div>
+            <div class="cat__frames" id="catFrames">
+              <img src="assets/cat/f0.webp" alt="Black cat mascot in a hoodie" class="is-on" width="900" height="900" decoding="async" fetchpriority="high">
+              <img src="assets/cat/f1.webp" alt="" width="900" height="900" decoding="async">
+              <img src="assets/cat/f2.webp" alt="" width="900" height="900" decoding="async">
+              <img src="assets/cat/f3.webp" alt="" width="900" height="900" decoding="async">
+              <img src="assets/cat/f4.webp" alt="" width="900" height="900" decoding="async">
+              <img src="assets/cat/f5.webp" alt="" width="900" height="900" decoding="async">
+              <img src="assets/cat/f6.webp" alt="" width="900" height="900" decoding="async">
+              <img src="assets/cat/f7.webp" alt="" width="900" height="900" decoding="async">
+            </div>
+          </div>
+        </div>
+
+        <!-- HUD labels -->
+        <div class="hud hud--1">
+          <span class="hud__tag mono">NO_001</span>
+          <p class="mono" data-i18n="hero.n1">OLHA AKIMOVA. <br>SENIOR SMM MANAGER. <br>5+ YEARS IN SOCIAL.</p>
+        </div>
+        <div class="hud hud--2">
+          <span class="hud__tag mono">NO_002</span>
+          <p class="mono" data-i18n="hero.n2">iGAMING SINCE 2024. <br>LATAM &amp; AFRICA. <br>LAUNCHES FROM ZERO.</p>
+        </div>
+        <div class="hud hud--3">
+          <span class="hud__tag mono">NO_003</span>
+          <p class="mono" data-i18n="hero.n3">STRATEGY → CONTENT → <br>COMMUNITY → GROWTH. <br>7 MARKETS.</p>
+        </div>
+
+        <div class="hero__meta hero__meta--l mono">
+          <span>BR · KE · KZ · PL · UA · US · AE</span>
+        </div>
+        <div class="hero__meta hero__meta--r mono">
+          <span class="hero__scroll"><i></i><span data-i18n="hero.scroll">SCROLL TO EXPLORE</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- placeholder so the hero pin has room to finish; next blocks go here -->
+    <section class="next" id="numbers">
+      <p class="mono next__note" data-i18n="next.note">// NEXT BLOCK: NUMBERS — IN PROGRESS</p>
+    </section>
+  </main>
+
+  <script src="vendor/gsap.min.js"></script>
+  <script src="vendor/ScrollTrigger.min.js"></script>
+  <script src="vendor/lenis.min.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
