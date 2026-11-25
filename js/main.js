@@ -179,7 +179,16 @@
     const im = bmp[f] || nearest(f);
     if (!im || !cw) return;
     drawn = bmp[f] ? f : -1;
-    const k = cw / CROP.size, dx = CROP.x * k, dy = CROP.y * k, dw = CROP.w * k, dh = CROP.h * k;
+    const k = cw / CROP.size;
+    let dx = CROP.x * k, dy = CROP.y * k, dw = CROP.w * k, dh = CROP.h * k;
+    /* The last frames of the turn drift ~5px taller and ~3px right of frame 0, so the cat
+       hopped when the turn landed back on it. Ease the last 20 frames into frame 0's size
+       and place (scaled about the soles, under the head), a fraction of a pixel per frame. */
+    if (f >= 100) {
+      const t = (f - 99) / 20, s = 1 - 0.0072 * t;
+      const ax = (CROP.x + 383) * k, ay = ch * BASE;
+      dx = ax + (dx - ax) * s - 3.4 * t * k; dy = ay + (dy - ay) * s; dw *= s; dh *= s;
+    }
     ctx.clearRect(0, 0, cw, ch);
     groundCat(f);
     ctx.drawImage(im, dx, dy, dw, dh);
@@ -283,7 +292,7 @@
   }
 
   /* ---------- scroll: progress bar, cat frame, scene states ---------- */
-  const bar = $("#scrollProgress"), huds = $$(".hud");
+  const bar = $("#scrollProgress"), huds = $$(".hud"), beam = $(".hero__light");
   const hudAt = [0.14, 0.4, 0.64], HUD_OUT = 0.86;
   let heroTop = 0, heroLen = 1, docLen = 1;
   const measure = () => {
@@ -295,6 +304,7 @@
     const y = lenis ? lenis.scroll : scrollY;
     bar.style.transform = `scaleX(${clamp(y / docLen, 0, 1).toFixed(4)})`;
     const p = clamp((y - heroTop) / heroLen, 0, 1);
+    beam.style.setProperty("--beam", p.toFixed(3));
     // one full turn between 4% and 92% of the scene, ending face-forward, then a short hold
     turn.target = clamp((p - 0.04) / 0.88, 0, 1) * FRAMES;
     kick();
