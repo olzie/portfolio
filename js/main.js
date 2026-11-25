@@ -126,7 +126,7 @@
   let cw = 0, ch = 0, drawn = -1, needDraw = true;
   function fit() {
     const r = canvas.getBoundingClientRect();
-    const scale = Math.min(devicePixelRatio || 1, 2, 1800 / Math.max(r.width, 1));   // sharp on retina
+    const scale = Math.min(devicePixelRatio || 1, 2, 1400 / Math.max(r.width, 1));   // sharper on retina, still cheap to draw
     const w = Math.round(r.width * scale), h = Math.round(r.height * scale);
     if (!w || !h) return;
     if (w === cw && h === ch && drawn !== -1) return;   // same size: keep what's on the canvas
@@ -213,7 +213,6 @@
       dx = ax + (dx - ax) * s - 3.4 * t * k; dy = ay + (dy - ay) * s; dw *= s; dh *= s;
     }
     ctx.clearRect(0, 0, cw, ch);
-    ctx.imageSmoothingQuality = "high";
     // reflection: the cat mirrored at the floor line, short and faint, faded out downwards
     const y0 = ch * BASE, rh = ch * 0.065;
     ctx.save();
