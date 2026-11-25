@@ -3,10 +3,6 @@
    Add a language: copy the "en" object, translate, add a button in the header. */
 window.I18N = {
   en: {
-    "loader.name": "OLGA AKIMOVA",
-    "loader.loading": "LOADING",
-    "loader.tz": "LOCAL TIME",
-    "loader.boot": "BOOTING PORTFOLIO",
     "nav.talk": "Let’s talk",
     "nav.menu": "Menu",
     "menu.home": "Home",
@@ -31,13 +27,8 @@ window.I18N = {
     "hero.n3": "AI CONTENT &amp; AUTOMATION. <br>VIRTUAL CREATORS. <br>2× OUTPUT, SAME TEAM.",
     "hero.scroll": "SCROLL TO EXPLORE",
     "next.note": "// NEXT BLOCK: NUMBERS — IN PROGRESS",
-    "status": ["INIT_ASSETS", "LOADING_CAT", "CALIBRATING_REACH", "SYNCING_MARKETS", "READY"]
   },
   uk: {
-    "loader.name": "ОЛЬГА АКІМОВА",
-    "loader.loading": "ЗАВАНТАЖЕННЯ",
-    "loader.tz": "ЛОКАЛЬНИЙ ЧАС",
-    "loader.boot": "ЗАПУСК ПОРТФОЛІО",
     "nav.talk": "Поговорімо",
     "nav.menu": "Меню",
     "menu.home": "Головна",
@@ -62,7 +53,6 @@ window.I18N = {
     "hero.n3": "AI-КОНТЕНТ І АВТОМАТИЗАЦІЯ. <br>ВІРТУАЛЬНІ КРЕАТОРИ. <br>×2 КОНТЕНТУ БЕЗ НОВИХ ЛЮДЕЙ.",
     "hero.scroll": "ГОРТАЙ ДАЛІ",
     "next.note": "// НАСТУПНИЙ БЛОК: ЦИФРИ — У РОБОТІ",
-    "status": ["ІНІЦІАЛІЗАЦІЯ", "ЗАВАНТАЖУЮ КОТА", "РАХУЮ ОХОПЛЕННЯ", "СИНХРОНІЗУЮ РИНКИ", "ГОТОВО"]
   }
 };
 

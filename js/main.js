@@ -11,15 +11,6 @@
   const brands = (navigator.userAgentData && navigator.userAgentData.brands) || [];
   if (brands.some(b => /Chromium/i.test(b.brand))) document.documentElement.classList.add("refract");
 
-  /* ---------- live clock (Kyiv time) ---------- */
-  const clocks = $$(".js-clock");
-  const tick = () => {
-    const t = new Date().toLocaleTimeString("en-GB", { timeZone: "Europe/Kyiv", hour12: false });
-    clocks.forEach(c => (c.textContent = t));
-  };
-  tick(); setInterval(tick, 1000);
-
-  /* ---------- decorative bits ---------- */
   /* ---------- text scramble (HUD labels) ---------- */
   const GLYPHS = "!<>-_\\/[]{}—=+*^?#01ABCDEFXZ";
   function scramble(el) {
@@ -214,29 +205,26 @@
     });
   }
 
-  /* ---------- loader ---------- */
-  const statusList = () => (window.I18N[window.currentLang] || window.I18N.en).status;
-  const countEl = $("#loaderCount"), barEl = $("#loaderBar"), statusEl = $("#loaderStatus");
+  /* ---------- loader (minimal) ----------
+     Waits for the cat frames and fonts, then fades out. Never longer than 8 s. */
+  const countEl = $("#loaderCount"), barEl = $("#loaderBar");
   const shown = { v: 0 };
-  let target = 0;
+  let target = 0, done = 0;
   const jobs = [...firstLoads, document.fonts ? document.fonts.ready : Promise.resolve()];
-  let done = 0;
   jobs.forEach(p => p.then(() => { done++; target = Math.round((done / jobs.length) * 100); }));
-  const minTime = reduce ? 300 : 1900, t0 = performance.now();
+  const minTime = reduce ? 0 : 500, t0 = performance.now();
   const render = () => {
-    const cap = Math.min(100, ((performance.now() - t0) / minTime) * 100);
+    const cap = Math.min(100, ((performance.now() - t0) / Math.max(minTime, 1)) * 100);
     const goal = Math.min(target, cap);
-    shown.v += (goal - shown.v) * 0.12;
-    if (goal - shown.v < 0.4) shown.v = goal;
+    shown.v += (goal - shown.v) * 0.2;
+    if (goal - shown.v < 0.5) shown.v = goal;
     const v = Math.round(shown.v);
-    countEl.textContent = String(v).padStart(3, "0");
+    countEl.textContent = v + "%";
     barEl.style.transform = `scaleX(${v / 100})`;
-    const st = statusList();
-    statusEl.textContent = st[Math.min(st.length - 1, Math.floor((v / 100) * (st.length - 1)))];
     if (v >= 100) return finishLoader();
     requestAnimationFrame(render);
   };
-  setTimeout(() => { target = 100; }, 8000);       // never hang on the loader
+  setTimeout(() => { target = 100; }, 8000);
   requestAnimationFrame(render);
 
   function finishLoader() {
@@ -249,11 +237,8 @@
         ScrollTrigger.refresh();
       }
     })
-      .to(".loader__eyes i", { scaleY: 0.1, duration: 0.12, yoyo: true, repeat: 1 })
-      .to([".loader__core", ".loader__hud"], { opacity: 0, y: -10, duration: 0.35, stagger: 0.02 }, "+=0.1")
-      .to(".loader__panel--top", { yPercent: -101, duration: 1, ease: "expo.inOut" }, "<0.1")
-      .to(".loader__panel--bottom", { yPercent: 101, duration: 1, ease: "expo.inOut" }, "<")
-      .add(heroIntro(), "<0.35");
+      .to("#loader", { opacity: 0, duration: 0.6, ease: "power2.out" }, 0.1)
+      .add(heroIntro(), 0.15);
   }
 
   /* ---------- hero entrance ---------- */

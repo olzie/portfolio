@@ -18,22 +18,11 @@
 </head>
 <body class="is-loading">
 
-  <!-- ================= LOADER ================= -->
+  <!-- ================= LOADER =================
+       Minimal: a thin line and a small number while the cat frames load. -->
   <div class="loader" id="loader" aria-hidden="true">
-    <div class="loader__panel loader__panel--top"></div>
-    <div class="loader__panel loader__panel--bottom"></div>
-
-    <div class="loader__hud loader__hud--tl mono">// <span data-i18n="loader.name">OLGA AKIMOVA</span> — <span data-i18n="loader.loading">LOADING</span><span class="blink">_</span></div>
-    <div class="loader__hud loader__hud--tr mono">SMM_SYSTEM v1.0</div>
-    <div class="loader__hud loader__hud--bl mono"><span data-i18n="loader.tz">LOCAL TIME</span> <span class="js-clock">00:00:00</span> UTC+2</div>
-    <div class="loader__hud loader__hud--br mono"><span data-i18n="loader.boot">BOOTING PORTFOLIO</span></div>
-
-    <div class="loader__core">
-      <div class="loader__eyes" aria-hidden="true"><i></i><i></i></div>
-      <div class="loader__count"><span id="loaderCount">000</span><sup>%</sup></div>
-      <div class="loader__bar glass"><i id="loaderBar"></i></div>
-      <div class="loader__status mono" id="loaderStatus">INIT_ASSETS</div>
-    </div>
+    <div class="loader__line"><i id="loaderBar"></i></div>
+    <div class="loader__count mono" id="loaderCount">0%</div>
   </div>
 
   <!-- scroll progress: how much of the page is behind you -->
