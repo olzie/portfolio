@@ -189,10 +189,32 @@
      The hero is laid out on a fixed artboard (1440×900, or 390×844 on portrait screens)
      and scaled as a whole, so window size and browser zoom never move things around. */
   const hero = $("#hero"), pin = $(".hero__pin"), board = $("#board"), title = $("#heroTitle"), row = $("#heroRow"), stage = $("#stage");
+  /* Phones: the artboard is fitted to the width and stretched to the real screen height
+     (which varies a lot: Safari with both bars is ~650px, Chrome ~780px). The name sits at
+     the top, the button and the note at the bottom, and the cat is sized to fill the space
+     between them, with its ear tips just touching the role line. */
+  function placeStageMobile(bh) {
+    const titleBottom = title.offsetTop + title.offsetHeight;
+    const hudH = Math.max(...huds.map(h => h.offsetHeight), 40);
+    const solesMax = bh - 112 - hudH - 30;            // above the note, leaving room for the reflection
+    const earsMin = titleBottom - 8;
+    const span = solesMax - earsMin;                    // ears-to-soles is 70% of the stage
+    const size = clamp(span / 0.70, 300, 470);
+    const soles = solesMax - Math.max(0, span - 0.70 * size) / 2;   // tall screens: centre the cat in the gap
+    Object.assign(stage.style, {
+      width: size + "px", height: size + "px",
+      left: (390 - size) / 2 + "px", top: Math.round(soles - BASE * size) + "px"
+    });
+  }
   function setScale() {
-    const bw = isMobile() ? 390 : 1440, bh = isMobile() ? 844 : 900;
-    const s = Math.min(pin.clientWidth / bw, pin.clientHeight / bh);
+    const mob = isMobile();
+    const bw = mob ? 390 : 1440;
+    const s = mob ? pin.clientWidth / bw : Math.min(pin.clientWidth / bw, pin.clientHeight / 900);
+    const bh = mob ? pin.clientHeight / s : 900;
     board.style.setProperty("--s", s.toFixed(4));
+    board.style.height = mob ? bh.toFixed(1) + "px" : "";
+    if (mob) placeStageMobile(bh); else stage.removeAttribute("style");
+    if (cw) fit();
     const boardTop = (pin.clientHeight - bh * s) / 2;  // wall/floor line behind the cat, a bit above the soles
     const horizon = stage.offsetTop + stage.offsetHeight * (BASE - 0.085);
     pin.style.setProperty("--horizon", Math.round(boardTop + horizon * s) + "px");
@@ -205,6 +227,9 @@
     if (isMobile()) {
       fs = 100 * (348 / w);
       title.style.top = "";
+      title.style.setProperty("--fs", fs.toFixed(2) + "px");
+      setScale();                                       // the cat's place depends on the title height
+      return;
     } else {
       const H = stage.offsetHeight, TOP_MIN = 92;
       const earTop = stage.offsetTop + 0.10 * H;       // cat 70% tall with soles at 80% -> ears at 10%

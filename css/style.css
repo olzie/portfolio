@@ -148,7 +148,7 @@ body::after{
 
 .corner{position:absolute;z-index:5;width:34px;height:34px}
 .corner--tl{left:36px;top:96px;border-left:2px solid var(--blue);border-top:2px solid var(--blue)}
-.corner--br{right:300px;bottom:76px}
+.corner--br{right:364px;bottom:40px}
 .corner--br::before,.corner--br::after{content:"";position:absolute;background:var(--blue)}
 .corner--br::before{left:16px;top:0;bottom:0;width:2px}
 .corner--br::after{top:16px;left:0;right:0;height:2px}
@@ -223,19 +223,21 @@ body::after{
 
 /* ---------- portrait screens: a 390×844 artboard ---------- */
 @media (max-aspect-ratio:3/4){
-  .board{width:390px;height:844px}
+  .vignette{z-index:2}   /* phones: the full-width button sits low, keep it out of the shade */
+  .board{width:390px;height:844px}   /* width-fitted; JS sets the height to the real screen height */
+  .hero__pattern::before{background-size:230px 230px}
   .board .mono{font-size:10.5px}
-  .corner--tl{left:10px;top:72px;width:26px;height:26px}
+  .corner--tl{left:10px;top:70px;width:26px;height:26px}
   .corner--br,.hero__list,.hero__scroll{display:none}
-  .hero__title{left:26px;right:16px;top:92px;margin:0;width:auto;align-items:flex-start}
+  .hero__title{left:26px;right:16px;top:84px;margin:0;width:auto;align-items:flex-start}
   .hero__row{flex-direction:column;gap:0}
   .hero__role{font-size:15px}
-  .hero__stage{left:-45px;top:290px;width:480px;height:480px}
-  .hud{max-width:none;left:16px!important;right:16px!important;top:auto!important;bottom:104px;flex-direction:column!important;gap:6px;text-align:left!important}
+  .hero__stage{left:-40px;top:300px;width:470px;height:470px}   /* real size and place are set by JS */
+  .hud{max-width:none;left:16px!important;right:16px!important;top:auto!important;bottom:112px;flex-direction:column!important;gap:6px;text-align:left!important}
   .hud::before,.hud::after{display:none}
   .hud p br{display:none}
-  .cta{left:16px;right:16px;bottom:16px;width:auto;height:88px;padding:0 24px;flex-direction:row;align-items:center;border-radius:22px}
-  .cta__text{font-size:19px}
+  .cta{left:16px;right:16px;bottom:16px;width:auto;height:82px;padding:0 20px 0 22px;flex-direction:row;align-items:center;border-radius:22px}
+  .cta__text{font-size:18px;white-space:nowrap}
   .cta__text br{display:none}
   .cta__arrow{width:42px;height:42px;align-self:center}
 }
