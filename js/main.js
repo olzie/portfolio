@@ -306,7 +306,11 @@
   const pin = $(".hero__pin"), board = $("#board"), title = $("#heroTitle"), row = $("#heroRow"), stage = $("#stage");
   function setScale() {
     const bw = isMobile() ? 390 : 1440, bh = isMobile() ? 844 : 900;
-    board.style.setProperty("--s", Math.min(pin.clientWidth / bw, pin.clientHeight / bh).toFixed(4));
+    const s = Math.min(pin.clientWidth / bw, pin.clientHeight / bh);
+    board.style.setProperty("--s", s.toFixed(4));
+    // floor line in screen pixels, a little above the cat's feet (artboard y: 700 desktop, 640 portrait)
+    const boardTop = (pin.clientHeight - bh * s) / 2;
+    pin.style.setProperty("--horizon", Math.round(boardTop + (isMobile() ? 640 : 700) * s) + "px");
   }
   function fitTitle() {
     title.style.setProperty("--fs", "100px");
