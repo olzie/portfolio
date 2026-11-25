@@ -221,7 +221,7 @@ body::after{
 
 .hero__scroll{position:absolute;z-index:5;left:0;right:0;margin:0 auto;width:max-content;bottom:40px;display:flex;align-items:center;gap:10px;color:var(--dim);transition:opacity .4s}
 /* while the cat turns the name steps back: a darker but solid colour (opacity would let the dollars show through) */
-.hero.is-turning .hero__title{color:#7c8293;translate:0 -4%}
+.hero.is-turning .hero__title{color:#7c8293}
 .hero.is-turning .hero__role{color:#7c8293}
 .hero.is-turning .hero__role em{color:#3550c4}
 .hero.is-scrolled .hero__list{opacity:0;translate:-30px 0}
