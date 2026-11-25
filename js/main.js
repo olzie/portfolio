@@ -361,6 +361,34 @@
   }
   lenis ? lenis.on("scroll", onScroll) : addEventListener("scroll", onScroll, { passive: true });
 
+  /* ---------- numbers block: rows rise in and the figures count up once, when it comes into view ---------- */
+  const nums = $("#numbers");
+  if (nums) {
+    const counters = $$(".count", nums);
+    const run = () => {
+      nums.classList.add("is-in");
+      counters.forEach((el, i) => {
+        const to = +el.dataset.to, delay = 300 + i * 80, dur = 1600;
+        if (reduce) { el.textContent = to; return; }
+        el.textContent = "0";
+        const t0 = performance.now() + delay;
+        const step = now => {
+          const k = clamp((now - t0) / dur, 0, 1), e = 1 - Math.pow(2, -10 * k);   // fast start, soft landing
+          el.textContent = Math.round(to * (k === 1 ? 1 : e));
+          if (k < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      });
+    };
+    counters.forEach(el => { el.textContent = "0"; });
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver(es => {
+        if (es.some(e => e.isIntersecting)) { io.disconnect(); run(); }
+      }, { threshold: 0.2 });
+      io.observe(nums);
+    } else run();
+  }
+
   /* ---------- loader: waits for the first chunk of frames and the exact fonts ---------- */
   const countEl = $("#loaderCount"), loaderBar = $("#loaderBar"), loader = $("#loader");
   const fontJobs = document.fonts
