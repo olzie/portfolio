@@ -242,7 +242,7 @@
      scroll keep nudging it by a pixel) flipped between two neighbouring frames, e.g. the last
      frame and the front view at the end of the turn, which looked like the cat jumping. */
   function shownFrame() {
-    const atEnd = turn.cur === turn.target && (turn.target <= 0 || turn.target >= FRAMES);
+    const atEnd = turn.cur === turn.target && (turn.target <= 0 || turn.target >= FRAMES - 1);
     const d = turn.cur - turn.shown;
     if (atEnd) turn.shown = Math.round(turn.cur);
     else if (Math.abs(d) >= 0.85) turn.shown += Math.sign(d) * Math.floor(Math.abs(d) + 0.15);   // step, don't skip
@@ -348,7 +348,9 @@
     /* one full turn between 4% and 82% of the scene, then a long hold facing forward until the
        next block arrives. (Ending the turn at 92% put its last frame step right where people
        stop before scrolling on, so the cat snapped to the front view after the motion settled.) */
-    turn.target = clamp((p - 0.04) / 0.78, 0, 1) * FRAMES;
+    // The turn ends on the last frame, not back on frame 0: the video's loop isn't seamless, and the
+    // step from the last frame to the first was a visible snap right as the cat came to rest.
+    turn.target = clamp((p - 0.04) / 0.78, 0, 1) * (FRAMES - 1);
     kick();
     hero.classList.toggle("is-scrolled", p > 0.02);              // CSS hides the list and the scroll hint
     hero.classList.toggle("is-turning", p > 0.02 && p < 0.74);   // CSS dims the name while the cat turns
