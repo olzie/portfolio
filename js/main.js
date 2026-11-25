@@ -81,6 +81,8 @@
      ImageBitmaps, so drawing never stalls. They load in chunks: every 8th frame first
      (the loader waits only for these), then every 4th, every 2nd, then the rest.
      Phones get a lighter set: 60 frames (every 2nd) at 80% size. */
+  // bump when the frames are re-rendered, so a browser never mixes cached old frames with new ones
+  const FRAMES_V = "20261126a";
   const FRAMES = 120, BASE = 0.80;                   // soles at 80% of the frame height
   const CROP = { x: 65, y: 76, w: 757, h: 654, size: 900 };
   const phoneSet = isMobile();
@@ -97,7 +99,7 @@
       if (Math.round(turn.cur) % FRAMES === i) needDraw = true;
     };
     im.onerror = res;
-    im.src = dir + String(i).padStart(3, "0") + ".webp";
+    im.src = dir + String(i).padStart(3, "0") + ".webp?v=" + FRAMES_V;
   });
   const tiers = [8, 4, 2].concat(phoneSet ? [] : [1]);
   const chunks = [];                                   // [[frame indices], ...] in load order
