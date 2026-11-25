@@ -11,30 +11,6 @@
   const brands = (navigator.userAgentData && navigator.userAgentData.brands) || [];
   if (brands.some(b => /Chromium/i.test(b.brand))) document.documentElement.classList.add("refract");
 
-  /* ---------- text scramble (HUD labels) ---------- */
-  const GLYPHS = "!<>-_\\/[]{}—=+*^?#01ABCDEFXZ";
-  function scramble(el) {
-    const html = el.dataset.final || el.innerHTML;
-    el.dataset.final = html;
-    const plain = html.split(/(<br>)/).map(p => (p === "<br>" ? p : p.replace(/&amp;/g, "&")));
-    const total = plain.reduce((n, p) => n + (p === "<br>" ? 0 : p.length), 0);
-    let frame = 0; const dur = Math.min(40, 14 + total * 0.35);
-    cancelAnimationFrame(el._raf);
-    const step = () => {
-      const revealed = Math.floor((frame / dur) * total);
-      let k = 0;
-      el.innerHTML = plain.map(p => {
-        if (p === "<br>") return p;
-        let out = "";
-        for (const ch of p) { out += k < revealed || ch === " " ? ch : GLYPHS[(Math.random() * GLYPHS.length) | 0]; k++; }
-        return out.replace(/&(?!amp;)/g, "&amp;").replace(/</g, "&lt;");
-      }).join("");
-      if (frame++ < dur) el._raf = requestAnimationFrame(step);
-      else el.innerHTML = html;
-    };
-    step();
-  }
-
   /* ---------- smooth scroll ---------- */
   let lenis = null;
   if (!reduce && window.Lenis) {
@@ -81,7 +57,6 @@
       .to(pill, { x: pillX(lang), duration: 0.42, ease: "power3.inOut" }, 0.04)
       .to(pill, { scaleX: 1, scaleY: 1, duration: 0.4, ease: "power3.out" }, 0.3);
     window.setLang(lang);
-    $$(".hud p").forEach(p => { delete p.dataset.final; if (p.closest(".hud").classList.contains("is-in")) scramble(p); });
   }));
 
   /* ---------- glass: caustic highlight follows the cursor ---------- */
@@ -252,7 +227,6 @@
     if (h.classList.contains("is-in") === on) return;
     h.classList.toggle("is-in", on);
     gsap.to(h, { opacity: on ? 1 : 0, x: on ? 0 : (h.classList.contains("hud--2") ? -20 : 20), duration: 0.5, ease: "power3.out", overwrite: true });
-    if (on) scramble(h.querySelector("p"));
   };
   gsap.set(huds, { x: (i, el) => (el.classList.contains("hud--2") ? -20 : 20) });
 
@@ -273,8 +247,6 @@
       // desktop: the name parts drift apart; phone: they float up instead of leaving the screen
       .to(".hero__title", { opacity: 0.28, yPercent: -4, duration: 0.25, ease: "sine.inOut" }, 0)   // name steps back while the cat turns
       .to(".hero__list", { opacity: 0, x: -30, duration: 0.25 }, 0)
-      .to(".hero__stage", { scale: 1.08, duration: 0.46, ease: "sine.inOut" }, 0)     // push in (grows up from the feet)
-      .to(".hero__stage", { scale: 1, duration: 0.46, ease: "sine.inOut" }, 0.46)     // ease back out as the turn completes
       .to(".hero__light--core", { scaleX: 1.25, duration: 0.5 }, 0.1)
       .to(".hero__scroll", { opacity: 0, duration: 0.1 }, 0.02)
       .to(".hero__title", { opacity: 1, yPercent: 0, duration: 0.2, ease: "sine.inOut" }, 0.72)
