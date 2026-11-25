@@ -123,9 +123,13 @@
   function fit() {
     const r = canvas.getBoundingClientRect();
     const scale = Math.min(devicePixelRatio || 1, 2, 1100 / Math.max(r.width, 1));
-    cw = canvas.width = Math.round(r.width * scale);
-    ch = canvas.height = Math.round(r.height * scale);
-    drawn = -1; needDraw = true;
+    const w = Math.round(r.width * scale), h = Math.round(r.height * scale);
+    if (!w || !h) return;
+    if (w === cw && h === ch && drawn !== -1) return;   // same size: keep what's on the canvas
+    // resizing a canvas wipes it, so redraw the current frame right away (no blank frame while dragging the window)
+    cw = canvas.width = w; ch = canvas.height = h;
+    drawn = -1;
+    drawCat(((Math.round(turn.cur) % FRAMES) + FRAMES) % FRAMES);
   }
   function groundCat() {                               // light pool + soft contact shadow under the feet
     ctx.save();

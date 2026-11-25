@@ -203,13 +203,13 @@ body::after{
 .hud--3{right:36px;top:540px;flex-direction:row-reverse;text-align:right}
 
 /* CTA card */
-.cta{position:absolute;z-index:6;right:36px;bottom:36px;width:240px;height:156px;border-radius:22px;padding:18px 20px;
+.cta{position:absolute;z-index:6;right:36px;bottom:36px;width:310px;height:200px;border-radius:26px;padding:24px 26px;
   translate:var(--mx,0px) var(--my,0px);transition:translate .5s var(--ease);
   display:flex;flex-direction:column;justify-content:space-between;color:#fff;overflow:hidden;
   background:linear-gradient(150deg,rgba(58,102,255,.85),rgba(23,71,255,.78) 50%,rgba(13,47,209,.85))!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -10px 30px rgba(0,0,60,.35),0 20px 60px rgba(23,71,255,.35)!important}
-.cta__text{font-family:var(--display);font-weight:800;font-size:18px;line-height:1.12;letter-spacing:-.01em;text-transform:uppercase}
-.cta__arrow{align-self:flex-end;width:52px;height:52px;transition:transform .5s var(--ease)}
+.cta__text{font-family:var(--display);font-weight:800;font-size:25px;line-height:1.12;letter-spacing:-.01em;text-transform:uppercase}
+.cta__arrow{align-self:flex-end;width:62px;height:62px;transition:transform .5s var(--ease)}
 .cta:hover .cta__arrow{transform:translateX(6px) rotate(-45deg)}
 .cta.glass{-webkit-backdrop-filter:none;backdrop-filter:none}
 
@@ -234,9 +234,10 @@ body::after{
   .hud{max-width:none;left:16px!important;right:16px!important;top:auto!important;bottom:104px;flex-direction:column!important;gap:6px;text-align:left!important}
   .hud::before,.hud::after{display:none}
   .hud p br{display:none}
-  .cta{left:16px;right:16px;bottom:16px;width:auto;height:72px;flex-direction:row;align-items:center;border-radius:18px}
+  .cta{left:16px;right:16px;bottom:16px;width:auto;height:88px;padding:0 24px;flex-direction:row;align-items:center;border-radius:22px}
+  .cta__text{font-size:19px}
   .cta__text br{display:none}
-  .cta__arrow{width:36px;height:36px;align-self:center}
+  .cta__arrow{width:42px;height:42px;align-self:center}
 }
 
 /* ============ LIQUID GLASS ============ */
