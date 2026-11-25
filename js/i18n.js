@@ -35,7 +35,7 @@ window.I18N = {
     "nums.c3": "Page reach growth <br>in a little over a year",
     "nums.c4": "Page visits growth <br>over the same time",
     "nums.c5": "Instagram followers <br>growth",
-    "nums.c6": "Languages I run <br>content in",
+    "nums.c6": "Languages I ran content <br>in at the same time",
     "next.note": "// NEXT BLOCK: CASES — IN PROGRESS",
   },
   uk: {
@@ -71,7 +71,7 @@ window.I18N = {
     "nums.c3": "Зростання охоплення сторінки <br>трохи більше ніж за рік",
     "nums.c4": "Зростання відвідувань сторінки <br>за той самий час",
     "nums.c5": "Зростання кількості <br>підписників в Instagram",
-    "nums.c6": "Мов, якими я веду <br>контент",
+    "nums.c6": "Мов, якими я вела <br>контент одночасно",
     "next.note": "// НАСТУПНИЙ БЛОК: КЕЙСИ — У РОБОТІ",
   }
 };

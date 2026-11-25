@@ -115,8 +115,9 @@ body::after{
 .hero{position:relative;height:320vh}
 .hero__pin{position:sticky;top:0;height:100vh;height:100lvh;overflow:hidden;background:#000}
 .hero__bg{position:absolute;inset:0}
-/* the scene fades to pure black at the bottom, behind the cat and the button, so it meets the next block without a step */
-.hero__bg::after{content:"";position:absolute;left:0;right:0;bottom:0;height:16%;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,0),#000 85%)}
+/* the scene fades to pure black at the bottom, so it meets the next block without a step.
+   It sits above the background and the front haze (z 2) but under the cat and the button (board, z 3). */
+.hero__pin::after{content:"";position:absolute;left:0;right:0;bottom:0;height:18%;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,0),#000 80%)}
 
 /* atmosphere (full bleed, outside the artboard) */
 /* dollar pattern on the wall: thin, very faint, diagonal, static.
@@ -214,7 +215,7 @@ body::after{
   translate:var(--mx,0px) var(--my,0px);transition:translate .5s var(--ease);
   display:flex;flex-direction:column;justify-content:space-between;color:#fff;overflow:hidden;
   background:linear-gradient(150deg,rgba(58,102,255,.85),rgba(23,71,255,.78) 50%,rgba(13,47,209,.85))!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -10px 30px rgba(0,0,60,.35),0 20px 60px rgba(23,71,255,.35)!important}
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -10px 30px rgba(0,0,60,.35),0 10px 28px -8px rgba(23,71,255,.55)!important}   /* glow ends above the scene's bottom edge, so it isn't cut into a line */
 .cta__text{font-family:var(--display);font-weight:800;font-size:25px;line-height:1.12;letter-spacing:-.01em;text-transform:uppercase}
 .cta__arrow{align-self:flex-end;width:62px;height:62px;transition:transform .5s var(--ease)}
 .cta:hover .cta__arrow{transform:translateX(6px) rotate(-45deg)}
@@ -249,6 +250,7 @@ body::after{
   .hud p br{display:none}
   .cta{left:16px;right:16px;bottom:16px;width:auto;height:82px;padding:0 20px 0 22px;flex-direction:row;align-items:center;border-radius:22px}
   .cta__text{font-size:18px;white-space:nowrap}
+  .cta{box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -10px 30px rgba(0,0,60,.35),0 -8px 24px -10px rgba(23,71,255,.55)!important}   /* glow goes up, not into the scene edge 16px below */
   .cta__text br{display:none}
   .cta__arrow{width:42px;height:42px;align-self:center}
 }
@@ -289,8 +291,7 @@ body::after{
 .tag i::before,.tag i::after{content:"";position:absolute;background:var(--blue)}
 .tag i::before{left:0;right:0;top:6px;height:2px}
 .tag i::after{top:0;bottom:0;left:6px;width:2px}
-.nums__head{display:grid;grid-template-columns:1fr auto;align-items:end;gap:16px 40px;margin-bottom:clamp(40px,6vw,80px)}
-.nums__head .tag{grid-column:1/-1}
+.nums__head{display:grid;grid-template-columns:1fr auto;align-items:end;gap:16px 40px;margin-bottom:clamp(28px,3.4vw,52px)}
 .nums__title{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(40px,5.6vw,84px);line-height:.92;letter-spacing:-.035em;color:var(--text);text-transform:uppercase}
 .nums__note{margin:0;color:var(--dim);text-align:right;white-space:nowrap}   /* two even lines, set by the <br> */
 
