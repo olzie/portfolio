@@ -13,8 +13,13 @@
   <link rel="preload" href="assets/fonts/unbounded-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/unbounded-cyrillic-800-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/unbounded-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="assets/cat/seq/000.webp" as="image">
+  <link rel="preload" href="assets/cat/seq/000.webp" as="image" media="(min-aspect-ratio: 3/4)">
+  <link rel="preload" href="assets/cat/seq-m/000.webp" as="image" media="(max-aspect-ratio: 3/4)">
   <link rel="stylesheet" href="css/style.css">
+  <!-- scripts start downloading right away but run after the page is parsed, in this order -->
+  <script defer src="vendor/lenis.min.js"></script>
+  <script defer src="js/i18n.js"></script>
+  <script defer src="js/main.js"></script>
 </head>
 <body class="is-loading">
 
@@ -148,10 +153,5 @@
     </section>
   </main>
 
-  <script src="vendor/gsap.min.js"></script>
-  <script src="vendor/ScrollTrigger.min.js"></script>
-  <script src="vendor/lenis.min.js"></script>
-  <script src="js/i18n.js"></script>
-  <script src="js/main.js"></script>
 </body>
 </html>
