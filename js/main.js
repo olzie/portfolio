@@ -96,7 +96,7 @@
       try { bmp[i] = window.createImageBitmap ? await createImageBitmap(im) : (await im.decode(), im); }
       catch (e) { bmp[i] = im; }
       res();
-      if (Math.round(turn.cur) % FRAMES === i) needDraw = true;
+      if (((turn.shown % FRAMES) + FRAMES) % FRAMES === i) needDraw = true;
     };
     im.onerror = res;
     im.src = dir + String(i).padStart(3, "0") + ".webp?v=" + FRAMES_V;
@@ -135,7 +135,7 @@
     // resizing a canvas wipes it, so redraw the current frame right away (no blank frame while dragging the window)
     cw = canvas.width = w; ch = canvas.height = h;
     drawn = -1;
-    drawCat(((Math.round(turn.cur) % FRAMES) + FRAMES) % FRAMES);
+    drawCat(shownFrame());
   }
   /* Floor contact, measured offline from the frames: for each frame, which 8px columns of the
      crop touch the floor (NEAR: the bottom 5px, FAR: the bottom 40px). The shadow is built from
@@ -235,12 +235,23 @@
   }
 
   // the turn eases toward the scroll target; the loop only runs while something changes
-  const turn = { target: 0, cur: 0 };
+  const turn = { target: 0, cur: 0, shown: 0 };
   let looping = false;
+  /* Which frame to show, with hysteresis: a new frame only once the turn has moved 0.85 of a
+     frame away. Without it, resting the page right on a frame boundary (the trackpad and smooth
+     scroll keep nudging it by a pixel) flipped between two neighbouring frames, e.g. the last
+     frame and the front view at the end of the turn, which looked like the cat jumping. */
+  function shownFrame() {
+    const atEnd = turn.cur === turn.target && (turn.target <= 0 || turn.target >= FRAMES);
+    const d = turn.cur - turn.shown;
+    if (atEnd) turn.shown = Math.round(turn.cur);
+    else if (Math.abs(d) >= 0.85) turn.shown += Math.sign(d) * Math.floor(Math.abs(d) + 0.15);   // step, don't skip
+    return ((turn.shown % FRAMES) + FRAMES) % FRAMES;
+  }
   function tick() {
     turn.cur += (turn.target - turn.cur) * 0.18;
     if (Math.abs(turn.target - turn.cur) < 0.01) turn.cur = turn.target;
-    const f = ((Math.round(turn.cur) % FRAMES) + FRAMES) % FRAMES;
+    const f = shownFrame();
     if (f !== drawn || needDraw) { needDraw = false; drawCat(f); }
     if (turn.cur !== turn.target || needDraw) requestAnimationFrame(tick);
     else looping = false;
@@ -374,7 +385,8 @@
     if (lenis && !location.hash) lenis.scrollTo(0, { immediate: true, force: true });
     onScroll();
     turn.cur = turn.target;                              // no visible spin when the page appears
-    needDraw = true; drawCat(((Math.round(turn.cur) % FRAMES) + FRAMES) % FRAMES);
+    turn.shown = Math.round(turn.cur);
+    needDraw = true; drawCat(shownFrame());
     requestAnimationFrame(() => loader.classList.add("is-done"));         // CSS fades it out
     loader.addEventListener("transitionend", () => { loader.remove(); if (lenis) lenis.start(); }, { once: true });
   }
