@@ -3,7 +3,8 @@
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const hover = matchMedia("(hover: hover)").matches;
-  const isMobile = () => innerWidth <= 640;
+  const portraitMQ = matchMedia("(max-aspect-ratio: 3/4)");
+  const isMobile = () => portraitMQ.matches;           // portrait screens use the 390×844 artboard
   gsap.registerPlugin(ScrollTrigger);
 
   // Chromium can refract the backdrop through an SVG filter; others get plain frosted glass
@@ -249,8 +250,8 @@
       .to(".hero__light", { opacity: 1, duration: 0.6 }, 0.25)
       .from("#cat", { opacity: 0, scale: 1.04, filter: "brightness(0)", duration: 1.8, ease: "power2.out" }, 0.15)
       .from(".crowd", { opacity: 0, duration: 2.2, ease: "power2.out" }, 0.4)
-      .from(".hero__line--1 .hero__word", { yPercent: 105, duration: 1.3, ease: "expo.out" }, 0.5)
-      .from(".hero__line--2 .hero__word", { yPercent: 105, duration: 1.3, ease: "expo.out" }, 0.6)
+      .from(".hero__row .hero__mask:first-child .hero__word", { yPercent: 105, duration: 1.3, ease: "expo.out" }, 0.5)
+      .from(".hero__row .hero__mask:last-child .hero__word", { yPercent: 105, duration: 1.3, ease: "expo.out" }, 0.6)
       .from(".hero__role", { yPercent: 110, duration: 1, ease: "expo.out" }, 0.8)
       .from(".hero__list li", { x: -14, opacity: 0, duration: 0.7, stagger: 0.07, ease: "expo.out" }, 0.9)
       .from(".corner", { opacity: 0, scale: 0.4, duration: 0.8, stagger: 0.1, ease: "expo.out" }, 0.9)
@@ -299,24 +300,37 @@
     huds.forEach(h => { h.classList.add("is-in"); gsap.set(h, { opacity: 1, x: 0 }); });
   }
 
-  /* ---------- fit the surname to the full width, place the list under it ---------- */
-  const title = $("#heroTitle"), last = $("#heroLast");
+  /* ---------- artboard scale + name fitting ----------
+     The hero is laid out on a fixed artboard (1440×900, or 390×844 on portrait screens)
+     and scaled as a whole, so window size and browser zoom never move things around. */
+  const pin = $(".hero__pin"), board = $("#board"), title = $("#heroTitle"), row = $("#heroRow"), stage = $("#stage");
+  function setScale() {
+    const bw = isMobile() ? 390 : 1440, bh = isMobile() ? 844 : 900;
+    board.style.setProperty("--s", Math.min(pin.clientWidth / bw, pin.clientHeight / bh).toFixed(4));
+  }
   function fitTitle() {
     title.style.setProperty("--fs", "100px");
-    const w = last.getBoundingClientRect().width;
+    const w = row.offsetWidth;                      // artboard pixels, unaffected by the scale
     if (!w) return;
-    const share = isMobile() ? 1 : 0.74;                                       // surname takes ~3/4 of the width
-    const fs = Math.min(100 * (title.clientWidth * share / w), innerHeight * 0.19);
+    let fs;
+    if (isMobile()) {
+      fs = 100 * (358 / w);                         // longest word spans the phone width
+      title.style.top = "";
+    } else {
+      const H = stage.offsetHeight, TOP_MIN = 92;
+      const earTop = stage.offsetTop + 0.10 * H;    // frames: feet at 80%, cat 70% tall -> ears at 10%
+      const lineBottom = earTop + 0.04 * H;          // only the ear tips reach into the letters
+      fs = Math.min(100 * (1300 / w), (lineBottom - TOP_MIN) / 0.8);
+      title.style.top = Math.round(lineBottom - 0.8 * fs) + "px";   // sit the letters right on the ears
+    }
     title.style.setProperty("--fs", fs.toFixed(2) + "px");
-    const bottom = title.offsetTop + title.offsetHeight;          // layout box, ignores scroll transforms
-    $(".hero__pin").style.setProperty("--list-top", Math.round(bottom + innerHeight * 0.04) + "px");
   }
-  fitTitle();
+  setScale(); fitTitle();
   (document.fonts ? document.fonts.ready : Promise.resolve()).then(fitTitle);
   window.addEventListener("langchange", fitTitle);
-  // fonts (e.g. the Cyrillic subset) may arrive later than fonts.ready; refit when they do
   if (document.fonts) document.fonts.addEventListener("loadingdone", fitTitle);
   addEventListener("load", fitTitle);
+  portraitMQ.addEventListener("change", () => { setScale(); fitTitle(); fit(); ScrollTrigger.refresh(); });
 
   /* ---------- resize / browser zoom: re-measure once things settle ---------- */
   // The page height depends on the viewport, so after a zoom the same scrollY means a
@@ -327,10 +341,10 @@
   addEventListener("scroll", remember, { passive: true });
   addEventListener("resize", () => {
     // phones fire resize when the address bar hides; width stays the same, so ignore it
-    if (innerWidth === lastW) { fit(); return; }
+    if (innerWidth === lastW) { setScale(); fit(); return; }
     lastW = innerWidth;
     if (keep === null) keep = frac;
-    fit(); fitTitle();
+    setScale(); fit(); fitTitle();
     gsap.set(pill, { x: pillX(window.currentLang) });
     clearTimeout(rz);
     rz = setTimeout(() => {

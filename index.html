@@ -92,78 +92,66 @@
     <!-- ================= HERO ================= -->
     <section class="hero" id="hero">
       <div class="hero__pin">
+        <!-- full-bleed atmosphere -->
         <div class="hero__bg" aria-hidden="true">
           <div class="hero__light"></div>
           <div class="hero__light hero__light--core"></div>
-          <!-- giant cat statues in the dark, both sides -->
-          <div class="crowd crowd--l">
-            <img src="assets/cat/statue-l.webp" alt="" class="crowd__c c1">
-            <img src="assets/cat/statue-l.webp" alt="" class="crowd__c c2">
-            <img src="assets/cat/statue-l.webp" alt="" class="crowd__c c3">
-          </div>
-          <div class="crowd crowd--r">
-            <img src="assets/cat/statue-r.webp" alt="" class="crowd__c c1">
-            <img src="assets/cat/statue-r.webp" alt="" class="crowd__c c2">
-            <img src="assets/cat/statue-r.webp" alt="" class="crowd__c c3">
-          </div>
           <div class="hero__floor"></div>
           <div class="haze haze--back"></div>
         </div>
 
-        <!-- frame corners -->
-        <i class="corner corner--tl" aria-hidden="true"></i>
-        <i class="corner corner--br" aria-hidden="true"></i>
+        <!-- the composition: a fixed artboard (1440×900, or 390×844 on portrait screens)
+             scaled as one piece, so nothing shifts when the window or zoom changes -->
+        <div class="board" id="board">
+          <i class="corner corner--tl" aria-hidden="true"></i>
+          <i class="corner corner--br" aria-hidden="true"></i>
 
-        <h1 class="hero__title" id="heroTitle">
-          <span class="sr" data-i18n="hero.sr">Olga Akimova — Senior SMM Manager</span>
-          <span class="hero__line hero__line--1" aria-hidden="true">
-            <span class="hero__mask"><span class="hero__word" data-i18n="hero.first">OLGA</span></span>
-          </span>
-          <span class="hero__line hero__line--2" aria-hidden="true">
-            <span class="hero__mask"><span class="hero__word" id="heroLast" data-i18n="hero.last">AKIMOVA</span></span>
-          </span>
-          <span class="hero__line hero__line--3" aria-hidden="true">
-            <span class="hero__mask hero__mask--role"><span class="hero__role" data-i18n="hero.role">SENIOR <em>SMM</em> MANAGER</span></span>
-          </span>
-        </h1>
+          <h1 class="hero__title" id="heroTitle">
+            <span class="sr" data-i18n="hero.sr">Olga Akimova — Senior SMM Manager</span>
+            <span class="hero__row" id="heroRow" aria-hidden="true">
+              <span class="hero__mask"><span class="hero__word" data-i18n="hero.first">OLGA</span></span>
+              <span class="hero__mask"><span class="hero__word" data-i18n="hero.last">AKIMOVA</span></span>
+            </span>
+            <span class="hero__mask hero__mask--role" aria-hidden="true"><span class="hero__role" data-i18n="hero.role">SENIOR <em>SMM</em> MANAGER</span></span>
+          </h1>
 
-        <ul class="hero__list mono" aria-label="Focus">
-          <li>iGAMING</li>
-          <li data-i18n="hero.l2">STRATEGY</li>
-          <li data-i18n="hero.l3">CONTENT</li>
-          <li data-i18n="hero.l4">GROWTH</li>
-        </ul>
+          <ul class="hero__list mono" aria-label="Focus">
+            <li>iGAMING</li>
+            <li data-i18n="hero.l2">STRATEGY</li>
+            <li data-i18n="hero.l3">CONTENT</li>
+            <li data-i18n="hero.l4">GROWTH</li>
+          </ul>
 
-        <div class="hero__stage">
-          <canvas class="cat" id="cat" role="img" aria-label="Black cat mascot in a hoodie"></canvas>
+          <div class="hero__stage" id="stage">
+            <canvas class="cat" id="cat" role="img" aria-label="Black cat mascot in a hoodie"></canvas>
+          </div>
+
+          <!-- HUD labels (appear while the cat turns) -->
+          <div class="hud hud--1">
+            <span class="hud__tag mono" data-i18n="hero.t1">ROLE</span>
+            <p class="mono" data-i18n="hero.n1">SENIOR SMM MANAGER. <br>6+ YEARS IN SOCIAL. <br>EX-TEAM LEAD.</p>
+          </div>
+          <div class="hud hud--2">
+            <span class="hud__tag mono" data-i18n="hero.t2">iGAMING</span>
+            <p class="mono" data-i18n="hero.n2">2+ YEARS IN iGAMING. <br>BRAZIL, AFRICA, TURKEY. <br>LAUNCHES FROM ZERO.</p>
+          </div>
+          <div class="hud hud--3">
+            <span class="hud__tag mono" data-i18n="hero.t3">AI</span>
+            <p class="mono" data-i18n="hero.n3">AI CONTENT &amp; AUTOMATION. <br>VIRTUAL CREATORS. <br>2× OUTPUT, SAME TEAM.</p>
+          </div>
+
+          <a class="cta glass magnetic" href="#contact">
+            <span class="cta__text" data-i18n="hero.cta">Let’s work <br>together</span>
+            <span class="cta__arrow" aria-hidden="true">
+              <svg viewBox="0 0 48 48"><path d="M10 24h26M26 13l11 11-11 11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"/></svg>
+            </span>
+          </a>
+
+          <div class="hero__scroll mono"><i></i><span data-i18n="hero.scroll">SCROLL TO EXPLORE</span></div>
         </div>
 
         <div class="haze haze--front" aria-hidden="true"></div>
         <div class="vignette" aria-hidden="true"></div>
-
-        <!-- HUD labels (appear while the cat turns) -->
-        <div class="hud hud--1">
-          <span class="hud__tag mono" data-i18n="hero.t1">ROLE</span>
-          <p class="mono" data-i18n="hero.n1">SENIOR SMM MANAGER. <br>6+ YEARS IN SOCIAL. <br>EX-TEAM LEAD.</p>
-        </div>
-        <div class="hud hud--2">
-          <span class="hud__tag mono" data-i18n="hero.t2">iGAMING</span>
-          <p class="mono" data-i18n="hero.n2">2+ YEARS IN iGAMING. <br>BRAZIL, AFRICA, TURKEY. <br>LAUNCHES FROM ZERO.</p>
-        </div>
-        <div class="hud hud--3">
-          <span class="hud__tag mono" data-i18n="hero.t3">AI</span>
-          <p class="mono" data-i18n="hero.n3">AI CONTENT &amp; AUTOMATION. <br>VIRTUAL CREATORS. <br>2× OUTPUT, SAME TEAM.</p>
-        </div>
-
-        <!-- big call-to-action card -->
-        <a class="cta glass magnetic" href="#contact">
-          <span class="cta__text" data-i18n="hero.cta">Let’s work <br>together</span>
-          <span class="cta__arrow" aria-hidden="true">
-            <svg viewBox="0 0 48 48"><path d="M10 24h26M26 13l11 11-11 11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"/></svg>
-          </span>
-        </a>
-
-        <div class="hero__scroll mono"><i></i><span data-i18n="hero.scroll">SCROLL TO EXPLORE</span></div>
       </div>
     </section>
 
