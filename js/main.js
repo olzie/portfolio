@@ -167,8 +167,8 @@
     ctx.restore();
     // wide soft shade under everything that is close to the floor
     let w = BIN * k * 5, h = ch * 0.05;
-    ctx.globalAlpha = 0.07;
-    for (const i of far) ctx.drawImage(dot, colX(i) - w / 2, y0 - h * 0.45, w, h);
+    ctx.globalAlpha = 0.13;                            // every 2nd column is enough: the dots overlap
+    for (let n = 0; n < far.length; n += 2) ctx.drawImage(dot, colX(far[n]) - w / 2, y0 - h * 0.45, w, h);
     // dark contact line exactly where the shoes, body and tail touch
     w = BIN * k * 3; h = ch * 0.016;
     ctx.globalAlpha = 0.45;
