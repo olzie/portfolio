@@ -198,8 +198,8 @@
     const k = cw / CROP.size, y0 = ch * BASE, near = bins(CONTACT_NEAR, f);
     const colX = i => (CROP.x + (i + 0.5) * BIN) * k;
     let w = BIN * k * 3.2, h = ch * 0.026;
-    ctx.globalAlpha = 0.42;
-    for (const i of near) ctx.drawImage(dot, colX(i) - w / 2, y0 - h * 0.5, w, h);
+    ctx.globalAlpha = 0.5;                             // every 2nd column: the wide dots overlap anyway
+    for (let n = 0; n < near.length; n += 2) ctx.drawImage(dot, colX(near[n]) - w / 2, y0 - h * 0.5, w, h);
     w = BIN * k * 2.2; h = ch * 0.012;                 // tighter, darker core right at the line
     ctx.globalAlpha = 0.5;
     for (const i of near) ctx.drawImage(dot, colX(i) - w / 2, y0 - h * 0.45, w, h);
