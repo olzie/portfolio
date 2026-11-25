@@ -256,7 +256,7 @@
       .from(".hero__list li", { x: -14, opacity: 0, duration: 0.7, stagger: 0.07, ease: "expo.out" }, 0.9)
       .from(".corner", { opacity: 0, scale: 0.4, duration: 0.8, stagger: 0.1, ease: "expo.out" }, 0.9)
       .from(".cta", { y: 40, opacity: 0, duration: 1, ease: "expo.out" }, 1)
-      .from(".header__right > *, .header__center", { y: -24, opacity: 0, duration: 0.9, stagger: 0.06, ease: "expo.out" }, 0.4)
+      .from(".header__right > *", { y: -24, opacity: 0, duration: 0.9, stagger: 0.06, ease: "expo.out" }, 0.4)
       .from(".hero__scroll", { opacity: 0, duration: 0.8 }, 1.1);
   }
 
@@ -314,7 +314,7 @@
     if (!w) return;
     let fs;
     if (isMobile()) {
-      fs = 100 * (358 / w);                         // longest word spans the phone width
+      fs = 100 * (348 / w);                         // longest word spans the phone width
       title.style.top = "";
     } else {
       const H = stage.offsetHeight, TOP_MIN = 92;
