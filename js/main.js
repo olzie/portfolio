@@ -196,7 +196,7 @@
   function placeStageMobile(bh) {
     const titleBottom = title.offsetTop + title.offsetHeight;
     const hudH = Math.max(...huds.map(h => h.offsetHeight), 40);
-    const solesMax = bh - 112 - hudH - 30;            // above the note, leaving room for the reflection
+    const solesMax = bh - 138 - hudH - 26;            // above the note (CSS: .hud bottom 138), leaving room for the reflection
     const earsMin = titleBottom - 8;
     const span = solesMax - earsMin;                    // ears-to-soles is 70% of the stage
     const size = clamp(span / 0.70, 300, 470);

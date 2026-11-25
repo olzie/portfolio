@@ -233,7 +233,7 @@ body::after{
   .hero__row{flex-direction:column;gap:0}
   .hero__role{font-size:15px}
   .hero__stage{left:-40px;top:300px;width:470px;height:470px}   /* real size and place are set by JS */
-  .hud{max-width:none;left:16px!important;right:16px!important;top:auto!important;bottom:112px;flex-direction:column!important;gap:6px;text-align:left!important}
+  .hud{max-width:none;left:16px!important;right:16px!important;top:auto!important;bottom:138px;flex-direction:column!important;gap:6px;text-align:left!important}
   .hud::before,.hud::after{display:none}
   .hud p br{display:none}
   .cta{left:16px;right:16px;bottom:16px;width:auto;height:82px;padding:0 20px 0 22px;flex-direction:row;align-items:center;border-radius:22px}
