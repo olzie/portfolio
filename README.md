@@ -1,6 +1,6 @@
-# Olzie — SMM portfolio
+# Olha Akimova — SMM portfolio
 
-Personal portfolio landing of **Olha Akimova (Olzie)**, Senior SMM Manager.
+Personal portfolio landing of **Olha Akimova**, Senior SMM Manager.
 
 Plain HTML/CSS/JS, no build step. Hosted on GitHub Pages.
 
