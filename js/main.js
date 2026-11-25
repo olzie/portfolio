@@ -126,7 +126,7 @@
   let cw = 0, ch = 0, drawn = -1, needDraw = true;
   function fit() {
     const r = canvas.getBoundingClientRect();
-    const scale = Math.min(devicePixelRatio || 1, 2, 1100 / Math.max(r.width, 1));
+    const scale = Math.min(devicePixelRatio || 1, 2, 1800 / Math.max(r.width, 1));   // sharp on retina
     const w = Math.round(r.width * scale), h = Math.round(r.height * scale);
     if (!w || !h) return;
     if (w === cw && h === ch && drawn !== -1) return;   // same size: keep what's on the canvas
@@ -172,38 +172,31 @@
       return [l / w * BIN, r / w * BIN];           // crop pixels
     });
   })();
+  /* Floor under the cat. Drawn with "destination-over", i.e. BEHIND what is already on the
+     canvas, after the reflection has been faded: the fade then only touches the reflection
+     (fading the whole band also cut a dark strip out of the lit floor under the tail). */
   function groundCat(f) {
     const k = cw / CROP.size, y0 = ch * BASE;
     const near = bins(CONTACT_NEAR, f), far = bins(CONTACT_FAR, f);
     const colX = i => (CROP.x + (i + 0.5) * BIN) * k;
     const l = (CROP.x + POOL[f][0]) * k, r = (CROP.x + POOL[f][1]) * k, cx = (l + r) / 2, hw = (r - l) / 2;
-    // blue light pool on the floor, following the cat
-    ctx.save();
-    const R = Math.max(cw * 0.42, hw + cw * 0.14);
-    ctx.translate(cx, y0 + ch * 0.02); ctx.scale(1, 0.13);   // lit floor right under the cat, so the soles stand out against it
-    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
-    g.addColorStop(0, "rgba(140,165,255,0.30)"); g.addColorStop(0.45, "rgba(40,90,255,0.12)"); g.addColorStop(1, "rgba(26,75,255,0)");
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-    // wide soft shade under everything that is close to the floor
-    let w = BIN * k * 5, h = ch * 0.05;
+    // 1. contact shadow on the floor right where the shoes, body and tail touch (just below the line, never on the cat)
+    let w = BIN * k * 2.6, h = ch * 0.018;
+    ctx.globalAlpha = 0.5;
+    for (const i of near) ctx.drawImage(dot, colX(i) - w / 2, y0 - h * 0.3, w, h);
+    // 2. wide soft shade under everything that is close to the floor
+    w = BIN * k * 5; h = ch * 0.05;
     ctx.globalAlpha = 0.13;                            // every 2nd column is enough: the dots overlap
     for (let n = 0; n < far.length; n += 2) ctx.drawImage(dot, colX(far[n]) - w / 2, y0 - h * 0.45, w, h);
     ctx.globalAlpha = 1;
-  }
-  /* Contact occlusion, drawn ON TOP of the cat's lowest pixels: the frames are cut flat at the
-     floor line, and a lit floor right under that flat edge made the tail look sliced into the
-     floor. A dark band straddling the line turns the cut into a soft shadow where it touches. */
-  function contactShade(f) {
-    const k = cw / CROP.size, y0 = ch * BASE, near = bins(CONTACT_NEAR, f);
-    const colX = i => (CROP.x + (i + 0.5) * BIN) * k;
-    let w = BIN * k * 3.2, h = ch * 0.026;
-    ctx.globalAlpha = 0.5;                             // every 2nd column: the wide dots overlap anyway
-    for (let n = 0; n < near.length; n += 2) ctx.drawImage(dot, colX(near[n]) - w / 2, y0 - h * 0.5, w, h);
-    w = BIN * k * 2.2; h = ch * 0.012;                 // tighter, darker core right at the line
-    ctx.globalAlpha = 0.5;
-    for (const i of near) ctx.drawImage(dot, colX(i) - w / 2, y0 - h * 0.45, w, h);
-    ctx.globalAlpha = 1;
+    // 3. blue light pool on the floor, following the cat (furthest back)
+    ctx.save();
+    const R = Math.max(cw * 0.42, hw + cw * 0.14);
+    ctx.translate(cx, y0 + ch * 0.016); ctx.scale(1, 0.13);
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
+    g.addColorStop(0, "rgba(140,165,255,0.28)"); g.addColorStop(0.45, "rgba(40,90,255,0.11)"); g.addColorStop(1, "rgba(26,75,255,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
   }
   function drawCat(f) {
     const im = bmp[f] || nearest(f);
@@ -220,13 +213,12 @@
       dx = ax + (dx - ax) * s - 3.4 * t * k; dy = ay + (dy - ay) * s; dw *= s; dh *= s;
     }
     ctx.clearRect(0, 0, cw, ch);
-    groundCat(f);
-    ctx.drawImage(im, dx, dy, dw, dh);
-    contactShade(f);
-    const y0 = ch * BASE, rh = ch * 0.05;              // very short, faint reflection: a long one reads as the cat sinking in
+    ctx.imageSmoothingQuality = "high";
+    // reflection: the cat mirrored at the floor line, short and faint, faded out downwards
+    const y0 = ch * BASE, rh = ch * 0.065;
     ctx.save();
     ctx.beginPath(); ctx.rect(0, y0, cw, rh); ctx.clip();
-    ctx.globalAlpha = 0.1;
+    ctx.globalAlpha = 0.16;
     ctx.translate(0, y0 * 2); ctx.scale(1, -1);
     ctx.drawImage(im, dx, dy, dw, dh);
     ctx.restore();
@@ -234,8 +226,13 @@
     const g = ctx.createLinearGradient(0, y0, 0, y0 + rh);
     g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,1)");
     ctx.fillStyle = g; ctx.fillRect(0, y0, cw, rh);
+    // floor goes behind the reflection, the cat on top of everything
+    ctx.globalCompositeOperation = "destination-over";
+    groundCat(f);
     ctx.globalCompositeOperation = "source-over";
+    ctx.drawImage(im, dx, dy, dw, dh);
   }
+
   // the turn eases toward the scroll target; the loop only runs while something changes
   const turn = { target: 0, cur: 0 };
   let looping = false;
