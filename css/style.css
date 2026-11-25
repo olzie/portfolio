@@ -292,7 +292,7 @@ body::after{
 .nums__head{display:grid;grid-template-columns:1fr auto;align-items:end;gap:16px 40px;margin-bottom:clamp(40px,6vw,80px)}
 .nums__head .tag{grid-column:1/-1}
 .nums__title{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(40px,5.6vw,84px);line-height:.92;letter-spacing:-.035em;color:var(--text);text-transform:uppercase}
-.nums__note{margin:0;max-width:300px;color:var(--dim);text-align:right}
+.nums__note{margin:0;color:var(--dim);text-align:right;white-space:nowrap}   /* two even lines, set by the <br> */
 
 .nums__hero{position:relative;display:flex;align-items:flex-end;gap:clamp(16px,3vw,48px);padding-bottom:clamp(28px,4vw,56px);border-bottom:1px solid var(--line)}
 .nums__big{font-family:var(--display);font-weight:800;font-size:clamp(150px,24vw,360px);line-height:.78;letter-spacing:-.06em;color:#e9edf6;white-space:nowrap}
