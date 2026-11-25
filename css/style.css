@@ -178,20 +178,21 @@ body::after{
 .corner--br::before{left:50%;top:0;bottom:0;width:2px;transform:translateX(-50%)}
 .corner--br::after{top:50%;left:0;right:0;height:2px;transform:translateY(-50%)}
 
-/* name split around the cat */
-.hero__title{position:absolute;inset:0;margin:0;z-index:5;pointer-events:none;
-  font-family:var(--display);font-weight:800;line-height:.92;letter-spacing:-.035em;font-size:var(--fs);color:#fff}
-.hero__name{position:absolute;top:36vh;display:flex;flex-direction:column}
-.hero__name--l{right:calc(50% + var(--gap));align-items:flex-end}
-.hero__name--r{left:calc(50% + var(--gap));align-items:flex-end}
-.hero__mask{display:block;overflow:hidden;padding:0 .02em .06em}
-.hero__word{display:block;white-space:nowrap;text-shadow:0 0 40px rgba(156,188,255,.15)}
-.hero__role{display:block;margin-top:.1em;font-size:.36em;letter-spacing:-.01em;line-height:1;white-space:nowrap}
+/* giant name behind the cat; --fs is fitted by JS so the surname spans the full width */
+.hero__title{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--header-h) + 1.5vh);margin:0;z-index:2;pointer-events:none;
+  --fs:13vw;font-family:var(--display);font-weight:800;line-height:.8;letter-spacing:-.04em;font-size:var(--fs);color:#e9edf6}
+.hero__line{display:flex;align-items:flex-end;justify-content:space-between}
+.hero__line--2{justify-content:flex-end}
+.hero__line--3{justify-content:flex-start}
+.hero__mask{display:block;flex:none;overflow:hidden;padding:0 .02em .04em}
+.hero__word{display:inline-block;white-space:nowrap}
+.hero__mask--role{padding:.08em .02em .1em}
+.hero__role{display:block;font-size:.115em;letter-spacing:-.01em;line-height:1;white-space:nowrap;color:#fff;text-align:right}
 .hero__role em{font-style:normal;color:var(--blue-hi)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 /* focus list with blue crosshair bullets */
-.hero__list{position:absolute;z-index:5;top:calc(36vh + var(--fs) * 1.25);right:calc(50% + var(--gap) + var(--fs) * 1.5);
+.hero__list{position:absolute;z-index:5;top:var(--list-top,55vh);left:calc(var(--pad) + 34px);
   list-style:none;margin:0;padding:0 0 0 26px;font-size:clamp(11px,.9vw,14px);letter-spacing:.14em;color:#e8edf7;border-left:1px solid rgba(47,91,255,.55)}
 .hero__list li{position:relative;padding:5px 0}
 .hero__list li::before,.hero__list li::after{content:"";position:absolute;background:var(--blue)}
@@ -199,23 +200,29 @@ body::after{
 .hero__list li::after{left:-27px;top:calc(50% - 8px);width:2px;height:16px}
 
 /* cat stage: canvas draws the frame for the current scroll position + its floor reflection */
-.hero__stage{position:absolute;left:50%;bottom:-2vh;transform:translateX(-50%);width:min(88vh,70vw);aspect-ratio:1;z-index:3}
-.cat{position:absolute;inset:0;width:100%;height:100%;
-  filter:drop-shadow(2px 0 1px rgba(110,145,255,.35)) drop-shadow(0 -8px 26px rgba(47,91,255,.16))}
+.hero__stage{position:absolute;left:50%;bottom:-4vh;transform:translateX(-50%);width:min(96vh,74vw);aspect-ratio:1;z-index:3}
+.cat{position:absolute;inset:0;width:100%;height:100%}
+/* soft blue glow behind the cat: a static layer, so it costs nothing while the cat turns */
+.hero__stage::before{content:"";position:absolute;left:50%;top:44%;width:46%;height:52%;transform:translate(-50%,-50%);border-radius:50%;
+  background:radial-gradient(ellipse at center,rgba(47,91,255,.22),rgba(47,91,255,.06) 50%,transparent 72%);filter:blur(20px);pointer-events:none}
 
 /* HUD labels, Devils-style: tag + text + a hairline pointing at the cat */
 .hud{position:absolute;z-index:5;max-width:300px;display:flex;gap:10px;align-items:flex-start;opacity:0}
 .hud p{margin:0;color:var(--ice)}
-.hud__tag{flex:none;padding:1px 6px;background:var(--blue);color:#fff;font-size:10px;line-height:1.6}
+/* keyword with the blue crosshair from the banner */
+.hud__tag{position:relative;flex:none;padding-left:22px;color:var(--blue-hi);font-size:10.5px;line-height:1.6;letter-spacing:.12em}
+.hud__tag::before,.hud__tag::after{content:"";position:absolute;background:var(--blue)}
+.hud__tag::before{left:0;top:50%;width:14px;height:2px;transform:translateY(-50%)}
+.hud__tag::after{left:6px;top:calc(50% - 6px);width:2px;height:14px}
 .hud::after{content:"";position:absolute;top:9px;width:7vw;height:1px;background:linear-gradient(90deg,rgba(91,130,255,.8),rgba(91,130,255,0))}
 .hud::before{content:"";position:absolute;top:6px;width:7px;height:7px;border:1px solid var(--blue-hi)}
-.hud--1{right:var(--pad);top:24%;flex-direction:row-reverse;text-align:right}
+.hud--1{right:var(--pad);top:52%;flex-direction:row-reverse;text-align:right}
 .hud--1::after,.hud--3::after{right:calc(100% + 14px);transform:scaleX(-1)}
 .hud--1::before,.hud--3::before{right:calc(100% + 14px + 7vw)}
-.hud--2{left:var(--pad);top:66%}
+.hud--2{left:var(--pad);top:58%}
 .hud--2::after{left:calc(100% + 14px)}
 .hud--2::before{left:calc(100% + 14px + 7vw)}
-.hud--3{right:var(--pad);top:54%;flex-direction:row-reverse;text-align:right}
+.hud--3{right:var(--pad);top:66%;flex-direction:row-reverse;text-align:right}
 
 /* CTA card, bottom right */
 .cta{position:absolute;z-index:6;right:var(--pad);bottom:var(--pad);width:232px;height:150px;border-radius:22px;padding:18px 20px;
@@ -271,17 +278,14 @@ body::after{
   :root{--header-h:64px}
   .pill--menu span:first-child{display:none}
   .pill--menu{padding:0 14px}
-  .hero__pin{--fs:15.5vw}
-  .hero__name{top:calc(var(--header-h) + 5vh)}
-  .hero__name--l{left:var(--pad);right:auto;align-items:flex-start}
-  .hero__name--r{left:var(--pad);top:calc(var(--header-h) + 5vh + var(--fs) * .98);align-items:flex-start}
-  .hero__role{font-size:.3em}
+  .hero__line--2,.hero__line--3{justify-content:flex-start}
+  .hero__role{font-size:.24em;text-align:left}
   .hero__stage{width:132vw;bottom:0}
   .crowd .c2,.crowd .c3{display:none}
   .crowd--l .c1{left:-30vw;width:60vw}
   .crowd--r .c1{right:-30vw;width:60vw}
   .corner--tl{top:calc(var(--header-h) + 2px)}
-  .hud{max-width:none;left:var(--pad)!important;right:var(--pad)!important;top:auto!important;bottom:calc(var(--pad) + 92px)!important;flex-direction:row!important;text-align:left!important}
+  .hud{max-width:none;left:var(--pad)!important;right:var(--pad)!important;top:auto!important;bottom:calc(var(--pad) + 92px)!important;flex-direction:column!important;gap:6px;text-align:left!important}
   .hud p br{display:none}
   .cta{left:var(--pad);right:var(--pad);width:auto;height:72px;flex-direction:row;align-items:center;border-radius:18px}
   .cta__text br{display:none}

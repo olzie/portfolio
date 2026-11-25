@@ -3,7 +3,7 @@
    Add a language: copy the "en" object, translate, add a button in the header. */
 window.I18N = {
   en: {
-    "loader.name": "OLHA AKIMOVA",
+    "loader.name": "OLGA AKIMOVA",
     "loader.loading": "LOADING",
     "loader.tz": "LOCAL TIME",
     "loader.boot": "BOOTING PORTFOLIO",
@@ -15,17 +15,20 @@ window.I18N = {
     "menu.skills": "Skills",
     "menu.contact": "Contact",
     "menu.soon": "More blocks coming soon",
-    "hero.first": "OLHA",
+    "hero.first": "OLGA",
     "hero.last": "AKIMOVA",
     "hero.role": "SENIOR <em>SMM</em> MANAGER",
     "hero.cta": "Let’s work <br>together",
     "hero.l2": "STRATEGY",
     "hero.l3": "CONTENT",
     "hero.l4": "GROWTH",
-    "hero.sr": "Olha Akimova — Senior SMM Manager",
-    "hero.n1": "SENIOR SMM MANAGER. <br>5+ YEARS IN SOCIAL. <br>7 MARKETS.",
-    "hero.n2": "iGAMING SINCE 2024. <br>LATAM &amp; AFRICA. <br>LAUNCHES FROM ZERO.",
-    "hero.n3": "STRATEGY → CONTENT → <br>COMMUNITY → GROWTH. <br>END TO END.",
+    "hero.sr": "Olga Akimova — Senior SMM Manager",
+    "hero.t1": "ROLE",
+    "hero.n1": "SENIOR SMM MANAGER. <br>6+ YEARS IN SOCIAL. <br>EX-TEAM LEAD.",
+    "hero.t2": "iGAMING",
+    "hero.n2": "2+ YEARS IN iGAMING. <br>BRAZIL, AFRICA, TURKEY. <br>LAUNCHES FROM ZERO.",
+    "hero.t3": "AI",
+    "hero.n3": "AI CONTENT &amp; AUTOMATION. <br>VIRTUAL CREATORS. <br>2× OUTPUT, SAME TEAM.",
     "hero.scroll": "SCROLL TO EXPLORE",
     "next.note": "// NEXT BLOCK: NUMBERS — IN PROGRESS",
     "status": ["INIT_ASSETS", "LOADING_CAT", "CALIBRATING_REACH", "SYNCING_MARKETS", "READY"]
@@ -51,9 +54,12 @@ window.I18N = {
     "hero.l3": "КОНТЕНТ",
     "hero.l4": "РІСТ",
     "hero.sr": "Ольга Акімова — Senior SMM Manager",
-    "hero.n1": "SENIOR SMM MANAGER. <br>5+ РОКІВ У СОЦМЕРЕЖАХ. <br>7 РИНКІВ.",
-    "hero.n2": "iGAMING З 2024 РОКУ. <br>LATAM І АФРИКА. <br>ЗАПУСКИ З НУЛЯ.",
-    "hero.n3": "СТРАТЕГІЯ → КОНТЕНТ → <br>КОМ’ЮНІТІ → РІСТ. <br>ВІД ІДЕЇ ДО РЕЗУЛЬТАТУ.",
+    "hero.t1": "РОЛЬ",
+    "hero.n1": "SENIOR SMM MANAGER. <br>6+ РОКІВ У СОЦМЕРЕЖАХ. <br>У МИНУЛОМУ — TEAM LEAD.",
+    "hero.t2": "iGAMING",
+    "hero.n2": "2+ РОКИ В iGAMING. <br>БРАЗИЛІЯ, АФРИКА, ТУРЕЧЧИНА. <br>ЗАПУСКИ З НУЛЯ.",
+    "hero.t3": "AI",
+    "hero.n3": "AI-КОНТЕНТ І АВТОМАТИЗАЦІЯ. <br>ВІРТУАЛЬНІ КРЕАТОРИ. <br>×2 КОНТЕНТУ БЕЗ НОВИХ ЛЮДЕЙ.",
     "hero.scroll": "ГОРТАЙ ДАЛІ",
     "next.note": "// НАСТУПНИЙ БЛОК: ЦИФРИ — У РОБОТІ",
     "status": ["ІНІЦІАЛІЗАЦІЯ", "ЗАВАНТАЖУЮ КОТА", "РАХУЮ ОХОПЛЕННЯ", "СИНХРОНІЗУЮ РИНКИ", "ГОТОВО"]
@@ -72,6 +78,7 @@ window.setLang = function (lang) {
   if (sw) sw.dataset.active = lang;
   try { localStorage.setItem("akimova-lang", lang); } catch (e) {}
   window.currentLang = lang;
+  window.dispatchEvent(new Event("langchange"));
 };
 
 (function initLang() {
