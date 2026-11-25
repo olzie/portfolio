@@ -19,16 +19,6 @@
   tick(); setInterval(tick, 1000);
 
   /* ---------- decorative bits ---------- */
-  const stars = $("#heroStars");
-  for (let i = 0; i < 40; i++) {
-    const s = document.createElement("i");
-    s.style.left = Math.random() * 100 + "%";
-    s.style.top = Math.random() * 65 + "%";
-    s.style.setProperty("--d", 3 + Math.random() * 4 + "s");
-    s.style.setProperty("--dl", -Math.random() * 6 + "s");
-    s.style.setProperty("--o", (0.25 + Math.random() * 0.6).toFixed(2));
-    stars.appendChild(s);
-  }
   const svgNS = "http://www.w3.org/2000/svg";
   const ticks = $(".reticle__ticks");
   for (let i = 0; i < 72; i++) {
@@ -38,16 +28,6 @@
     l.setAttribute("x2", 200 + Math.cos(a) * r2); l.setAttribute("y2", 200 + Math.sin(a) * r2);
     ticks.appendChild(l);
   }
-  // blue edge spots of the poker chip
-  const seg = $(".chip__seg");
-  for (let i = 0; i < 8; i++) {
-    const a0 = (i / 8) * Math.PI * 2 - 0.2, a1 = a0 + 0.4, R = 92, r = 70;
-    const p = (a, rad) => `${100 + Math.cos(a) * rad} ${100 + Math.sin(a) * rad}`;
-    const path = document.createElementNS(svgNS, "path");
-    path.setAttribute("d", `M${p(a0, R)} A${R} ${R} 0 0 1 ${p(a1, R)} L${p(a1, r)} A${r} ${r} 0 0 0 ${p(a0, r)}Z`);
-    seg.appendChild(path);
-  }
-
   /* ---------- text scramble (HUD labels) ---------- */
   const GLYPHS = "!<>-_\\/[]{}—=+*^?#01ABCDEFXZ";
   function scramble(el) {
@@ -114,9 +94,9 @@
     const lang = b.dataset.lang;
     if (lang === window.currentLang) return;
     gsap.timeline()
-      .to(pill, { scaleX: 1.45, scaleY: 0.86, duration: 0.18, ease: "power2.in" })
+      .to(pill, { scaleX: 1.25, scaleY: 0.92, duration: 0.18, ease: "power2.in" })
       .to(pill, { x: pillX(lang), duration: 0.42, ease: "power3.inOut" }, 0.04)
-      .to(pill, { scaleX: 1, scaleY: 1, duration: 0.55, ease: "elastic.out(1, .45)" }, 0.3);
+      .to(pill, { scaleX: 1, scaleY: 1, duration: 0.4, ease: "power3.out" }, 0.3);
     window.setLang(lang);
     $$(".hud p").forEach(p => { delete p.dataset.final; if (p.closest(".hud").classList.contains("is-in")) scramble(p); });
   }));
@@ -144,53 +124,31 @@
     });
   }
 
-  /* ---------- cat turntable ----------
-     8 frames, 45° apart. Instead of hard cuts, neighbouring frames cross-fade
-     around the midpoint and the body narrows slightly, like a real turn.
-     Swap in more frames (e.g. from a 360° video) and N updates by itself. */
-  const frames = $$("#catFrames img");
-  const N = frames.length;
-  const turn = { scroll: 0, glance: 0 };   // in frames
-  let lastOn = [];
-  const smooth = x => x * x * (3 - 2 * x);
-  function renderCat() {
-    let v = turn.scroll + turn.glance;
-    v = ((v % N) + N) % N;
-    const f = Math.floor(v), frac = v - f, nxt = (f + 1) % N;
-    const w = smooth(gsap.utils.clamp(0, 1, (frac - 0.28) / 0.44));
-    const squash = 1 - 0.06 * Math.sin(Math.PI * frac);
-    lastOn.forEach(i => { if (i !== f && i !== nxt) { frames[i].style.opacity = 0; } });
-    frames[f].style.opacity = 1 - w;
-    frames[nxt].style.opacity = w;
-    frames[f].style.transform = frames[nxt].style.transform = `scaleX(${squash})`;
-    lastOn = [f, nxt];
-  }
-  frames.forEach((img, i) => { img.classList.remove("is-on"); img.style.opacity = i === 0 ? 1 : 0; });
-  gsap.ticker.add(renderCat);
-
+  /* ---------- cat video ----------
+     A muted 10-second 360° turn that loops. The reticle angle follows the video. */
+  const video = $("#cat");
+  video.muted = true;
+  const angleEl = $("#angle");
   let heroP = 0;
+  gsap.ticker.add(() => {
+    if (!video.duration) return;
+    angleEl.textContent = String(Math.round((video.currentTime / video.duration) * 360) % 360).padStart(3, "0") + "°";
+  });
+  // pause when the hero is off screen, resume when it comes back
+  new IntersectionObserver(([e]) => {
+    if (reduce) return;
+    e.isIntersecting ? video.play().catch(() => {}) : video.pause();
+  }, { threshold: 0.05 }).observe($("#hero"));
+  if (reduce) { video.removeAttribute("autoplay"); video.pause(); }
+
   if (hover) {
-    const spot = $("#heroSpot"), lens = $("#lens");
-    const sx = gsap.quickTo(spot, "x", { duration: 1.2, ease: "power3" });
-    const catX = gsap.quickTo("#cat", "x", { duration: 1, ease: "power3" });
-    let glanceTarget = 0;
-    const lx = gsap.quickTo(lens, "x", { duration: 0.6, ease: "power3" });
-    const ly = gsap.quickTo(lens, "y", { duration: 0.6, ease: "power3" });
+    const stageX = gsap.quickTo(".hero__stage", "x", { duration: 1.4, ease: "power3" });
+    const lightX = gsap.quickTo(".hero__light--core", "x", { duration: 1.6, ease: "power3" });
     addEventListener("mousemove", e => {
-      const nx = e.clientX / innerWidth - 0.5;
-      sx(nx * innerWidth * 0.25);
-      lx(e.clientX); ly(e.clientY);
       if (document.body.classList.contains("is-loading")) return;
-      const overUI = e.clientY < 90 || e.target.closest(".glass, a, button");
-      gsap.to(lens, { opacity: heroP < 0.55 && !overUI ? 1 : 0, duration: 0.4, overwrite: "auto" });
-      if (heroP < 0.02) {
-        catX(nx * 16);
-        // snap to a whole frame so the cat never hangs between two angles
-        const g = nx < -0.2 ? -1 : nx > 0.2 ? 1 : 0;
-        if (g !== glanceTarget) { glanceTarget = g; gsap.to(turn, { glance: g, duration: 0.45, ease: "power2.inOut", overwrite: "auto" }); }
-      }
+      const nx = e.clientX / innerWidth - 0.5;
+      stageX(nx * 14); lightX(nx * innerWidth * 0.06);
     });
-    document.documentElement.addEventListener("mouseleave", () => gsap.to(lens, { opacity: 0, duration: 0.3 }));
   }
 
   /* ---------- loader ---------- */
@@ -198,8 +156,13 @@
   const countEl = $("#loaderCount"), barEl = $("#loaderBar"), statusEl = $("#loaderStatus");
   const shown = { v: 0 };
   let target = 0;
-  const jobs = [...frames.map(img => (img.decode ? img.decode().catch(() => {}) : Promise.resolve())),
-                document.fonts ? document.fonts.ready : Promise.resolve()];
+  const videoReady = new Promise(res => {
+    if (video.readyState >= 3) return res();
+    video.addEventListener("canplay", res, { once: true });
+    video.addEventListener("error", res, { once: true });
+  });
+  const posterReady = new Promise(res => { const i = new Image(); i.onload = i.onerror = res; i.src = video.poster; });
+  const jobs = [videoReady, posterReady, document.fonts ? document.fonts.ready : Promise.resolve()];
   let done = 0;
   jobs.forEach(p => p.then(() => { done++; target = Math.round((done / jobs.length) * 100); }));
   const minTime = reduce ? 300 : 1900, t0 = performance.now();
@@ -241,20 +204,21 @@
   gsap.set(arc, { strokeDasharray: arcLen, strokeDashoffset: arcLen });
   function heroIntro() {
     return gsap.timeline()
-      .from("#cat", { y: 70, opacity: 0, duration: 1.3, ease: "expo.out" }, 0.1)
-      .from(".cat__floor", { scaleX: 0, opacity: 0, duration: 1.1, ease: "expo.out" }, 0.2)
-      .to(arc, { strokeDashoffset: 0, duration: 1.4, ease: "power3.inOut" }, 0.35)
-      .from(".reticle__cross", { opacity: 0, scale: 0.6, transformOrigin: "50% 50%", duration: 0.8, ease: "expo.out" }, 0.6)
-      .from(".hero__name--l .hero__word", { xPercent: 22, opacity: 0, filter: "blur(10px)", duration: 1.2, ease: "expo.out" }, 0.45)
-      .from(".hero__name--r .hero__word", { xPercent: -22, opacity: 0, filter: "blur(10px)", duration: 1.2, ease: "expo.out" }, 0.5)
-      .from(".hero__role", { y: 14, opacity: 0, duration: 0.9, ease: "expo.out" }, 0.8)
-      .from(".hero__list li", { x: -14, opacity: 0, duration: 0.7, stagger: 0.07, ease: "expo.out" }, 0.85)
-      .from(".chip", { y: -60, rotateZ: -40, opacity: 0, duration: 1.1, ease: "bounce.out" }, 0.9)
-      .from(".crowd", { opacity: 0, duration: 1.6, ease: "power2.out" }, 0.3)
-      .from(".corner", { opacity: 0, scale: 0.4, duration: 0.8, stagger: 0.1, ease: "expo.out" }, 0.7)
-      .from(".hero__beam", { opacity: 0, duration: 1.4, ease: "power2.out" }, 0)
-      .from(".header__right > *, .header__center", { y: -24, opacity: 0, duration: 0.9, stagger: 0.06, ease: "expo.out" }, 0.3)
-      .from(".hero__meta", { opacity: 0, y: 10, duration: 0.8 }, 0.9);
+      // the light flickers on, like a studio spot
+      .fromTo(".hero__light", { opacity: 0 }, { opacity: 1, duration: 0.05, repeat: 3, yoyo: true, ease: "none" }, 0)
+      .to(".hero__light", { opacity: 1, duration: 0.6 }, 0.25)
+      .from("#cat", { opacity: 0, scale: 1.04, filter: "brightness(0)", duration: 1.8, ease: "power2.out" }, 0.15)
+      .from(".crowd", { opacity: 0, duration: 2.2, ease: "power2.out" }, 0.4)
+      .to(arc, { strokeDashoffset: 0, duration: 1.4, ease: "power3.inOut" }, 0.5)
+      .from(".reticle__cross", { opacity: 0, scale: 0.6, transformOrigin: "50% 50%", duration: 0.8, ease: "expo.out" }, 0.8)
+      .from(".hero__name--l .hero__word", { yPercent: 105, duration: 1.2, ease: "expo.out" }, 0.55)
+      .from(".hero__name--r .hero__word", { yPercent: 105, duration: 1.2, ease: "expo.out" }, 0.62)
+      .from(".hero__role", { yPercent: 110, duration: 1, ease: "expo.out" }, 0.8)
+      .from(".hero__list li", { x: -14, opacity: 0, duration: 0.7, stagger: 0.07, ease: "expo.out" }, 0.9)
+      .from(".corner", { opacity: 0, scale: 0.4, duration: 0.8, stagger: 0.1, ease: "expo.out" }, 0.9)
+      .from(".cta", { y: 40, opacity: 0, duration: 1, ease: "expo.out" }, 1)
+      .from(".header__right > *, .header__center", { y: -24, opacity: 0, duration: 0.9, stagger: 0.06, ease: "expo.out" }, 0.4)
+      .from(".hero__scroll", { opacity: 0, duration: 0.8 }, 1.1);
   }
 
   /* ---------- hero scroll scene ---------- */
@@ -276,15 +240,9 @@
         trigger: "#hero", start: "top top", end: "bottom bottom", scrub: 0.6, invalidateOnRefresh: true,
         onUpdate: self => {
           heroP = self.progress;
-          // one full turn between 6% and 88% of the scene, ending face-forward
-          const t = gsap.utils.clamp(0, 1, (heroP - 0.06) / 0.82);
-          turn.scroll = t * N;
-          if (heroP > 0.02 && turn.glance !== 0) gsap.to(turn, { glance: 0, duration: 0.4, overwrite: "auto" });
-          $("#angle").textContent = String(Math.round(t * 360) % 360).padStart(3, "0") + "°";
           huds.forEach((h, i) => setHud(i, isMobile()
             ? heroP >= hudAt[i] && heroP < (hudAt[i + 1] ?? 0.9)
             : heroP >= hudAt[i]));
-          if (heroP > 0.02) gsap.to("#cat", { x: 0, duration: 0.6, overwrite: "auto" });
         }
       }
     })
@@ -294,13 +252,13 @@
       .to(".hero__list", { opacity: 0, x: -30, duration: 0.25 }, 0)
       .to(".crowd--l", { xPercent: -18, duration: 1 }, 0)
       .to(".crowd--r", { xPercent: 18, duration: 1 }, 0)
-      .to(".chip", { opacity: 0, y: 20, duration: 0.15 }, 0.04)
       .to(".reticle svg", { rotate: 90, duration: 0.9 }, 0.05)
       .to([".reticle__ticks", ".reticle__ring--dash", ".reticle__label"], { opacity: 1, duration: 0.12 }, 0.08)
-      .to("#cat", { scale: 0.94, duration: 1 }, 0)
-      .to(".hero__scroll", { opacity: 0, duration: 0.1 }, 0.02)
+      .to(".hero__stage", { scale: 1.12, yPercent: 3, duration: 1 }, 0)        // slow camera push-in
+      .to(".hero__light--core", { scaleX: 1.25, duration: 0.5 }, 0.1)
+      .to([".hero__scroll", ".cta"], { opacity: 0, duration: 0.1 }, 0.02)
+      .to(".cta", { opacity: 1, duration: 0.1 }, 0.9)
       .to([".reticle__ticks", ".reticle__ring--dash", ".reticle__label"], { opacity: 0, duration: 0.1 }, 0.9)
-      .to(".chip", { opacity: 1, y: 0, duration: 0.1 }, 0.9)
       .to(".hero__name--l, .hero__name--r", { xPercent: 0, yPercent: 0, opacity: 1, duration: 0.1 }, 0.9);
   } else {
     huds.forEach(h => { h.classList.add("is-in"); gsap.set(h, { opacity: 1, x: 0 }); });
