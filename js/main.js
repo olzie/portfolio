@@ -131,16 +131,49 @@
     drawn = -1;
     drawCat(((Math.round(turn.cur) % FRAMES) + FRAMES) % FRAMES);
   }
-  function groundCat() {                               // light pool + soft contact shadow under the feet
+  /* Floor contact, measured offline from the frames: for each frame, which 8px columns of the
+     crop touch the floor (NEAR: the bottom 5px, FAR: the bottom 40px). The shadow is built from
+     those columns, so it sits under the shoe, the body and the tail in every pose, not just
+     under the middle. */
+  const CONTACT_NEAR="fffffffffffffff0000 fffffffffffffff0000 fffffffffffffff0000 fffffffffffffff0000 7fffffffffffffe0000 7fffffffffffffc0000 3fffffffffffff80000 1fffffffffffffc0000 fffffffffffffe0000 7fffffffffffff0000 3fffffffffffff8000 1fffffffffffffc000 fffffffffffffe000 ffffffffffffff000 7fffffffffffff800 3fffffffffffffe00 1ffffffffffffff00 1ffffffffffffff80 1ffffffffffffffc0 1ffffffffffffffc0 3ffffffffffffffe0 7fffffffffffffff0 ffffffffffffffff8 1ffffffffffffffffc 3ffffffffffffffffc 7ffffffffffffffffc fffffffffffffffffe 1fffffffffffffffffe 1fffffffffffffffffe 7fffffffffffffffffe 7fffffffffffffffffe ffffffffffffffffffe 1ffffffffffffffffffc 1ffffffffffffffffffc 3ffffffffffffffffff8 3ffffffffffffffffff0 7ffffffffffffffffff0 fffffffffffffffffff8 1fffffffffffffffffffc 3fffffffffffffffffffe 7fffffffffffffffffffe ffffffffffffffffffffe 1fffffffffffffffffffff 3fffffffffffffffffffff 7fffffffffffffffffffff 7ffffffffffffffffffffe fffffffffffffffffffffe 1fffffffffffffffffffffc 1fffffffffffffffffffff8 3fffffffffffffffffffff8 3fffffffffffffe3ffffff0 3ffffffffffffff3fffffc0 3ffffffffffffffffffff80 3ffffffffffffffffffff00 3fffffffffffffffffffc00 3fffffffffffffffffff800 3ffffffffffffffffffe000 1ffffffffffffffffff8000 ffffffffffffffffff0000 fffffffffffffffffc0000 7ffffffffffffffff00000 3fffffffffffffffc00000 1fffffffffffffff000000 ffffffffffffffe000000 7fffffffffffffc000000 1fffffffffffff0000000 1fffffffffffff0000000 7fffffffffffff0000000 ffffffffffffff0000000 3ffffffffffffff8000000 7ffffffffffffffc000000 1fffffffffffffffe000000 3ffffffffffffffff000000 7ffffffffffffffff800000 fffffffffffffffffc00000 1fffffffffffffffffc00000 1fffffffffffffffffe00000 3fffffffffffffffffe00000 3ffffffffffffffffff00000 3ffffffffffffffffff00000 3ffffffffffffffffff80000 3ffffffffffffffffff80000 3ffffffffffffffffff80000 1ffffffffffffffffff80000 ffffffffffffffffff80000 7fffffffffffffffffc0000 7fffffffffffffffffc0000 ffffffffffffffffffc0000 1ffffffffffffffffffc0000 3ffffffffffffffffffe0000 3fffffffffffffffffff0000 3fffffffffffffffffff8000 3fffffffffffffffffffc000 3fffffffffffffffffffe000 3ffffffffffffffffffff000 1ffffffffffffffffffff800 1ffffffffffffffffffff800 ffffffffffffffffffff800 ffffffffffffffffffff800 7fffffffffffffffffff800 3fffffffffffffffffff800 1fffffffffffffffffff000 fffffffffffffffffff000 7fffffffffffffffffe000 3fffffffffffffffffe000 1fffffffffffffffffc000 fffffffffffffffffc000 7ffffffffffffffff8000 3ffffffffffffffff0000 1ffffffffffffffff0000 fffffffffffffffe0000 7ffffffffffffffe0000 3ffffffffffffffe0000 1ffffffffffffffc0000 1ffffffffffffffc0000 ffffffffffffffc0000 ffffffffffffffc0000 ffffffffffffff80000 7fffffffffffff80000 7fffffffffffff80000".split(" "), CONTACT_FAR="ffffffffffffffffc00 ffffffffffffffffc00 ffffffffffffffff800 ffffffffffffffff800 7fffffffffffffff800 7fffffffffffffff000 3ffffffffffffffe000 1ffffffffffffffc000 ffffffffffffff8000 7fffffffffffff0000 3fffffffffffff8000 1fffffffffffffc000 fffffffffffffe000 ffffffffffffff000 ffffffffffffff800 ffffffffffffffe00 fffffffffffffff00 1fffffffffffffff80 1fffffffffffffffc0 1fffffffffffffffc0 1fffffffffffffffe0 3ffffffffffffffff0 7ffffffffffffffff8 fffffffffffffffffc fffffffffffffffffc 1fffffffffffffffffc 3fffffffffffffffffe 7fffffffffffffffffe 7fffffffffffffffffe ffffffffffffffffffe 1ffffffffffffffffffe 1ffffffffffffffffffe 3ffffffffffffffffffc 3ffffffffffffffffffc 7ffffffffffffffffff8 1fffffffffffffffffff0 3fffffffffffffffffff0 7fffffffffffffffffff8 ffffffffffffffffffffc 1ffffffffffffffffffffe 3ffffffffffffffffffffe 7ffffffffffffffffffffe ffffffffffffffffffffff 1ffffffffffffffffffffff 3ffffffffffffffffffffff 3fffffffffffffffffffffe 7fffffffffffffffffffffe ffffffffffffffffffffffc ffffffffffffffffffffff8 1ffffffffffffffffffffff8 1ffffffffffffffffffffff0 1fffffffffffffffffffffc0 1fffffffffffffffffffff80 1fffffffffffffffffffff00 1ffffffffffffffffffffc00 1ffffffffffffffffffff800 1fffffffffffffffffffe000 fffffffffffffffffffc000 7ffffffffffffffffff0000 7fffffffffffffffffc0000 3fffffffffffffffff00000 1ffffffffffffffffc00000 ffffffffffffffff000000 3ffffffffffffffe000000 1ffffffffffffffc000000 ffffffffffffffc000000 3fffffffffffffc000000 7fffffffffffffc000000 ffffffffffffffc000000 3ffffffffffffffc000000 7ffffffffffffffc000000 1fffffffffffffffe000000 3ffffffffffffffff000000 7ffffffffffffffff800000 fffffffffffffffffc00000 1fffffffffffffffffc00000 1fffffffffffffffffe00000 3ffffffffffffffffff00000 3ffffffffffffffffff00000 3ffffffffffffffffff80000 3ffffffffffffffffff80000 3ffffffffffffffffff80000 3ffffffffffffffffffc0000 1ffffffffffffffffffc0000 ffffffffffffffffffc0000 7fffffffffffffffffc0000 7fffffffffffffffffc0000 ffffffffffffffffffc0000 1ffffffffffffffffffe0000 3fffffffffffffffffff0000 3fffffffffffffffffffc000 3fffffffffffffffffffe000 3ffffffffffffffffffff800 3ffffffffffffffffffffc00 3ffffffffffffffffffffe00 1fffffffffffffffffffff00 1fffffffffffffffffffff00 fffffffffffffffffffff80 fffffffffffffffffffff80 7ffffffffffffffffffff80 3ffffffffffffffffffff80 1ffffffffffffffffffff80 ffffffffffffffffffff80 7fffffffffffffffffff80 3fffffffffffffffffff00 1fffffffffffffffffff00 fffffffffffffffffff00 7fffffffffffffffffe00 3fffffffffffffffffe00 1fffffffffffffffffc00 fffffffffffffffffc00 7ffffffffffffffff800 3ffffffffffffffff800 1ffffffffffffffff000 1ffffffffffffffff000 ffffffffffffffff000 ffffffffffffffff000 fffffffffffffffe000 7ffffffffffffffe000 7ffffffffffffffe000".split(" ");
+  const BIN = 8, binCache = {};
+  const bins = (list, f) => binCache[list === CONTACT_NEAR ? "n" + f : "f" + f] ??= (() => {
+    const hex = list[f], out = [];
+    for (let i = 0; i < hex.length * 4; i++) {
+      const c = parseInt(hex[hex.length - 1 - (i >> 2)], 16);
+      if (c >> (i & 3) & 1) out.push(i);
+    }
+    return out;
+  })();
+  const dot = (() => {                                 // one soft black dot, stamped along the contact
+    const c = document.createElement("canvas"); c.width = c.height = 64;
+    const x = c.getContext("2d"), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, "rgba(0,0,0,1)"); g.addColorStop(0.5, "rgba(0,0,0,.5)"); g.addColorStop(1, "rgba(0,0,0,0)");
+    x.fillStyle = g; x.fillRect(0, 0, 64, 64); return c;
+  })();
+  function groundCat(f) {
+    const k = cw / CROP.size, y0 = ch * BASE;
+    const near = bins(CONTACT_NEAR, f), far = bins(CONTACT_FAR, f);
+    const colX = i => (CROP.x + (i + 0.5) * BIN) * k;
+    const xs = far.length ? far.map(colX) : [cw / 2];
+    const l = Math.min(...xs), r = Math.max(...xs), cx = (l + r) / 2, hw = (r - l) / 2;
+    // blue light pool on the floor, following the cat
     ctx.save();
-    ctx.translate(cw / 2, ch * BASE); ctx.scale(1, 0.16);
-    let g = ctx.createRadialGradient(0, 0, 0, 0, 0, cw * 0.42);
-    g.addColorStop(0, "rgba(120,150,255,0.18)"); g.addColorStop(0.5, "rgba(26,75,255,0.08)"); g.addColorStop(1, "rgba(26,75,255,0)");
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, cw * 0.42, 0, Math.PI * 2); ctx.fill();
-    g = ctx.createRadialGradient(0, 0, 0, 0, 0, cw * 0.27);
-    g.addColorStop(0, "rgba(0,0,0,0.85)"); g.addColorStop(0.6, "rgba(0,0,0,0.45)"); g.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, cw * 0.27, 0, Math.PI * 2); ctx.fill();
+    const R = Math.max(cw * 0.42, hw + cw * 0.14);
+    ctx.translate(cx, y0 + ch * 0.004); ctx.scale(1, 0.13);   // lit floor right under the cat, so the soles stand out against it
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
+    g.addColorStop(0, "rgba(140,165,255,0.30)"); g.addColorStop(0.45, "rgba(40,90,255,0.12)"); g.addColorStop(1, "rgba(26,75,255,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
+    // wide soft shade under everything that is close to the floor
+    let w = BIN * k * 5, h = ch * 0.05;
+    ctx.globalAlpha = 0.07;
+    for (const i of far) ctx.drawImage(dot, colX(i) - w / 2, y0 - h * 0.45, w, h);
+    // dark contact line exactly where the shoes, body and tail touch
+    w = BIN * k * 3; h = ch * 0.016;
+    ctx.globalAlpha = 0.45;
+    for (const i of near) ctx.drawImage(dot, colX(i) - w / 2, y0 - h * 0.55, w, h);
+    ctx.globalAlpha = 1;
   }
   function drawCat(f) {
     const im = bmp[f] || nearest(f);
@@ -148,12 +181,12 @@
     drawn = bmp[f] ? f : -1;
     const k = cw / CROP.size, dx = CROP.x * k, dy = CROP.y * k, dw = CROP.w * k, dh = CROP.h * k;
     ctx.clearRect(0, 0, cw, ch);
-    groundCat();
+    groundCat(f);
     ctx.drawImage(im, dx, dy, dw, dh);
-    const y0 = ch * BASE, rh = ch * 0.09;              // short reflection under the feet
+    const y0 = ch * BASE, rh = ch * 0.05;              // very short, faint reflection: a long one reads as the cat sinking in
     ctx.save();
     ctx.beginPath(); ctx.rect(0, y0, cw, rh); ctx.clip();
-    ctx.globalAlpha = 0.16;
+    ctx.globalAlpha = 0.1;
     ctx.translate(0, y0 * 2); ctx.scale(1, -1);
     ctx.drawImage(im, dx, dy, dw, dh);
     ctx.restore();
