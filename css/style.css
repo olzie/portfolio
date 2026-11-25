@@ -127,8 +127,10 @@ body::after{
    like the artboard, so it keeps its shape relative to the cat. */
 .hero__light{position:absolute;left:50%;top:0;height:100%;aspect-ratio:4/5;pointer-events:none;
   background:url(../assets/beam.webp) center top/100% 100% no-repeat;
-  translate:calc(-50% + var(--px,0) * 2%) 0;transition:translate 1.6s var(--ease);
-  transform-origin:50% 0;scale:calc(1 + var(--beam,0) * 1.3) calc(1 + var(--beam,0) * .08)}   /* opens up as you scroll */
+  translate:calc(-50% + var(--px,0) * 2%) 0;transition:translate 1.6s var(--ease)}
+/* as you scroll the beam opens up: a static, already-widened copy fades in on top.
+   Only its opacity changes, which the browser does without repainting (scaling it per frame cost ~8ms). */
+.hero__light--wide{aspect-ratio:1.83;height:104%;opacity:var(--beam,0);will-change:opacity}
 .hero__floor{position:absolute;left:0;right:0;bottom:0;top:var(--horizon,70%);opacity:.6;
   background:radial-gradient(ellipse 45% 40% at 50% 0%,rgba(58,102,255,.10),transparent 70%),linear-gradient(180deg,rgba(8,12,26,0),rgba(6,9,20,.75) 35%,#010103 100%);
   border-top:1px solid rgba(140,170,255,.07)}

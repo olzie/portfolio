@@ -292,7 +292,7 @@
   }
 
   /* ---------- scroll: progress bar, cat frame, scene states ---------- */
-  const bar = $("#scrollProgress"), huds = $$(".hud"), beam = $(".hero__light");
+  const bar = $("#scrollProgress"), huds = $$(".hud"), beam = $(".hero__light--wide");
   const hudAt = [0.14, 0.4, 0.64], HUD_OUT = 0.86;
   let heroTop = 0, heroLen = 1, docLen = 1;
   const measure = () => {
