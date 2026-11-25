@@ -181,8 +181,8 @@ body::after{
 .hero__list li::after{left:-27px;top:calc(50% - 8px);width:2px;height:16px}
 
 /* cat */
-.hero__stage{position:absolute;left:300px;top:104px;width:840px;height:840px;z-index:3;
-  translate:calc(var(--px,0) * 14px) 0;transition:translate 1.4s var(--ease)}   /* follows the cursor a little */
+.hero__stage{position:absolute;left:300px;top:104px;width:840px;height:840px;z-index:3
+  }   /* stays put: following the cursor made the cat shift between moments */
 .cat{position:absolute;inset:0;width:100%;height:100%;transform:translateZ(0)}
 .hero__stage::before{content:"";position:absolute;left:27%;top:18%;width:46%;height:52%;border-radius:50%;
   background:radial-gradient(ellipse at center,rgba(23,71,255,.2),rgba(23,71,255,.06) 50%,transparent 75%);pointer-events:none}
