@@ -345,8 +345,10 @@
     bar.style.transform = `scaleX(${clamp(y / docLen, 0, 1).toFixed(4)})`;
     const p = clamp((y - heroTop) / heroLen, 0, 1);
     beam.style.setProperty("--beam", p.toFixed(3));
-    // one full turn between 4% and 92% of the scene, ending face-forward, then a short hold
-    turn.target = clamp((p - 0.04) / 0.88, 0, 1) * FRAMES;
+    /* one full turn between 4% and 82% of the scene, then a long hold facing forward until the
+       next block arrives. (Ending the turn at 92% put its last frame step right where people
+       stop before scrolling on, so the cat snapped to the front view after the motion settled.) */
+    turn.target = clamp((p - 0.04) / 0.78, 0, 1) * FRAMES;
     kick();
     hero.classList.toggle("is-scrolled", p > 0.02);              // CSS hides the list and the scroll hint
     hero.classList.toggle("is-turning", p > 0.02 && p < 0.74);   // CSS dims the name while the cat turns
