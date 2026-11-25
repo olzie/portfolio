@@ -11,6 +11,10 @@
   const isMobile = () => portraitMQ.matches;           // portrait screens use the 390×844 artboard
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
+  // Always open at the top: no restored scroll position on reload, so the cat starts face-forward
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  if (!location.hash) scrollTo(0, 0);
+
   // Chromium can refract the backdrop through an SVG filter; others get plain frosted glass
   const brands = (navigator.userAgentData && navigator.userAgentData.brands) || [];
   if (brands.some(b => /Chromium/i.test(b.brand))) root.classList.add("refract");
@@ -151,12 +155,28 @@
     g.addColorStop(0, "rgba(0,0,0,1)"); g.addColorStop(0.5, "rgba(0,0,0,.5)"); g.addColorStop(1, "rgba(0,0,0,0)");
     x.fillStyle = g; x.fillRect(0, 0, 64, 64); return c;
   })();
+  // The light pool follows the cat's footprint, smoothed over neighbouring frames: per-frame
+  // spans change in jumps (the tail lifts off, a shoe turns), and a hopping glow made the cat look jumpy.
+  const POOL = (() => {
+    const raw = CONTACT_FAR.map((_, f) => {
+      const b = bins(CONTACT_FAR, f);
+      return b.length ? [b[0], b[b.length - 1] + 1] : [40, 55];
+    });
+    const n = raw.length, R = 7;
+    return raw.map((_, f) => {
+      let l = 0, r = 0, w = 0;
+      for (let d = -R; d <= R; d++) {
+        const q = raw[(f + d + n) % n], k = R + 1 - Math.abs(d);
+        l += q[0] * k; r += q[1] * k; w += k;
+      }
+      return [l / w * BIN, r / w * BIN];           // crop pixels
+    });
+  })();
   function groundCat(f) {
     const k = cw / CROP.size, y0 = ch * BASE;
     const near = bins(CONTACT_NEAR, f), far = bins(CONTACT_FAR, f);
     const colX = i => (CROP.x + (i + 0.5) * BIN) * k;
-    const xs = far.length ? far.map(colX) : [cw / 2];
-    const l = Math.min(...xs), r = Math.max(...xs), cx = (l + r) / 2, hw = (r - l) / 2;
+    const l = (CROP.x + POOL[f][0]) * k, r = (CROP.x + POOL[f][1]) * k, cx = (l + r) / 2, hw = (r - l) / 2;
     // blue light pool on the floor, following the cat
     ctx.save();
     const R = Math.max(cw * 0.42, hw + cw * 0.14);
@@ -339,9 +359,13 @@
   })();
   // Everything is laid out and drawn before the loader leaves, so the page appears complete.
   function finishLoader() {
+    if (!location.hash) scrollTo(0, 0);                 // undo any scroll that slipped in during loading
     body.classList.remove("is-loading");
     setScale(); fitTitle(); fit(); measure();
-    needDraw = true; drawCat(0); onScroll();
+    if (lenis && !location.hash) lenis.scrollTo(0, { immediate: true, force: true });
+    onScroll();
+    turn.cur = turn.target;                              // no visible spin when the page appears
+    needDraw = true; drawCat(((Math.round(turn.cur) % FRAMES) + FRAMES) % FRAMES);
     requestAnimationFrame(() => loader.classList.add("is-done"));         // CSS fades it out
     loader.addEventListener("transitionend", () => { loader.remove(); if (lenis) lenis.start(); }, { once: true });
   }

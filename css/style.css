@@ -28,7 +28,8 @@ html{background:var(--bg);color:var(--text);-webkit-text-size-adjust:100%;scroll
 html.lenis,html.lenis body{height:auto}
 .lenis.lenis-smooth{scroll-behavior:auto!important}
 body{margin:0;font-family:var(--body);background:var(--bg);overflow-x:hidden;-webkit-font-smoothing:antialiased}
-body.is-loading{overflow:hidden;height:100vh}
+body.is-loading{overflow:hidden;height:100vh;touch-action:none;overscroll-behavior:none}
+html:has(body.is-loading){overflow:hidden}   /* iOS ignores overflow on body alone */
 a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
 img{display:block;max-width:100%}
@@ -125,12 +126,12 @@ body::after{
 /* the beam: one pre-rendered soft cone (assets/beam.webp, 9 KB) instead of stacked gradients,
    so its edges fade smoothly with no visible borders or banding. Sized by the screen height,
    like the artboard, so it keeps its shape relative to the cat. */
-.hero__light{position:absolute;left:50%;top:0;height:100%;aspect-ratio:4/5;pointer-events:none;
+.hero__light{position:absolute;left:50%;top:0;height:100%;aspect-ratio:4/5;pointer-events:none;opacity:.72;
   background:url(../assets/beam.webp) center top/100% 100% no-repeat;
   translate:calc(-50% + var(--px,0) * 2%) 0;transition:translate 1.6s var(--ease)}
 /* as you scroll the beam opens up: a static, already-widened copy fades in on top.
    Only its opacity changes, which the browser does without repainting (scaling it per frame cost ~8ms). */
-.hero__light--wide{aspect-ratio:1.83;height:104%;opacity:var(--beam,0);will-change:opacity}
+.hero__light--wide{aspect-ratio:1.83;height:104%;opacity:calc(var(--beam,0) * .6);will-change:opacity}
 .hero__floor{position:absolute;left:0;right:0;bottom:0;top:var(--horizon,70%);opacity:.6;
   background:radial-gradient(ellipse 45% 40% at 50% 0%,rgba(58,102,255,.10),transparent 70%),linear-gradient(180deg,rgba(8,12,26,0),rgba(6,9,20,.75) 35%,#010103 100%);
   border-top:1px solid rgba(140,170,255,.07)}
