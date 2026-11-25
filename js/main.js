@@ -161,6 +161,19 @@
     drawn = -1;
   };
   const turn = { target: 0, cur: 0 };               // in frames
+  // a pool of light on the floor and a soft contact shadow, so the cat sits on the floor
+  function groundCat() {
+    const cx = cw / 2, y = ch * BASE;
+    ctx.save();
+    ctx.translate(cx, y); ctx.scale(1, 0.16);
+    let g = ctx.createRadialGradient(0, 0, 0, 0, 0, cw * 0.42);
+    g.addColorStop(0, "rgba(140,165,255,0.16)"); g.addColorStop(0.5, "rgba(91,130,255,0.07)"); g.addColorStop(1, "rgba(91,130,255,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, cw * 0.42, 0, Math.PI * 2); ctx.fill();
+    g = ctx.createRadialGradient(0, 0, 0, 0, 0, cw * 0.27);
+    g.addColorStop(0, "rgba(0,0,0,0.85)"); g.addColorStop(0.6, "rgba(0,0,0,0.45)"); g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, cw * 0.27, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
   function renderCat() {
     turn.cur += (turn.target - turn.cur) * 0.18;
     if (Math.abs(turn.target - turn.cur) < 0.01) turn.cur = turn.target;
@@ -170,6 +183,7 @@
     drawn = bmp[f] ? f : -1;
     ctx.clearRect(0, 0, cw, ch);
     ctx.globalAlpha = 1;
+    groundCat();
     ctx.drawImage(im, 0, 0, cw, ch);
     // short reflection under the feet only
     const y0 = ch * BASE;
@@ -249,7 +263,6 @@
       .fromTo(".hero__light", { opacity: 0 }, { opacity: 1, duration: 0.05, repeat: 3, yoyo: true, ease: "none" }, 0)
       .to(".hero__light", { opacity: 1, duration: 0.6 }, 0.25)
       .from("#cat", { opacity: 0, scale: 1.04, filter: "brightness(0)", duration: 1.8, ease: "power2.out" }, 0.15)
-      .from(".crowd", { opacity: 0, duration: 2.2, ease: "power2.out" }, 0.4)
       .from(".hero__row .hero__mask:first-child .hero__word", { yPercent: 105, duration: 1.3, ease: "expo.out" }, 0.5)
       .from(".hero__row .hero__mask:last-child .hero__word", { yPercent: 105, duration: 1.3, ease: "expo.out" }, 0.6)
       .from(".hero__role", { yPercent: 110, duration: 1, ease: "expo.out" }, 0.8)
@@ -281,20 +294,20 @@
           heroP = self.progress;
           turn.target = gsap.utils.clamp(0, 1, (heroP - 0.04) / 0.88) * FRAMES;
           huds.forEach((h, i) => setHud(i, isMobile()
-            ? heroP >= hudAt[i] && heroP < (hudAt[i + 1] ?? 0.9)
-            : heroP >= hudAt[i]));
+            ? heroP >= hudAt[i] && heroP < (hudAt[i + 1] ?? 0.86)
+            : heroP >= hudAt[i] && heroP < 0.86));
         }
       }
     })
       // desktop: the name parts drift apart; phone: they float up instead of leaving the screen
-      .to(".hero__title", { opacity: 0.28, yPercent: -4, duration: 0.25 }, 0)           // name steps back while the cat turns
+      .to(".hero__title", { opacity: 0.28, yPercent: -4, duration: 0.25, ease: "sine.inOut" }, 0)   // name steps back while the cat turns
       .to(".hero__list", { opacity: 0, x: -30, duration: 0.25 }, 0)
-      .to(".crowd--l", { xPercent: -18, duration: 1 }, 0)
-      .to(".crowd--r", { xPercent: 18, duration: 1 }, 0)
-      .to(".hero__stage", { scale: 1.1, duration: 1 }, 0)                    // slow push-in; grows up from the feet
+      .to(".hero__stage", { scale: 1.08, duration: 0.46, ease: "sine.inOut" }, 0)     // push in (grows up from the feet)
+      .to(".hero__stage", { scale: 1, duration: 0.46, ease: "sine.inOut" }, 0.46)     // ease back out as the turn completes
       .to(".hero__light--core", { scaleX: 1.25, duration: 0.5 }, 0.1)
       .to(".hero__scroll", { opacity: 0, duration: 0.1 }, 0.02)
-      .to(".hero__title", { opacity: 1, yPercent: 0, duration: 0.1 }, 0.9);
+      .to(".hero__title", { opacity: 1, yPercent: 0, duration: 0.2, ease: "sine.inOut" }, 0.72)
+      .to({}, { duration: 0.08 }, 0.92);                                               // hold still before the page moves on
   } else {
     huds.forEach(h => { h.classList.add("is-in"); gsap.set(h, { opacity: 1, x: 0 }); });
   }
@@ -307,10 +320,10 @@
     const bw = isMobile() ? 390 : 1440, bh = isMobile() ? 844 : 900;
     const s = Math.min(pin.clientWidth / bw, pin.clientHeight / bh);
     board.style.setProperty("--s", s.toFixed(4));
-    // floor line in screen pixels = the soles of the cat (stage top + 80% of its height)
+    // wall/floor line sits behind the cat, a bit above its soles, so the cat sits *on* the floor
     const boardTop = (pin.clientHeight - bh * s) / 2;
-    const feet = stage.offsetTop + stage.offsetHeight * BASE;
-    pin.style.setProperty("--horizon", Math.round(boardTop + feet * s) + "px");
+    const horizon = stage.offsetTop + stage.offsetHeight * (BASE - 0.085);
+    pin.style.setProperty("--horizon", Math.round(boardTop + horizon * s) + "px");
   }
   function fitTitle() {
     title.style.setProperty("--fs", "100px");
