@@ -210,7 +210,11 @@
   const countEl = $("#loaderCount"), barEl = $("#loaderBar");
   const shown = { v: 0 };
   let target = 0, done = 0;
-  const jobs = [...firstLoads, document.fonts ? document.fonts.ready : Promise.resolve()];
+  // wait for the exact font faces the first screen uses (Latin + Cyrillic), not just "fonts.ready"
+  const fontJobs = document.fonts
+    ? ["800 100px Unbounded", "400 12px Unbounded"].map(f => document.fonts.load(f, "OLGA AKIMOVA ОЛЬГА АКІМОВА $").catch(() => {}))
+    : [];
+  const jobs = [...firstLoads, ...fontJobs];
   jobs.forEach(p => p.then(() => { done++; target = Math.round((done / jobs.length) * 100); }));
   const minTime = reduce ? 0 : 500, t0 = performance.now();
   const render = () => {
@@ -227,35 +231,17 @@
   setTimeout(() => { target = 100; }, 8000);
   requestAnimationFrame(render);
 
+  // Everything is laid out and drawn *before* the loader leaves, so the page appears complete.
   function finishLoader() {
-    gsap.timeline({
-      onComplete: () => {
-        $("#loader").remove();
-        document.body.classList.remove("is-loading");
-        fitTitle();
-        if (lenis) lenis.start();
-        ScrollTrigger.refresh();
-      }
-    })
-      .to("#loader", { opacity: 0, duration: 0.6, ease: "power2.out" }, 0.1)
-      .add(heroIntro(), 0.15);
-  }
-
-  /* ---------- hero entrance ---------- */
-  function heroIntro() {
-    return gsap.timeline()
-      // the light flickers on, like a studio spot
-      .fromTo(".hero__light", { opacity: 0 }, { opacity: 1, duration: 0.05, repeat: 3, yoyo: true, ease: "none" }, 0)
-      .to(".hero__light", { opacity: 1, duration: 0.6 }, 0.25)
-      .from("#cat", { opacity: 0, scale: 1.04, filter: "brightness(0)", duration: 1.8, ease: "power2.out" }, 0.15)
-      .from(".hero__row .hero__mask:first-child .hero__word", { yPercent: 105, duration: 1.3, ease: "expo.out" }, 0.5)
-      .from(".hero__row .hero__mask:last-child .hero__word", { yPercent: 105, duration: 1.3, ease: "expo.out" }, 0.6)
-      .from(".hero__role", { yPercent: 110, duration: 1, ease: "expo.out" }, 0.8)
-      .from(".hero__list li", { x: -14, opacity: 0, duration: 0.7, stagger: 0.07, ease: "expo.out" }, 0.9)
-      .from(".corner", { opacity: 0, scale: 0.4, duration: 0.8, stagger: 0.1, ease: "expo.out" }, 0.9)
-      .from(".cta", { y: 40, opacity: 0, duration: 1, ease: "expo.out" }, 1)
-      .from(".header__right > *", { y: -24, opacity: 0, duration: 0.9, stagger: 0.06, ease: "expo.out" }, 0.4)
-      .from(".hero__scroll", { opacity: 0, duration: 0.8 }, 1.1);
+    document.body.classList.remove("is-loading");
+    setScale(); fitTitle(); fit();
+    requestAnimationFrame(() => {
+      renderCat();
+      gsap.to("#loader", {
+        opacity: 0, duration: 0.6, ease: "power2.out",
+        onComplete: () => { $("#loader").remove(); if (lenis) lenis.start(); ScrollTrigger.refresh(); }
+      });
+    });
   }
 
   /* ---------- hero scroll scene ---------- */

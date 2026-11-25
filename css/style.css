@@ -28,7 +28,7 @@
 }
 
 *,*::before,*::after{box-sizing:border-box}
-html{background:var(--bg);color:var(--text);-webkit-text-size-adjust:100%}
+html{background:var(--bg);color:var(--text);-webkit-text-size-adjust:100%;scrollbar-gutter:stable}  /* no width jump when the scrollbar appears */
 html.lenis,html.lenis body{height:auto}
 .lenis.lenis-smooth{scroll-behavior:auto!important}
 body{margin:0;font-family:var(--body);background:var(--bg);overflow-x:hidden;-webkit-font-smoothing:antialiased}
