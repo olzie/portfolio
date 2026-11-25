@@ -275,11 +275,12 @@ body::after{
 .refract .glass{-webkit-backdrop-filter:url(#lg-refract) blur(14px) saturate(180%) brightness(1.08);backdrop-filter:url(#lg-refract) blur(14px) saturate(180%) brightness(1.08)}
 
 /* ============ NUMBERS ============ */
-.nums{position:relative;z-index:1;background:var(--bg);border-top:1px solid var(--line);overflow:hidden;
+.nums{position:relative;z-index:1;overflow:hidden;
+  background:linear-gradient(180deg,#000 0,var(--bg) 360px);   /* starts exactly where the hero ends: no line, no colour step */
   padding:clamp(96px,12vw,180px) 0 clamp(80px,10vw,150px)}
 /* a soft electric-blue glow behind the big number, so the block carries on the hero's light */
-.nums::before{content:"";position:absolute;left:50%;top:0;width:min(1400px,120vw);height:900px;translate:-50% -35%;pointer-events:none;
-  background:radial-gradient(ellipse 45% 40% at 50% 50%,rgba(23,71,255,.16),rgba(23,71,255,.04) 55%,transparent 72%)}
+.nums::before{content:"";position:absolute;left:50%;top:0;width:min(1400px,120vw);height:1100px;translate:-50% 0;pointer-events:none;
+  background:radial-gradient(ellipse 45% 34% at 50% 48%,rgba(23,71,255,.15),rgba(23,71,255,.04) 55%,transparent 72%)}   /* fades out well before the top edge */
 .nums__in{position:relative;max-width:1368px;margin:0 auto;padding:0 clamp(20px,3vw,36px)}
 .tag{display:inline-flex;align-items:center;gap:12px;color:var(--blue-hi);font-size:12px}
 .tag i{position:relative;width:14px;height:14px;flex:none}
