@@ -291,10 +291,9 @@
       .to(".hero__list", { opacity: 0, x: -30, duration: 0.25 }, 0)
       .to(".crowd--l", { xPercent: -18, duration: 1 }, 0)
       .to(".crowd--r", { xPercent: 18, duration: 1 }, 0)
-      .to(".hero__stage", { scale: 1.12, yPercent: 3, duration: 1 }, 0)        // slow camera push-in
+      .to(".hero__stage", { scale: 1.1, duration: 1 }, 0)                    // slow push-in; grows up from the feet
       .to(".hero__light--core", { scaleX: 1.25, duration: 0.5 }, 0.1)
-      .to([".hero__scroll", ".cta"], { opacity: 0, duration: 0.1 }, 0.02)
-      .to(".cta", { opacity: 1, duration: 0.1 }, 0.9)
+      .to(".hero__scroll", { opacity: 0, duration: 0.1 }, 0.02)
       .to(".hero__title", { opacity: 1, yPercent: 0, duration: 0.1 }, 0.9);
   } else {
     huds.forEach(h => { h.classList.add("is-in"); gsap.set(h, { opacity: 1, x: 0 }); });
@@ -308,9 +307,10 @@
     const bw = isMobile() ? 390 : 1440, bh = isMobile() ? 844 : 900;
     const s = Math.min(pin.clientWidth / bw, pin.clientHeight / bh);
     board.style.setProperty("--s", s.toFixed(4));
-    // floor line in screen pixels, a little above the cat's feet (artboard y: 700 desktop, 640 portrait)
+    // floor line in screen pixels = the soles of the cat (stage top + 80% of its height)
     const boardTop = (pin.clientHeight - bh * s) / 2;
-    pin.style.setProperty("--horizon", Math.round(boardTop + (isMobile() ? 640 : 700) * s) + "px");
+    const feet = stage.offsetTop + stage.offsetHeight * BASE;
+    pin.style.setProperty("--horizon", Math.round(boardTop + feet * s) + "px");
   }
   function fitTitle() {
     title.style.setProperty("--fs", "100px");
