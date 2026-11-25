@@ -36,7 +36,13 @@ window.I18N = {
     "nums.c4": "Page visits growth <br>over the same time",
     "nums.c5": "Instagram followers <br>growth",
     "nums.c6": "Languages I ran content <br>in at the same time",
-    "next.note": "// NEXT BLOCK: CASES — IN PROGRESS",
+    "cases.title": "Outside <br>iGaming",
+    "cases.note": "Travel, education, food, fashion. <br>2021–2024.",
+    "cases.also": "Also wrote for",
+    "cases.prev": "Previous",
+    "cases.next": "Next",
+    "cases.open": "Open case",
+    "next.note": "// NEXT BLOCK: SKILLS — IN PROGRESS",
   },
   uk: {
     "nav.talk": "Поговорімо",
@@ -72,7 +78,13 @@ window.I18N = {
     "nums.c4": "Зростання відвідувань сторінки <br>за той самий час",
     "nums.c5": "Зростання кількості <br>підписників в Instagram",
     "nums.c6": "Мов, якими я вела <br>контент одночасно",
-    "next.note": "// НАСТУПНИЙ БЛОК: КЕЙСИ — У РОБОТІ",
+    "cases.title": "Поза <br>iGaming",
+    "cases.note": "Тревел, освіта, їжа, мода. <br>2021–2024.",
+    "cases.also": "Також писала для",
+    "cases.prev": "Назад",
+    "cases.next": "Далі",
+    "cases.open": "Відкрити кейс",
+    "next.note": "// НАСТУПНИЙ БЛОК: НАВИЧКИ — У РОБОТІ",
   }
 };
 

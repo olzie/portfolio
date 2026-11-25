@@ -27,6 +27,7 @@
     requestAnimationFrame(raf);
     lenis.stop();
   }
+  window.__lenis = lenis;                              // the case view pauses smooth scroll while it's open
 
   /* ---------- menu ---------- */
   const menuBtn = $("#menuBtn"), menu = $("#menu");
