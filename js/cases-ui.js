@@ -71,7 +71,9 @@
       `<li class="clabel mono" aria-hidden="true">${t("cases.top")}</li>` +
       TOP.map((ci, n) => row(ci, n, true)).join("") +
       `<li class="clabel clabel--rest mono" aria-hidden="true">${t("cases.rest")}</li>` +
-      REST.map((ci, n) => row(ci, n + TOP.length, false)).join("");
+      REST.map((ci, n) => row(ci, n + TOP.length, false)).join("") +
+      `<li class="yrail" aria-hidden="true"><div class="yrail__y">${[0, 1, 2, 3].map(() => `<span class="yreel"><span>${[...Array(10).keys()].map(d => `<i>${d}</i>`).join("")}</span></span>`).join("")}</div></li>`;
+    setupYear();
     card.innerHTML = MAIN.map(ci => `<div class="ccard__item" data-i="${ci}">${tile(ALL[ci])}</div>`).join("");
 
     // running line: tenders (one window), then small cases (their own windows)
@@ -88,6 +90,27 @@
     track.querySelectorAll("img").forEach(im => {
       const fit = () => { const ar = im.naturalWidth / im.naturalHeight || 3; im.style.height = `calc(var(--lh) * ${Math.min(1.55, Math.max(0.72, Math.sqrt(2.6 / ar))).toFixed(2)})`; };
       im.complete && im.naturalWidth ? fit() : im.addEventListener("load", fit, { once: true });
+    });
+  }
+  /* the year next to "everything else" sticks while you scroll and rolls to the year of the row in the middle of the screen */
+  let yio = null;
+  function setupYear() {
+    const rail = list.querySelector(".yrail"), lbl = list.querySelector(".clabel--rest");
+    if (!rail || !lbl) return;
+    const place = () => { rail.style.top = lbl.offsetTop + lbl.offsetHeight + "px"; };
+    place(); addEventListener("resize", place);
+    const strips = [...rail.querySelectorAll(".yreel > span")];
+    let shownY = "";
+    const setY = y => {
+      if (y === shownY) return; shownY = y;
+      [...y].forEach((d, k) => { strips[k].style.transform = `translateY(${-d}em)`; strips[k].style.transitionDelay = `${k * 50}ms`; });
+    };
+    setY(String(Math.floor(ALL[REST[0]].y)));
+    if (yio) yio.disconnect();
+    yio = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) setY(e.target.dataset.y); }), { rootMargin: "-46% 0px -52% 0px" });
+    list.querySelectorAll(".crow:not(.crow--top)").forEach(li => {
+      li.dataset.y = String(Math.floor(ALL[+li.querySelector(".crow__btn").dataset.i].y));
+      yio.observe(li);
     });
   }
   render();
@@ -124,10 +147,19 @@
       if (btn) setActive(+btn.dataset.i);
       if (!raf) raf = requestAnimationFrame(loop);
     });
-    list.addEventListener("pointerleave", () => {
-      shown = false; card.classList.remove("is-on"); list.classList.remove("is-hovering"); setActive(-1);
-    });
-    addEventListener("scroll", () => { if (shown && !raf) raf = requestAnimationFrame(loop); }, { passive: true });
+    const hide = () => { shown = false; card.classList.remove("is-on"); list.classList.remove("is-hovering"); setActive(-1); };
+    list.addEventListener("pointerleave", hide);
+    // scrolling moves the list under a still cursor and no pointer event fires: check what is under the cursor now
+    let chk = 0;
+    addEventListener("scroll", () => {
+      if (!shown || chk) return;
+      chk = requestAnimationFrame(() => {
+        chk = 0;
+        const el = document.elementFromPoint(tx, ty), btn = el && el.closest(".crow__btn");
+        if (!btn || !list.contains(btn)) hide();
+        else { setActive(+btn.dataset.i); if (!raf) raf = requestAnimationFrame(loop); }
+      });
+    }, { passive: true });
   }
 
   /* ---------- case view ---------- */

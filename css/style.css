@@ -340,7 +340,7 @@ body::after{
 }
 
 /* ============ CASES OUTSIDE iGAMING ============ */
-.cases{position:relative;z-index:1;background:var(--bg);padding:clamp(40px,4.6vw,68px) 0 clamp(64px,7vw,110px);overflow:hidden}
+.cases{position:relative;z-index:1;background:var(--bg);padding:clamp(40px,4.6vw,68px) 0 clamp(64px,7vw,110px);overflow:hidden;overflow:clip}
 .cases__in{max-width:1368px;margin:0 auto;padding:0 clamp(20px,3vw,36px)}
 .cases__head{display:grid;grid-template-columns:1fr auto;align-items:end;gap:16px 40px;margin-bottom:clamp(28px,3.4vw,52px)}
 .cases__title{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(40px,5.6vw,84px);line-height:.92;letter-spacing:-.035em;text-transform:uppercase;color:var(--text)}
@@ -376,6 +376,14 @@ body::after{
 /* small labels above the top 3 and above the rest */
 .clabel{padding:0 4px 14px;color:var(--dim);border-bottom:1px solid var(--line);opacity:0;transition:opacity .8s var(--ease)}
 .clabel--rest{padding-top:clamp(40px,4.4vw,64px)}
+.clist{position:relative}
+/* sticky rolling year beside the rest of the list (desktop) */
+.yrail{position:absolute;left:4px;bottom:0;width:72px;pointer-events:none}
+.yrail__y{position:sticky;top:46vh;display:flex;font-family:var(--display);font-weight:800;font-size:20px;line-height:1;letter-spacing:-.02em;color:var(--ice)}
+.yreel{display:inline-block;height:1em;overflow:hidden}
+.yreel > span{display:block;transition:transform .8s cubic-bezier(.2,.9,.25,1.12)}
+.yreel i{display:block;height:1em;font-style:normal;text-align:center}
+.crow:not(.crow--top) .crow__i{visibility:hidden}
 .cases.is-in .clabel{opacity:1}
 .crow.is-hot .crow__btn::before{transform:scaleX(1)}
 .crow.is-hot .crow__arrow,.crow__btn:focus-visible .crow__arrow{opacity:1;translate:0 0}
@@ -525,6 +533,7 @@ body.cview-open{overflow:hidden}
   .crow--top .crow__key b{font-size:24px}
   .crow__meta{grid-area:meta;display:block}
   .crow__yr{display:inline}
+  .yrail{display:none}
   .crow__key{grid-area:key;flex-direction:row;align-items:baseline;justify-content:flex-start;gap:10px;margin-top:6px}
   .crow__arrow{grid-area:arrow;opacity:1;translate:0 0;width:22px;height:22px}
   .also{flex-direction:column;align-items:flex-start;gap:14px;padding-left:0}
