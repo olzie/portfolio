@@ -456,7 +456,18 @@ body::after{
 .also__track i::before,.also__track i::after{content:"";position:absolute;background:var(--blue)}
 .also__track i::before{left:0;right:0;top:5px;height:2px}
 .also__track i::after{top:0;bottom:0;left:5px;width:2px}
-.also:hover .also__track.is-ready.is-vis{animation-play-state:paused}
+/* speed is set from JS (hover: stop over the line, run fast over its right edge); the edge shows a small fast-forward mark */
+.also__ff{position:absolute;right:4px;top:50%;z-index:2;width:38px;height:38px;margin-top:-19px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding-left:3px;box-sizing:border-box;color:var(--blue-hi);background:rgba(6,9,18,.88);border:1px solid var(--line);opacity:0;scale:.85;pointer-events:none;transition:opacity .3s,scale .3s var(--ease),border-color .3s}
+.also__ff svg{width:14px;height:14px;margin-left:-6px}
+.also__ff svg:first-child{margin-left:0}
+.also__viewport.is-fast .also__ff{scale:1;border-color:var(--blue-hi)}
+.also__viewport.is-hover .also__ff{opacity:.7}
+.also__viewport.is-fast .also__ff{opacity:1}
+.also__viewport.is-fast .also__ff svg{animation:ff .6s linear infinite}
+.also__viewport.is-fast .also__ff svg:nth-child(2){animation-delay:.15s}
+@keyframes ff{0%,100%{opacity:.35}50%{opacity:1}}
+.also__viewport.is-fast{cursor:e-resize}
+.also__viewport.is-fast .also__item{cursor:e-resize}
 @keyframes marquee{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
 
 body.cview-open{overflow:hidden}
