@@ -325,6 +325,17 @@
     board.style.height = mob ? bh.toFixed(1) + "px" : "";
     board.style.top = (H / 2).toFixed(1) + "px";
     if (mob) placeStageMobile(bh); else stage.removeAttribute("style");
+    /* Phones: below the button the scene is empty (the space the notes use while the cat turns,
+       plus the browser bars' height, since the scene fills 100lvh). Pull the next block up over
+       that empty strip, so the gap to "Results" is about the same as between the later blocks. */
+    const numsEl = document.getElementById("numbers"), ctaEl = board.querySelector(".cta");
+    if (numsEl) {
+      numsEl.style.marginTop = "";
+      if (mob && ctaEl) {
+        const gap = pin.clientHeight - (ctaEl.getBoundingClientRect().bottom - pin.getBoundingClientRect().top);
+        if (gap > 40) numsEl.style.marginTop = -Math.round(gap - 24) + "px";
+      }
+    }
     if (cw) fit();
     const boardTop = (H - bh * s) / 2;  // wall/floor line behind the cat, a bit above the soles
     const horizon = stage.offsetTop + stage.offsetHeight * (BASE - 0.085);

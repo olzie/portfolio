@@ -367,9 +367,9 @@ body::after{
 /* on hover the niche gives way to the brand's white logo */
 .crow__meta{position:relative}
 .crow__mt{display:block;transition:opacity .3s}
-.crow__lg{position:absolute;left:0;top:50%;width:150px;height:46px;object-fit:contain;object-position:left center;translate:0 -50%;opacity:0;scale:.9;transform-origin:0 50%;
+.crow__lg{position:absolute;left:50%;top:50%;width:150px;height:46px;object-fit:contain;object-position:center;translate:-50% -50%;opacity:0;scale:.9;transform-origin:50% 50%;
   transition:opacity .35s,scale .5s var(--ease);pointer-events:none}
-.crow__lg--type{width:auto;height:auto;font-family:var(--display);font-weight:800;font-size:16px;letter-spacing:-.02em;color:#fff;white-space:nowrap}
+.crow__lg--type{width:auto;height:auto;text-align:center;font-family:var(--display);font-weight:800;font-size:16px;letter-spacing:-.02em;color:#fff;white-space:nowrap}
 .crow.is-hot .crow__lg{opacity:1;scale:1}
 .crow.is-hot .crow__mt{opacity:0}
 .clist.is-hovering .crow:not(.is-hot) .crow__key em{color:#3c4560}
@@ -410,7 +410,7 @@ body::after{
 .clist.is-collapsed .cmore{margin-top:-46px;position:relative;z-index:31;pointer-events:none}   /* above the logo card (z 30), so the card never covers the button */
 .clist.is-collapsed .cmore__btn{pointer-events:auto}
 /* each year starts with a slightly heavier line */
-.crow--year{border-top:1px solid rgba(120,150,255,.32)}
+.crow:has(+ .crow--year){border-bottom-color:rgba(120,150,255,.34)}
 .crow.is-hot .crow__btn::before{transform:scaleX(1)}
 .crow.is-hot .crow__arrow,.crow__btn:focus-visible .crow__arrow{opacity:1;translate:0 0}
 
@@ -455,8 +455,8 @@ body::after{
 
 body.cview-open{overflow:hidden}
 /* ---------- case view ---------- */
-.cview{position:fixed;inset:0;z-index:90;visibility:hidden;transition:visibility 0s .8s;background:rgba(2,3,8,.6)}
-.cview.is-open{visibility:visible;transition:none}
+.cview{position:fixed;inset:0;z-index:90;visibility:hidden;opacity:0;transition:opacity .35s ease .45s,visibility 0s .8s;background:rgba(2,3,8,.6)}
+.cview.is-open{visibility:visible;opacity:1;transition:none}
 .cview__panel{position:absolute;inset:clamp(10px,1.4vw,20px);border-radius:22px;overflow:hidden;background:#05070d;border:1px solid var(--line);
   display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
   clip-path:inset(100% 0 0 0 round 22px);transition:clip-path .8s cubic-bezier(.76,0,.24,1)}
@@ -567,6 +567,7 @@ body.cview-open{overflow:hidden}
   .crow__key b{font-size:24px}
   .crow__meta{grid-area:meta;display:block}
   .crow__yr{display:inline}
+  .crow:has(+ .crow--year){border-bottom-color:var(--line)}
   .crow__lg{display:none}
   .clist.is-collapsed .cmore{margin-top:-26px}
   .crow__key{grid-area:key;min-height:0;flex-direction:row;align-items:baseline;justify-content:flex-start;gap:10px;margin-top:6px}
@@ -575,8 +576,10 @@ body.cview-open{overflow:hidden}
   .also__label{padding-left:20px}
   .also__item{opacity:.6}
   .also__viewport{width:100%}
-  .cview__panel{inset:0;border-radius:0;grid-template-columns:minmax(0,1fr);grid-template-rows:42vh auto;overflow:auto;clip-path:inset(100% 0 0 0)}
-  .cview.is-open .cview__panel{clip-path:inset(0 0 0 0)}
+  /* phones: the panel slides up and away. A clip-path closing to zero left a 1px line behind on iOS Safari */
+  .cview__panel{inset:0;border-radius:0;border:0;grid-template-columns:minmax(0,1fr);grid-template-rows:42vh auto;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+    clip-path:none;transform:translate3d(0,100%,0);transition:transform .7s cubic-bezier(.76,0,.24,1)}
+  .cview.is-open .cview__panel{clip-path:none;transform:none}
   .cview__text{overflow:visible;padding:26px 20px 28px}
   .cview__panel:has(.has-shots){grid-template-rows:68vh auto}
   .cview__stats{grid-template-columns:1fr}
