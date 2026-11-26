@@ -776,17 +776,22 @@ body.cview-open{overflow:hidden}
 .ct-status{display:inline-flex;align-items:center;gap:9px;margin-top:14px;padding:7px 12px 7px 10px;border-radius:999px;color:#fff;background:rgba(61,220,132,.08);border:1px solid rgba(61,220,132,.3)}
 .ct-status::before{content:"";width:7px;height:7px;border-radius:50%;background:#3ddc84;box-shadow:0 0 10px #3ddc84;animation:ctPulse 2s infinite}
 @keyframes ctPulse{50%{box-shadow:0 0 2px #3ddc84}}
-.ct-title,.ct-lead,.ct-status{transition:opacity .45s var(--ease),filter .45s var(--ease),translate .6s var(--ease)}
+.ct-title,.ct-lead,.ct-status{transition:opacity .45s var(--ease),filter .45s var(--ease)}
 
 /* the dock */
-.ct-dock{position:relative;display:flex;align-items:flex-end;gap:10px;height:94px;margin-top:clamp(110px,17vh,190px);padding:10px 14px;border-radius:30px;
-  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.05)),rgba(6,9,22,.35);
-  -webkit-backdrop-filter:blur(18px) saturate(170%);backdrop-filter:blur(18px) saturate(170%);border:1px solid rgba(255,255,255,.18);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 30px 80px -30px rgba(0,0,0,.9),0 20px 90px -40px rgba(23,71,255,.8)}
+.ct-dock{position:relative;display:flex;align-items:flex-end;gap:10px;height:94px;margin-top:clamp(110px,17vh,190px);padding:10px 14px;isolation:isolate}
+/* the glass bar is a separate layer: it widens with the swelling icons (only its own box changes, nothing else re-lays out),
+   and it has no backdrop blur, so nothing behind it has to be re-blurred on every frame */
+.ct-dock::before{content:"";position:absolute;top:0;bottom:0;left:calc(var(--grow,0px) * -1);right:calc(var(--grow,0px) * -1);z-index:-1;border-radius:30px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.05)),rgba(10,14,32,.62);border:1px solid rgba(255,255,255,.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+/* the big soft shadows sit on a layer that never changes size, so they are painted once, not on every frame of the swell */
+.ct-dock::after{content:"";position:absolute;inset:0;z-index:-2;border-radius:30px;pointer-events:none;box-shadow:0 30px 80px -30px rgba(0,0,0,.9),0 20px 90px -40px rgba(23,71,255,.8)}
 .ct-sep{width:1px;align-self:stretch;margin:6px 2px;background:rgba(255,255,255,.18)}
-.ct-app{--s:1;position:relative;display:block;flex:none;width:calc(72px * var(--s));height:calc(72px * var(--s));transition:width .18s ease-out,height .18s ease-out;outline:none}
+.ct-app{position:relative;display:block;flex:none;width:72px;height:72px;outline:none;will-change:transform}   /* size never changes: the swell is a transform (see contact.js) */
+.ct-tip{will-change:transform,opacity}
 /* the face is its own size container, so the calendar's MIN / 20 and the CV letters grow with the icon — no jumps mid-animation */
-.ct-face{position:absolute;inset:0;container-type:size;border-radius:24%;display:grid;place-items:center;color:#fff;
+.ct-face{position:absolute;left:-27.5%;bottom:0;width:155%;height:155%;container-type:size;transform-origin:50% 100%;scale:.6452;will-change:transform,scale;border-radius:24%;display:grid;place-items:center;color:#fff;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -6px 14px rgba(0,0,0,.18),0 10px 20px -8px rgba(0,0,0,.7);transition:box-shadow .4s}
 .ct-ico{width:46%;height:46%;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .ct-f-cal{background:linear-gradient(180deg,#fff,#dfe6f7);color:#0b1020;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding-top:3%}
@@ -809,7 +814,7 @@ body.cview-open{overflow:hidden}
 .ct-dot{position:absolute;left:50%;bottom:-9px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:#c7d6ff;opacity:0;transition:opacity .3s}
 .ct-app.is-ran .ct-dot{opacity:1}
 .ct-app.is-bounce .ct-face{animation:ctBounce .7s var(--ease)}
-@keyframes ctBounce{30%{transform:translateY(-26px)}60%{transform:translateY(0)}80%{transform:translateY(-8px)}}
+@keyframes ctBounce{30%{transform:translateY(-40px)}60%{transform:translateY(0)}80%{transform:translateY(-12px)}}
 
 /* the brief opens like an app window over the dock; the heading steps back instead of being covered */
 .ct-win{position:absolute;left:50%;bottom:calc(100% + 18px);z-index:10;width:min(390px,calc(100vw - 32px));height:var(--winh,min(470px,calc(100svh - 330px)));
@@ -819,7 +824,7 @@ body.cview-open{overflow:hidden}
   translate:-50% 0;transform-origin:bottom center;scale:.4;opacity:0;visibility:hidden;pointer-events:none;
   transition:scale .55s var(--ease),opacity .3s,visibility 0s .55s}
 .contact.is-chat .ct-win{scale:1;opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s}
-.contact.is-chat .ct-title,.contact.is-chat .ct-lead,.contact.is-chat .ct-status{opacity:.08;filter:blur(8px);translate:0 -10px}
+.contact.is-chat .ct-title,.contact.is-chat .ct-lead,.contact.is-chat .ct-status{opacity:.08;filter:blur(8px)}
 .ct-scrim{position:absolute;inset:0;z-index:4;background:rgba(2,3,8,.35);opacity:0;pointer-events:none;transition:opacity .45s}
 .contact.is-chat .ct-scrim{opacity:1;pointer-events:auto}
 .ct-ava{width:38px;height:38px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:13px;color:#fff;background:linear-gradient(160deg,#3a66ff,#0d2aa8);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
@@ -859,8 +864,9 @@ body.cview-open{overflow:hidden}
   .contact{padding-top:110px;padding-bottom:150px}
   .ct-in::before{top:24%;height:70vw}
   .ct-title{font-size:var(--tfs,clamp(60px,19vw,150px));white-space:normal;line-height:.82}
-  .ct-dock{gap:6px;height:auto;margin-top:clamp(56px,9vh,90px);padding:8px 10px 24px;border-radius:22px}
-  .ct-app{width:calc(46px * var(--s));height:calc(46px * var(--s))}
+  .ct-dock{gap:6px;height:auto;margin-top:clamp(56px,9vh,90px);padding:8px 10px 24px}
+  .ct-dock::before,.ct-dock::after{border-radius:22px}
+  .ct-app{width:46px;height:46px}
   .ct-tip{display:none}
   .ct-lbl{display:block;position:absolute;left:50%;top:calc(100% + 5px);translate:-50% 0;font-family:var(--body);font-size:9px;color:#c9d4ee;white-space:nowrap}
   .ct-dot{bottom:-4px}

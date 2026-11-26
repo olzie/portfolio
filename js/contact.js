@@ -38,25 +38,43 @@
   addEventListener("resize", layout);
   addEventListener("langchange", () => requestAnimationFrame(layout));
 
-  /* ---------- magnify + bounce ---------- */
-  /* distances are measured from where the icons sit at rest (relative to the dock's centre), not from where they are mid-swell:
-     reading live positions while sizes change made the icons chase each other and wobble */
-  let base = null;
-  const measure = () => {
-    const prev = apps.map(a => a.style.getPropertyValue("--s"));
-    apps.forEach(a => { a.style.transition = "none"; a.style.setProperty("--s", 1); });
-    const d = dock.getBoundingClientRect(), mid = d.left + d.width / 2;
-    base = apps.map(a => { const r = a.getBoundingClientRect(); return r.left + r.width / 2 - mid; });
-    apps.forEach((a, i) => { a.style.setProperty("--s", prev[i] || 1); void a.offsetWidth; a.style.transition = ""; });
-  };
-  const dockMid = () => { const d = dock.getBoundingClientRect(); return d.left + d.width / 2; };
-  const magnify = x => {
-    if (!base) measure();
-    const rel = x - dockMid(), R = wide.matches ? 170 : 110;
-    apps.forEach((a, i) => a.style.setProperty("--s", (1 + .55 * Math.max(0, 1 - Math.abs(rel - base[i]) / R) ** 1.6).toFixed(3)));
-  };
-  const rest = () => apps.forEach(a => a.style.setProperty("--s", 1));
-  addEventListener("resize", () => { base = null; });
+  /* ---------- magnify + bounce ----------
+     Only transforms move: each icon's face scales up from its bottom edge and the icons slide apart so they don't overlap.
+     Nothing changes size in the layout, so the browser composites the frames instead of re-laying out the dock.
+     A single rAF loop eases every icon toward its target, so pointer moves and the intro sweep share one smooth motion. */
+  const items = [...dock.children].filter(n => n.matches(".ct-app,.ct-sep"));
+  const faces = apps.map(a => a.querySelector(".ct-face")), tips = apps.map(a => a.querySelector(".ct-tip"));
+  let rest0 = null, size = 72;
+  const measure = () => { size = apps[0].offsetWidth; rest0 = apps.map(a => a.offsetLeft + a.offsetWidth / 2); };   // offsets ignore transforms
+  addEventListener("resize", () => { rest0 = null; });
+  const cur = apps.map(() => 1), tgt = apps.map(() => 1);
+  let raf = 0, pointerX = null;                                   // pointer x relative to the dock box, or null = at rest
+  const R = () => wide.matches ? 170 : 110;
+  function targets() {
+    apps.forEach((a, i) => { tgt[i] = pointerX === null ? 1 : 1 + .55 * Math.max(0, 1 - Math.abs(pointerX - rest0[i]) / R()) ** 1.6; });
+  }
+  function frame() {
+    raf = 0; if (!rest0) measure(); targets();
+    let moving = false;
+    apps.forEach((a, i) => { cur[i] += (tgt[i] - cur[i]) * .22; if (Math.abs(tgt[i] - cur[i]) > .002) moving = true; else cur[i] = tgt[i]; });
+    // extra width of each icon, then shift everything so the group stays centred
+    const extra = apps.map((a, i) => size * (cur[i] - 1)), total = extra.reduce((x, y) => x + y, 0);
+    let run = 0, k = 0;
+    items.forEach(n => {
+      if (n.classList.contains("ct-app")) {
+        const e = extra[k], dx = run + e / 2 - total / 2;
+        n.style.transform = `translate3d(${dx.toFixed(2)}px,0,0)`;
+        faces[k].style.scale = (cur[k] / 1.55).toFixed(4);          // faces are drawn 1.55× and scaled down at rest
+        if (tips[k]) tips[k].style.transform = `translateY(${(-e).toFixed(2)}px)`;
+        run += e; k++;
+      } else n.style.transform = `translate3d(${(run - total / 2).toFixed(2)}px,0,0)`;
+    });
+    dock.style.setProperty("--grow", (total / 2).toFixed(2) + "px");
+    if (moving) raf = requestAnimationFrame(frame);
+  }
+  const kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
+  const magnify = x => { pointerX = x - dock.getBoundingClientRect().left; kick(); };   // x in viewport px
+  const rest = () => { pointerX = null; kick(); };
   let touched = false;
   dock.addEventListener("pointermove", e => { if (!fine.matches || e.target.closest(".ct-win")) return; touched = true; magnify(e.clientX); });
   dock.addEventListener("pointerleave", () => { if (fine.matches) rest(); });
@@ -64,25 +82,25 @@
   apps.forEach(a => a.addEventListener("click", () => { a.classList.remove("is-bounce"); void a.offsetWidth; a.classList.add("is-bounce", "is-ran"); }));
 
   /* ---------- intro sweep: once, the first time the dock is in view ---------- */
-  const center = a => { if (!base) measure(); return dockMid() + base[apps.indexOf(a)]; };
+  const center = a => { if (!rest0) measure(); return dock.getBoundingClientRect().left + rest0[apps.indexOf(a)]; };
   const tipAt = x => { let best = null, bd = 1e9; apps.forEach(a => { const d = Math.abs(x - center(a)); if (d < bd) { bd = d; best = a; } }); apps.forEach(a => a.classList.toggle("is-tip", a === best)); };
   function sweep() {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    rest(); measure();
+    measure();
     const x0 = center(apps[0]) - 20, x1 = center(apps[apps.length - 1]) + 20, xc = center(apps[0]);
-    const T1 = 2200, T2 = 700, t0 = performance.now(), tips = wide.matches;
+    const T1 = 2200, T2 = 700, t0 = performance.now(), withTips = wide.matches;
     const step = now => {
       if (touched) return;
       const t = now - t0;
       if (t >= T1 + T2) {
-        magnify(xc); if (tips) tipAt(xc); apps[0].classList.add("is-lit");
+        magnify(xc); if (withTips) tipAt(xc); apps[0].classList.add("is-lit");
         setTimeout(() => { if (touched) return; rest(); apps.forEach(a => a.classList.remove("is-tip", "is-lit")); }, 1700);
         return;
       }
       let x;
       if (t < T1) { const k = t / T1; x = x0 + (x1 - x0) * (k < .5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2); }
       else { const k = (t - T1) / T2; x = x1 + (xc - x1) * (1 - (1 - k) ** 3); }
-      magnify(x); if (tips) tipAt(x);
+      magnify(x); if (withTips) tipAt(x);
       requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
@@ -158,14 +176,17 @@
   }
   /* the window always fits between the top of the block (below the header) and the dock, so it is never cut off */
   const fitWin = () => {
-    const room = dock.getBoundingClientRect().top - sec.getBoundingClientRect().top - 86;
+    const top = Math.max(sec.getBoundingClientRect().top, 0) + 86;   // below the header, inside the block
+    const room = dock.getBoundingClientRect().top - 18 - top;
     $("#ctWin").style.setProperty("--winh", Math.max(300, Math.min(470, room)) + "px");
+    return room;
   };
   addEventListener("resize", fitWin);
   const open = from => {
-    opener = from; fitWin(); sec.classList.add("is-chat"); rest();
-    const top = sec.getBoundingClientRect().top;                      // bring the whole block into view if it isn't yet
-    if (top > 1 || top < -40) window.__lenis ? window.__lenis.scrollTo(sec, { duration: .9 }) : sec.scrollIntoView({ behavior: "smooth" });
+    opener = from; rest();
+    // scroll only when the window really can't fit above the dock — otherwise the page stays put (no jump behind the window)
+    if (fitWin() < 300) { window.__lenis ? window.__lenis.scrollTo(sec, { duration: .9, onComplete: fitWin }) : sec.scrollIntoView({ behavior: "smooth" }); }
+    sec.classList.add("is-chat");
     if (!started) { started = true; flow().catch(() => {}); }
     setTimeout(() => xBtn.focus({ preventScroll: true }), 300);
   };
