@@ -161,24 +161,32 @@
   // the line is hidden (no animation yet) until the list opens, so the animation is looked up when needed
   const vp = track.parentNode, anim = () => track.getAnimations && track.getAnimations()[0];
   if (hover && track.getAnimations) {
-    vp.insertAdjacentHTML("beforeend", `<span class="also__ff" aria-hidden="true">${'<svg viewBox="0 0 24 24"><path d="M8 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>'.repeat(2)}</span>`);
+    const ff = `${'<svg viewBox="0 0 24 24"><path d="M8 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>'.repeat(2)}`;
+    vp.insertAdjacentHTML("beforeend", `<span class="also__ff" aria-hidden="true">${ff}</span><span class="also__ff also__ff--back" aria-hidden="true">${ff}</span>`);
     const FAST = 8;
     let rate = 1, goal = 1, ffRaf = 0;
     const zone = () => Math.max(90, vp.clientWidth * 0.12);
     const step = () => {
       rate += (goal - rate) * 0.12;
       if (Math.abs(goal - rate) < 0.01) rate = goal;
-      const a = anim(); if (a) a.playbackRate = rate;
+      const a = anim();
+      if (a) {
+        // running backwards, the line must never reach the animation's start (it would finish and stop):
+        // give it a big head start, which looks the same because the loop is seamless
+        if (rate < 0 && a.currentTime < 60000) { const d = a.effect.getTiming().duration || 70000; a.currentTime += d * 200; }
+        a.playbackRate = rate;
+      }
       ffRaf = rate !== goal ? requestAnimationFrame(step) : 0;
     };
     const aim = g => { goal = g; if (!ffRaf) ffRaf = requestAnimationFrame(step); };
     vp.addEventListener("pointermove", e => {
-      const r = vp.getBoundingClientRect(), z = zone(), fast = e.clientX > r.right - z;
-      vp.style.setProperty("--ffw", z + "px");
-      vp.classList.add("is-hover"); vp.classList.toggle("is-fast", fast);
-      aim(fast ? FAST : 0);
+      // right edge: fast forward; left edge: fast backwards; elsewhere: stop
+      const r = vp.getBoundingClientRect(), z = zone(), fwd = e.clientX > r.right - z, rev = e.clientX < r.left + z;
+      vp.classList.add("is-hover"); vp.classList.toggle("is-fast", fwd || rev);
+      vp.classList.toggle("is-fwd", fwd); vp.classList.toggle("is-rev", rev);
+      aim(fwd ? FAST : rev ? -FAST : 0);
     });
-    vp.addEventListener("pointerleave", () => { vp.classList.remove("is-hover", "is-fast"); aim(1); });
+    vp.addEventListener("pointerleave", () => { vp.classList.remove("is-hover", "is-fast", "is-fwd", "is-rev"); aim(1); });
   }
   }
   buildTrack();
