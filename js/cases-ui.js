@@ -8,7 +8,12 @@
   const list = $("#clist"), card = $("#ccard"), view = $("#cview"), track = $("#alsoTrack");
   if (!list || !window.CASES) return;
   const ALL = window.CASES, T = window.CASES_TENDERS;
-  const MAIN = ALL.map((c, i) => i).filter(i => !ALL[i].small);
+  // top 3 by numbers first, then everything else from newest to oldest
+  const idx = ALL.map((c, i) => i).filter(i => !ALL[i].small);
+  const TOP = idx.filter(i => ALL[i].top).sort((a, b) => ALL[a].top - ALL[b].top);
+  const REST = idx.filter(i => !ALL[i].top).sort((a, b) => ALL[b].y - ALL[a].y);
+  const MAIN = [...TOP, ...REST];
+  const yearOf = d => (d.meta.match(/\d{4}(–\d{2})?/) || [""])[0];
   const SMALL = (window.CASES_SMALL_ORDER || []).map(id => ALL.findIndex(c => c.id === id)).filter(i => i >= 0);
   const hover = matchMedia("(hover: hover) and (pointer: fine)").matches;
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -44,23 +49,29 @@
   /* ---------- list + running line ---------- */
   function render() {
     const L = lang();
-    list.innerHTML = MAIN.map((ci, n) => {
+    const row = (ci, n, top) => {
       const c = ALL[ci], d = c[L];
       const key = d.key
         ? `<b>${d.key[0].replace(/([+%×])/g, "<em>$1</em>")}</b><small class="mono">${d.key[1]}</small>`
         : `<small class="mono crow__did">${d.did.slice(0, 2).join(" · ")}</small>`;
+      const meta = top ? d.meta : d.meta.replace(/( · \d{4}(–\d{2})?)/, `<span class="crow__yr">$1</span>`);   // the year has its own column on desktop
       return `
-      <li class="crow" style="--i:${n}">
+      <li class="crow${top ? " crow--top" : ""}" style="--i:${n}">
         <button class="crow__btn" type="button" data-i="${ci}" aria-label="${c.name}: ${t("cases.open") || "Open case"}">
-          <span class="crow__i mono">${pad(n + 1)}</span>
+          <span class="crow__i mono">${top ? pad(n + 1) : yearOf(d)}</span>
           <span class="crow__logo" style="--c:${c.color}" aria-hidden="true">${logo(c)}</span>
           <span class="crow__name">${c.name}</span>
-          <span class="crow__meta mono">${d.meta}</span>
+          <span class="crow__meta mono">${meta}</span>
           <span class="crow__key">${key}</span>
           <span class="crow__arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span>
         </button>
       </li>`;
-    }).join("");
+    };
+    list.innerHTML =
+      `<li class="clabel mono" aria-hidden="true">${t("cases.top")}</li>` +
+      TOP.map((ci, n) => row(ci, n, true)).join("") +
+      `<li class="clabel clabel--rest mono" aria-hidden="true">${t("cases.rest")}</li>` +
+      REST.map((ci, n) => row(ci, n + TOP.length, false)).join("");
     card.innerHTML = MAIN.map(ci => `<div class="ccard__item" data-i="${ci}">${tile(ALL[ci])}</div>`).join("");
 
     // running line: tenders (one window), then small cases (their own windows)

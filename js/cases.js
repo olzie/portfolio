@@ -1,10 +1,10 @@
 /* Cases outside iGaming. Every case from the portfolio, in both languages.
    logo: white SVG of the brand's own logo, shown on the brand colour (null = name set in type).
-   small: shown in the running line, not in the list. key: the number shown in the list (null = none).
+   small: shown in the running line, not in the list. y: when (bigger = newer). top: place in the top 3. key: the number shown in the list (null = none).
    stats: numbers that roll in like slot reels when a case opens. did: what I did, shown as tags. */
 const caseLogo = n => `assets/cases/logos/${n}.svg`;
 window.CASES = [
-  { id: "joinup", name: "Join UP!", logo: caseLogo("joinup"), color: "#d76836",
+  { id: "joinup", name: "Join UP!", logo: caseLogo("joinup"), color: "#d76836", y: 2024.6, top: 1,
     en: { meta: "Tour operator · 2023–24 · PL, KZ, UA",
           line: "A tour operator, three markets and one team.",
           body: "I ran SMM for Poland and Kazakhstan and looked after Ukraine. A team of four: designer, copywriter, content creator and community manager. Strategy, campaigns, budgets and reports.",
@@ -18,7 +18,7 @@ window.CASES = [
           stats: [["1M", "охоплення в пік сезону, Казахстан"], ["208K", "охоплення на місяць у Польщі"], ["1,000", "B2B-агентів у Telegram"]],
           did: ["Стратегія", "Керування командою", "Кампанії", "Інфлюенсери", "Звіти"] } },
 
-  { id: "appleroom", name: "Appleroom", logo: caseLogo("appleroom"), color: "#2b2f36",
+  { id: "appleroom", name: "Appleroom", logo: caseLogo("appleroom"), color: "#2b2f36", y: 2024.5,
     en: { meta: "Tech store · 2023–24 · Ukraine",
           line: "My part here was narrow: stories and analytics.",
           body: "Stories from idea to publishing: scripts, design, polls and quizzes. Plus analytics: what the audience reacts to, what to change, and reports with conclusions for the team.",
@@ -28,7 +28,7 @@ window.CASES = [
           body: "Сторіс від ідеї до публікації: сценарії, дизайн, опитування й квізи. Плюс аналітика: на що реагує аудиторія, що змінити, і звіти з висновками для команди.",
           key: null, stats: [], did: ["Сторіс", "Інтерактив", "Аналітика", "Звіти"] } },
 
-  { id: "kilinski", name: "Kilinski", logo: caseLogo("kilinski"), color: "#1c3a30",
+  { id: "kilinski", name: "Kilinski", logo: caseLogo("kilinski"), color: "#1c3a30", y: 2023.6,
     en: { meta: "French restaurant · 2023 · Lviv",
           line: "Valentine's Day was booked out three weeks early.",
           body: "Strategy and content plans, stories and Reels, event posters, shoot concepts and integrations with local bloggers.",
@@ -42,7 +42,7 @@ window.CASES = [
           stats: [["108K", "охоплення на місяць, +61.5%"], ["+30%", "запитів на події та зйомки"], ["15+", "сторіс гостей щодня з відміткою"]],
           did: ["Стратегія", "Контент", "Reels", "Блогери", "Реклама"] } },
 
-  { id: "cukiernia", name: "Cukiernia", logo: caseLogo("cukiernia"), color: "#732032",
+  { id: "cukiernia", name: "Cukiernia", logo: caseLogo("cukiernia"), color: "#732032", y: 2023.5,
     en: { meta: "Confectionery · 2023 · Lviv",
           line: "Old Lviv recipes and new orders from Instagram.",
           body: "A short SMM strategy, content plans, copy, stories with polls and quizzes, ad creatives and shoots. Guests started tagging the place about ten times a day.",
@@ -56,7 +56,7 @@ window.CASES = [
           stats: [["+30%", "замовлень із соцмереж"], ["100+", "замовлень на місяць із соцмереж"], ["+27%", "підписників за 3 місяці"]],
           did: ["Стратегія", "Контент", "Сторіс", "Зйомки", "Реклама"] } },
 
-  { id: "zolota", name: "Zolota Forel", logo: caseLogo("zolota"), color: "#0f2a5c",
+  { id: "zolota", name: "Zolota Forel", logo: caseLogo("zolota"), color: "#0f2a5c", y: 2023.4,
     en: { meta: "Spa hotel · 2023 · Ukraine",
           line: "A spa hotel with its own trout farm: guests catch their dinner themselves.",
           body: "Content and targeted ads for Instagram and Facebook, a lighter tone of voice, more about the farm, fishing and baths. The hotel and restaurant stayed booked whatever the season.",
@@ -70,7 +70,7 @@ window.CASES = [
           stats: [["11%", "ER в Instagram"], ["140K", "охоплення на місяць в Instagram і Facebook"], ["60+", "нових підписників на місяць без реклами"]],
           did: ["Контент", "Тон", "Сторіс", "Реклама", "Розіграші"] } },
 
-  { id: "europeanspa", name: "European Spa", logo: caseLogo("europeanspa"), color: "#8a6a43",
+  { id: "europeanspa", name: "European Spa", logo: caseLogo("europeanspa"), color: "#8a6a43", y: 2023.3,
     en: { meta: "Spa · 2023 · Dubai",
           line: "A massage and spa centre inside a five-star hotel.",
           body: "Content plans, Reels editing, briefs for designers, shoot concepts, targeted ads and replies in DMs. Video brought most of the growth in reach.",
@@ -84,7 +84,7 @@ window.CASES = [
           stats: [["+25%", "звернень у директ"]],
           did: ["Контент-план", "Reels", "Зйомки", "Таргет", "Директ"] } },
 
-  { id: "engin", name: "ENGin", logo: caseLogo("engin"), color: "#5a49d6",
+  { id: "engin", name: "ENGin", logo: caseLogo("engin"), color: "#5a49d6", y: 2022.9, top: 2,
     en: { meta: "Education nonprofit · 2022 · USA, Ukraine",
           line: "Pairs Ukrainian students with English-speaking volunteers. It grew without a single ad.",
           body: "Content plan and rubrics, visuals for posts and stories, the ambassador programme and the community around it.",
@@ -98,7 +98,7 @@ window.CASES = [
           stats: [["+3,287", "підписників в Instagram за 4 місяці, без реклами"], ["+908%", "переглядів на YouTube"], ["86", "заявок в амбасадори за перший місяць"]],
           did: ["Контент-план", "Дизайн", "Амбасадори", "Ком'юніті", "Звіти"] } },
 
-  { id: "inaya", name: "Inaya Bridal", logo: caseLogo("inaya"), color: "#3a332d",
+  { id: "inaya", name: "Inaya Bridal", logo: caseLogo("inaya"), color: "#3a332d", y: 2021.6, top: 3,
     en: { meta: "Wedding dresses · 2021 · Global",
           line: "Made-to-order wedding dresses. Reels and TikTok brought the views.",
           body: "Content strategy and production for Instagram, Reels, TikTok, Pinterest and Facebook, plus community management.",
@@ -112,7 +112,7 @@ window.CASES = [
           stats: [["+478%", "переглядів Reels"], ["+160%", "переглядів у TikTok"], ["+77%", "взаємодій у Pinterest"]],
           did: ["Стратегія", "Reels", "TikTok", "Pinterest", "Ком'юніті"] } },
 
-  { id: "melancholy", name: "Melancholy", logo: caseLogo("melancholy"), color: "#6f645b",
+  { id: "melancholy", name: "Melancholy", logo: caseLogo("melancholy"), color: "#6f645b", y: 2020.6,
     en: { meta: "Soy candles · 2020 · Ukraine",
           line: "Soy candles in recycled glass, for evenings alone with yourself.",
           body: "Photo and video ad creatives, targeted ads, stories, posts and three or four blogger collaborations a month.",
@@ -126,7 +126,7 @@ window.CASES = [
           stats: [["+280%", "охоплення й залученості постів"], ["+39%", "лідів"], ["+25%", "продажів"]],
           did: ["Креативи", "Таргет", "Сторіс", "Блогери"] } },
 
-  { id: "rerechi", name: "Re.Rechi", logo: caseLogo("rerechi"), color: "#4a4f5c", small: true,
+  { id: "rerechi", name: "Re.Rechi", logo: caseLogo("rerechi"), color: "#4a4f5c", y: 2022, small: true,
     en: { meta: "Clothing brand · 2022 · Chernivtsi",
           line: "A small youth clothing brand. Stories that sell, and replies within ten minutes.",
           body: "Visual concept and highlight icons, selling and interactive stories, scripts for direct messages.",
@@ -140,7 +140,7 @@ window.CASES = [
           stats: [["+36%", "залученості"], ["+20%", "середнього чека"], ["10", "хвилин максимум на відповідь у директі"]],
           did: ["Візуал", "Сторіс", "Скрипти для директу"] } },
 
-  { id: "tattoo", name: "Is This A Tattoo?", logo: caseLogo("tattoo"), color: "#6d3d78", small: true,
+  { id: "tattoo", name: "Is This A Tattoo?", logo: caseLogo("tattoo"), color: "#6d3d78", y: 2022, small: true,
     en: { meta: "Handpoke tattoo · 2022 · my own project",
           line: "My handpoke tattoo hobby. Fifteen bookings in the first month on fifteen dollars of ads.",
           body: "Visual style, strategy, posts and stories, ad creatives and targeting, DMs and bookings. And the tattoos.",
@@ -154,7 +154,7 @@ window.CASES = [
           stats: [["15+", "записів за перший місяць"], ["$15", "на рекламу загалом"], ["+71%", "середнього чека"]],
           did: ["Візуал", "Контент", "Таргет", "Записи", "Тату"] } },
 
-  { id: "beautybears", name: "Beauty Bears", logo: caseLogo("beautybears"), color: "#b45f6b",
+  { id: "beautybears", name: "Beauty Bears", logo: caseLogo("beautybears"), color: "#b45f6b", y: 2021.5,
     en: { meta: "Cosmetics · 2021 · Ukraine",
           line: "A cosmetics brand. More leads and four influencer collaborations a month.",
           body: "Content plan, posts, stories with interactive bits, design, photo and video, influencer work. The brand also got onto makeup.ua.",
@@ -168,7 +168,7 @@ window.CASES = [
           stats: [["+19%", "цільових лідів"], ["4", "колаборації з інфлюенсерами на місяць"]],
           did: ["Контент-план", "Сторіс", "Дизайн", "Інфлюенсери"] } },
 
-  { id: "petsocial", name: "PetSocial", logo: caseLogo("petsocial"), color: "#6152ad",
+  { id: "petsocial", name: "PetSocial", logo: caseLogo("petsocial"), color: "#6152ad", y: 2021.4,
     en: { meta: "App for pet owners · 2021 · USA",
           line: "A free social network for pet owners. I set up its social media from scratch.",
           body: "SMM and content strategy, visual concept, account setup, copy, stories, contests and influencers.",
@@ -182,7 +182,7 @@ window.CASES = [
           stats: [["200+", "встановлень застосунку в США"], ["500+", "учасників органічних розіграшів"], ["4", "інтеграції з інфлюенсерами"]],
           did: ["Стратегія", "Запуск", "Тексти", "Розіграші", "Інфлюенсери"] } },
 
-  { id: "jaffa", name: "Jaffa", logo: caseLogo("jaffa"), color: "#3b7a3f",
+  { id: "jaffa", name: "Jaffa", logo: caseLogo("jaffa"), color: "#3b7a3f", y: 2022.1,
     en: { meta: "Juices · 2022 · Ukraine · agency",
           line: "One of the best-known juice brands in Ukraine. The task: get people talking about natural juice.",
           body: "Copy for Instagram and Facebook posts and stories, contests, content plans, briefs and references for designers.",
@@ -192,7 +192,7 @@ window.CASES = [
           body: "Тексти для постів і сторіс в Instagram і Facebook, розіграші, контент-плани, ТЗ і референси для дизайнерів.",
           key: null, stats: [], did: ["Тексти", "Розіграші", "Контент-план", "ТЗ для дизайну"] } },
 
-  { id: "syoss", name: "Syoss", logo: caseLogo("syoss"), color: "#26262c",
+  { id: "syoss", name: "Syoss", logo: caseLogo("syoss"), color: "#26262c", y: 2022.1,
     en: { meta: "Hair care · 2022 · Ukraine · agency",
           line: "Salon-level hair care at home. Facebook posts and stories written to the brand's rubrics.",
           body: "Copy, contests, content plans, briefs and references for designers and content creators.",
@@ -202,7 +202,7 @@ window.CASES = [
           body: "Тексти, розіграші, контент-плани, ТЗ і референси для дизайнерів і контент-мейкерів.",
           key: null, stats: [], did: ["Тексти", "Розіграші", "Контент-план", "ТЗ для дизайну"] } },
 
-  { id: "bonduelle", name: "Bonduelle", logo: caseLogo("bonduelle"), color: "#2f7d3a",
+  { id: "bonduelle", name: "Bonduelle", logo: caseLogo("bonduelle"), color: "#2f7d3a", y: 2022.1,
     en: { meta: "Canned vegetables · 2022 · Ukraine · agency",
           line: "Reminding people that vegetables are there all year round.",
           body: "Copy for Instagram and Facebook, activations and contests, content plan, briefs for designers.",
@@ -212,7 +212,7 @@ window.CASES = [
           body: "Тексти для Instagram і Facebook, активації й розіграші, контент-план, ТЗ для дизайнерів.",
           key: null, stats: [], did: ["Тексти", "Активації", "Контент-план", "ТЗ для дизайну"] } },
 
-  { id: "vegamilk", name: "Vega Milk", logo: caseLogo("vegamilk"), color: "#2f6e3c",
+  { id: "vegamilk", name: "Vega Milk", logo: caseLogo("vegamilk"), color: "#2f6e3c", y: 2022.1,
     en: { meta: "Plant-based milk · 2022 · Ukraine · agency",
           line: "Ukrainian plant-based milk, and why it's worth a try.",
           body: "Copy for Instagram and Facebook, contests, content plan, briefs and references for designers.",
@@ -222,7 +222,7 @@ window.CASES = [
           body: "Тексти для Instagram і Facebook, розіграші, контент-план, ТЗ і референси для дизайнерів.",
           key: null, stats: [], did: ["Тексти", "Розіграші", "Контент-план", "ТЗ для дизайну"] } },
 
-  { id: "myasnalavka", name: "Myasna Lavka", logo: caseLogo("myasnalavka"), color: "#b8321f",
+  { id: "myasnalavka", name: "Myasna Lavka", logo: caseLogo("myasnalavka"), color: "#b8321f", y: 2022.1,
     en: { meta: "Meat products · 2022 · Ukraine · agency",
           line: "Fewer negative reviews and more people who stand up for the brand.",
           body: "Copy, contests, promo announcements, content plan, briefs for designers, reports.",
@@ -232,7 +232,7 @@ window.CASES = [
           body: "Тексти, розіграші, анонси акцій, контент-план, ТЗ для дизайнерів, звіти.",
           key: null, stats: [], did: ["Тексти", "Розіграші", "Відгуки", "Звіти"] } },
 
-  { id: "bolgrad", name: "Bolgrad", logo: caseLogo("bolgrad"), color: "#2b74c2",
+  { id: "bolgrad", name: "Bolgrad", logo: caseLogo("bolgrad"), color: "#2b74c2", y: 2022.1,
     en: { meta: "Drinks · 2022 · Ukraine · agency",
           line: "A Ukrainian drinks brand. Showing what it makes and where to buy it.",
           body: "Copy for Instagram and Facebook, activations and contests, content plan, briefs for designers.",
@@ -242,7 +242,7 @@ window.CASES = [
           body: "Тексти для Instagram і Facebook, активації й розіграші, контент-план, ТЗ для дизайнерів.",
           key: null, stats: [], did: ["Тексти", "Активації", "Контент-план", "ТЗ для дизайну"] } },
 
-  { id: "reeva", name: "Reeva", logo: caseLogo("reeva"), color: "#b5302d",
+  { id: "reeva", name: "Reeva", logo: caseLogo("reeva"), color: "#b5302d", y: 2022.2,
     en: { meta: "Instant food · 2022 · Lithuania · agency",
           line: "A launch for Lithuania set for late February 2022. Only the content plan made it.",
           body: "Content plan, copy for posts and stories, briefs for designers, work with a translator.",
@@ -252,7 +252,7 @@ window.CASES = [
           body: "Контент-план, тексти для постів і сторіс, ТЗ для дизайнерів, робота з перекладачем.",
           key: null, stats: [], did: ["Контент-план", "Тексти", "Локалізація"] } },
 
-  { id: "proam", name: "ProAm Dance", logo: caseLogo("proam"), color: "#8c1d26",
+  { id: "proam", name: "ProAm Dance", logo: caseLogo("proam"), color: "#8c1d26", y: 2020.5,
     en: { meta: "Dance school · 2020 · Ukraine",
           line: "Ballroom dancing where a professional dances with an amateur.",
           body: "Visual concept and tone of voice, profile setup, post and story design, competitor research, content plan and interactive stories.",
@@ -262,7 +262,7 @@ window.CASES = [
           body: "Візуальна концепція й тон, оформлення профілю, дизайн постів і сторіс, аналіз конкурентів, контент-план та інтерактивні сторіс.",
           key: null, stats: [], did: ["Візуал", "Тон", "Дизайн", "Контент-план"] } },
 
-  { id: "melisa", name: "Melisa Sadyk", logo: null, color: "#c0261c", small: true,
+  { id: "melisa", name: "Melisa Sadyk", logo: null, color: "#c0261c", y: 2020, small: true,
     en: { meta: "Ad creatives · 2020 · with Krasa Agency",
           line: "Ad creatives for a course by the owner of a digital agency, from audience research to tests.",
           body: "Audience research, concept, copy, static and animated creatives, video teasers, then testing and fixes.",
@@ -272,7 +272,7 @@ window.CASES = [
           body: "Аналіз аудиторії, концепція, тексти, статичні й анімовані креативи, відеотизери, потім тести й правки.",
           key: null, stats: [], did: ["Аналіз", "Концепція", "Тексти", "Креативи", "Тести"] } },
 
-  { id: "fade", name: "fade", logo: caseLogo("fade"), color: "#3b3f47", small: true,
+  { id: "fade", name: "fade", logo: caseLogo("fade"), color: "#3b3f47", y: 2020, small: true,
     en: { meta: "Eco phone cases · 2020 · Ukraine",
           line: "Eco-friendly iPhone cases and a calm, sensible take on ecology.",
           body: "SMM strategy, tone of voice, audience segments, content plan, reports and recommendations.",
@@ -282,7 +282,7 @@ window.CASES = [
           body: "SMM-стратегія, тон, сегменти аудиторії, контент-план, звіти й рекомендації.",
           key: null, stats: [], did: ["Стратегія", "Тон", "Аудиторія", "Звіти"] } },
 
-  { id: "mshrm", name: "MSHRM.LAB", logo: caseLogo("mshrm"), color: "#2c2836", small: true,
+  { id: "mshrm", name: "MSHRM.LAB", logo: caseLogo("mshrm"), color: "#2c2836", y: 2020, small: true,
     en: { meta: "Sticker brand · 2020 · Ukraine",
           line: "Sticker packs for people who like to stand out.",
           body: "Visual concept, content and video, story design, shoots and an online store on Tilda.",
@@ -292,7 +292,7 @@ window.CASES = [
           body: "Візуальна концепція, контент і відео, дизайн сторіс, зйомки та онлайн-магазин на Tilda.",
           key: null, stats: [], did: ["Візуал", "Відео", "Зйомки", "Онлайн-магазин"] } },
 
-  { id: "anti", name: "Anti Intolerance Club", logo: caseLogo("anti"), color: "#22242c", small: true,
+  { id: "anti", name: "Anti Intolerance Club", logo: caseLogo("anti"), color: "#22242c", y: 2020, small: true,
     en: { meta: "Student project · 2020",
           line: "A student project about tolerance. This is where I started in SMM.",
           body: "Audience research, account branding, visual style, posts and stories, and a PDF guide shared on the site and in Telegram. The jury picked it out for the visuals.",
