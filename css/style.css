@@ -740,9 +740,131 @@ body.cview-open{overflow:hidden}
 }
 @media (prefers-reduced-motion:reduce){.also__track{animation:none}}
 
-/* placeholder for the next blocks */
-.next{position:relative;height:40vh;display:grid;place-items:center;border-top:1px solid var(--line);background:var(--bg)}
-.next__note{color:var(--dim)}
+/* ============ CONTACT ============
+   The closing scene echoes the first screen: dollar wall, the same beam, a floor. On the floor stands a glass dock:
+   every channel is an "app"; icons swell under the cursor, the call is the main one, Brief opens the chat window. */
+.contact{position:relative;min-height:100vh;min-height:100svh;overflow:hidden;background:#000;display:flex;flex-direction:column;isolation:isolate;
+  padding:clamp(110px,15vh,160px) 0 clamp(90px,12vh,120px)}
+.ct-bg{position:absolute;inset:0;z-index:0;pointer-events:none;--hz:76%}
+.ct-pattern{position:absolute;left:0;right:0;top:0;height:var(--hz);overflow:hidden}
+.ct-pattern::before{content:"";position:absolute;inset:0;opacity:.03;background:url(../assets/dollars.svg) 0 0/400px 400px repeat}
+.ct-pattern::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#000 0%,rgba(0,0,0,0) 30%,rgba(0,0,0,0) 70%,#000 100%)}
+.ct-light{position:absolute;left:50%;top:0;height:100%;aspect-ratio:4/5;opacity:.62;translate:-50% 0;background:url(../assets/beam.webp) center top/100% 100% no-repeat}
+.ct-floor{position:absolute;left:0;right:0;bottom:0;top:var(--hz);opacity:.75;
+  background:radial-gradient(ellipse 40% 42% at 50% 0%,rgba(58,102,255,.16),transparent 70%),linear-gradient(180deg,rgba(8,12,26,0),rgba(6,9,20,.75) 35%,#010103 100%);
+  border-top:1px solid rgba(140,170,255,.07)}
+.ct-haze{position:absolute;left:-20%;right:-20%;top:calc(var(--hz) - 18%);height:30%;opacity:.5;
+  background:radial-gradient(ellipse 30% 50% at 30% 60%,rgba(120,150,230,.16),transparent 70%),radial-gradient(ellipse 35% 45% at 72% 55%,rgba(120,150,230,.12),transparent 70%)}
+/* the top dissolves from black, so the end of Skills runs straight into it */
+.ct-vig{position:absolute;inset:0;
+  background:linear-gradient(180deg,#000 0%,rgba(0,0,0,.92) 6%,rgba(0,0,0,.6) 14%,rgba(0,0,0,.25) 24%,rgba(0,0,0,0) 34%),
+             radial-gradient(ellipse 80% 75% at 50% 50%,transparent 50%,rgba(0,0,0,.7) 100%)}
+.ct-corner{position:absolute;z-index:6;width:34px;height:34px;pointer-events:none}
+.ct-corner--tl{left:clamp(16px,2.5vw,36px);top:clamp(80px,12vh,110px);border-left:2px solid var(--blue);border-top:2px solid var(--blue)}
+.ct-corner--br{right:clamp(16px,2.5vw,36px);bottom:clamp(70px,9vh,90px)}
+.ct-corner--br::before,.ct-corner--br::after{content:"";position:absolute;background:var(--blue)}
+.ct-corner--br::before{left:16px;top:0;bottom:0;width:2px}
+.ct-corner--br::after{top:16px;left:0;right:0;height:2px}
+
+.ct-in{position:relative;z-index:5;width:min(1240px,calc(100% - 32px));margin:auto;display:flex;flex-direction:column;align-items:center;text-align:center}
+.ct-title{margin:0;width:100%;font-family:var(--display);font-weight:800;text-transform:uppercase;letter-spacing:-.06em;line-height:.8;white-space:nowrap;
+  font-size:var(--tfs,clamp(64px,14vw,230px));color:transparent;
+  background:linear-gradient(180deg,#f4f6fb 0%,#e9edf6 45%,#8fa6e6 100%);-webkit-background-clip:text;background-clip:text}
+.ct-lead{margin:clamp(16px,2.4vh,24px) 0 0;color:var(--ice);max-width:560px}
+.ct-status{display:inline-flex;align-items:center;gap:9px;margin-top:14px;padding:7px 12px 7px 10px;border-radius:999px;color:#fff;background:rgba(61,220,132,.08);border:1px solid rgba(61,220,132,.3)}
+.ct-status::before{content:"";width:7px;height:7px;border-radius:50%;background:#3ddc84;box-shadow:0 0 10px #3ddc84;animation:ctPulse 2s infinite}
+@keyframes ctPulse{50%{box-shadow:0 0 2px #3ddc84}}
+.ct-title,.ct-lead,.ct-status{transition:opacity .45s var(--ease),filter .45s var(--ease),translate .6s var(--ease)}
+
+/* the dock */
+.ct-dock{position:relative;display:flex;align-items:flex-end;gap:10px;height:94px;margin-top:clamp(64px,9vh,88px);padding:10px 14px;border-radius:30px;
+  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.05)),rgba(6,9,22,.35);
+  -webkit-backdrop-filter:blur(18px) saturate(170%);backdrop-filter:blur(18px) saturate(170%);border:1px solid rgba(255,255,255,.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 30px 80px -30px rgba(0,0,0,.9),0 20px 90px -40px rgba(23,71,255,.8)}
+.ct-sep{width:1px;align-self:stretch;margin:6px 2px;background:rgba(255,255,255,.18)}
+.ct-app{--s:1;position:relative;display:block;flex:none;width:calc(72px * var(--s));height:calc(72px * var(--s));transition:width .18s ease-out,height .18s ease-out;outline:none}
+/* the face is its own size container, so the calendar's MIN / 20 and the CV letters grow with the icon — no jumps mid-animation */
+.ct-face{position:absolute;inset:0;container-type:size;border-radius:24%;display:grid;place-items:center;color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -6px 14px rgba(0,0,0,.18),0 10px 20px -8px rgba(0,0,0,.7);transition:box-shadow .4s}
+.ct-ico{width:46%;height:46%;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ct-f-cal{background:linear-gradient(180deg,#fff,#dfe6f7);color:#0b1020;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding-top:3%}
+.ct-f-cal em{font-style:normal;font-family:var(--display);font-weight:800;font-size:12cqw;line-height:1.1;letter-spacing:.06em;color:var(--blue)}
+.ct-f-cal strong{font-family:var(--display);font-weight:800;font-size:37cqw;line-height:.9;letter-spacing:-.05em}
+.ct-f-in{background:linear-gradient(180deg,#2f6dff,#1747ff)}
+.ct-f-tg{background:linear-gradient(180deg,#5ab8ff,#1f7fe8)}
+.ct-f-mail{background:linear-gradient(180deg,#7ea2ff,#3a66ff)}
+.ct-f-cv{background:linear-gradient(180deg,#f3f6ff,#cfd9f3);color:var(--blue)}
+.ct-f-cv b{font-family:var(--display);font-weight:800;font-size:27cqw;letter-spacing:-.04em}
+.ct-f-chat{background:linear-gradient(180deg,#22c06e,#139553)}
+.ct-tip{position:absolute;left:50%;bottom:calc(100% + 14px);translate:-50% 6px;opacity:0;white-space:nowrap;padding:8px 12px;border-radius:10px;color:#fff;
+  background:rgba(10,14,30,.88);border:1px solid rgba(255,255,255,.14);transition:opacity .3s,translate .3s var(--ease);pointer-events:none}
+.ct-tip--main{background:linear-gradient(180deg,#3a66ff,#1747ff);border-color:#7f9bff;box-shadow:0 10px 26px -8px rgba(23,71,255,.9)}
+.ct-app:hover .ct-tip,.ct-app:focus-visible .ct-tip,.ct-app.is-tip .ct-tip{opacity:1;translate:-50% 0}
+.ct-app:focus-visible .ct-face{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 0 3px var(--blue-hi)}
+/* the call, picked out at the end of the intro sweep: a soft glow, no hard ring */
+.ct-app.is-lit .ct-face{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -6px 14px rgba(0,0,0,.18),0 0 34px 2px rgba(58,102,255,.75)}
+.ct-lbl{display:none}
+.ct-dot{position:absolute;left:50%;bottom:-9px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:#c7d6ff;opacity:0;transition:opacity .3s}
+.ct-app.is-ran .ct-dot{opacity:1}
+.ct-app.is-bounce .ct-face{animation:ctBounce .7s var(--ease)}
+@keyframes ctBounce{30%{transform:translateY(-26px)}60%{transform:translateY(0)}80%{transform:translateY(-8px)}}
+
+/* the brief opens like an app window over the dock; the heading steps back instead of being covered */
+.ct-win{position:absolute;left:50%;bottom:calc(100% + 18px);z-index:10;width:min(390px,calc(100vw - 32px));height:min(470px,calc(100svh - 330px));
+  display:flex;flex-direction:column;text-align:left;border-radius:26px;overflow:hidden;color:var(--text);
+  background:linear-gradient(160deg,rgba(18,24,48,.94),rgba(8,11,23,.96));border:1px solid rgba(255,255,255,.14);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 40px 90px -30px rgba(0,0,0,.95);
+  translate:-50% 0;transform-origin:bottom center;scale:.4;opacity:0;visibility:hidden;pointer-events:none;
+  transition:scale .55s var(--ease),opacity .3s,visibility 0s .55s}
+.contact.is-chat .ct-win{scale:1;opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s}
+.contact.is-chat .ct-title,.contact.is-chat .ct-lead,.contact.is-chat .ct-status{opacity:.08;filter:blur(8px);translate:0 -10px}
+.ct-scrim{position:absolute;inset:0;z-index:4;background:rgba(2,3,8,.35);opacity:0;pointer-events:none;transition:opacity .45s}
+.contact.is-chat .ct-scrim{opacity:1;pointer-events:auto}
+.ct-ava{width:38px;height:38px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:13px;color:#fff;background:linear-gradient(160deg,#3a66ff,#0d2aa8);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.ct-win__head{display:flex;align-items:center;gap:12px;padding:13px 13px 13px 15px;border-bottom:1px solid rgba(255,255,255,.08)}
+.ct-win__head b{display:block;font-family:var(--display);font-weight:800;font-size:13px;text-transform:uppercase;color:#fff}
+.ct-win__head small{display:flex;align-items:center;gap:6px;margin-top:3px;color:var(--ice)}
+.ct-win__head small::before{content:"";width:7px;height:7px;border-radius:50%;background:#3ddc84;box-shadow:0 0 8px #3ddc84}
+.ct-x{all:unset;cursor:pointer;position:relative;margin-left:auto;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08)}
+.ct-x:hover{background:rgba(255,255,255,.16)}
+.ct-x:focus-visible{outline:2px solid var(--blue-hi);outline-offset:2px}
+.ct-x i{position:absolute;left:10px;right:10px;top:16px;height:2px;border-radius:2px;background:#fff;rotate:45deg}
+.ct-x i + i{rotate:-45deg}
+.ct-log{flex:1;overflow:auto;overscroll-behavior:contain;padding:16px;display:flex;flex-direction:column;gap:10px}
+.ct-msg{max-width:86%;padding:11px 14px;border-radius:18px;font-family:var(--body);font-size:13px;line-height:1.5;animation:ctMsg .4s var(--ease) both}
+@keyframes ctMsg{from{opacity:0;transform:translateY(10px) scale(.98)}}
+.ct-msg.her{align-self:flex-start;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-bottom-left-radius:4px}
+.ct-msg.me{align-self:flex-end;background:linear-gradient(180deg,#2c5cff,#1747ff);border-bottom-right-radius:4px;color:#fff}
+.ct-msg b{color:#fff}
+.ct-msg.dots{display:flex;gap:4px;padding:14px}
+.ct-msg.dots i{width:6px;height:6px;border-radius:50%;background:var(--ice);animation:ctDot 1s infinite}
+.ct-msg.dots i:nth-child(2){animation-delay:.15s}.ct-msg.dots i:nth-child(3){animation-delay:.3s}
+@keyframes ctDot{0%,100%{opacity:.3;transform:none}50%{opacity:1;transform:translateY(-3px)}}
+.ct-reply{padding:12px 14px 16px;border-top:1px solid rgba(255,255,255,.08);min-height:70px;display:flex;align-items:center}
+.ct-chips{display:flex;flex-wrap:wrap;gap:6px}
+.ct-chip{all:unset;box-sizing:border-box;cursor:pointer;padding:9px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);font-family:var(--body);font-size:11.5px;letter-spacing:.02em;color:#fff;transition:background .25s,border-color .25s,box-shadow .25s,scale .25s var(--ease)}
+.ct-chip:hover{border-color:rgba(156,188,255,.5)}
+.ct-chip:active{scale:.96}
+.ct-chip:focus-visible{outline:2px solid var(--blue-hi);outline-offset:2px}
+.ct-chip[aria-pressed="true"],.ct-chip.is-go{background:var(--blue);border-color:#7f9bff;box-shadow:0 0 20px -4px rgba(23,71,255,.8)}
+.ct-send{display:inline-flex;align-items:center;gap:8px;padding:11px 16px;border-radius:999px;font-family:var(--display);font-weight:800;font-size:11.5px;text-transform:uppercase;color:#fff;background:linear-gradient(180deg,#3a66ff,#1747ff);border:1px solid #7f9bff;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 14px 30px -12px rgba(23,71,255,.9)}
+
+.ct-foot{position:absolute;left:0;right:0;bottom:0;z-index:6;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px clamp(20px,4vw,56px);color:var(--dim);border-top:1px solid rgba(120,150,255,.1)}
+.ct-foot a:hover{color:#fff}
+.ct-toast{position:fixed;left:50%;bottom:24px;z-index:300;translate:-50% 20px;opacity:0;padding:12px 18px;border-radius:999px;color:#fff;background:rgba(10,14,30,.9);border:1px solid rgba(255,255,255,.14);transition:opacity .3s,translate .3s var(--ease);pointer-events:none}
+.ct-toast.is-on{opacity:1;translate:-50% 0}
+@media (max-width:900px){
+  .contact{padding-top:130px;padding-bottom:110px}
+  .ct-title{font-size:var(--tfs,clamp(60px,19vw,150px));white-space:normal;line-height:.82}
+  .ct-dock{gap:6px;height:auto;margin-top:26px;padding:8px 10px 24px;border-radius:22px}
+  .ct-app{width:calc(46px * var(--s));height:calc(46px * var(--s))}
+  .ct-tip{display:none}
+  .ct-lbl{display:block;position:absolute;left:50%;top:calc(100% + 5px);translate:-50% 0;font-family:var(--body);font-size:9px;color:#c9d4ee;white-space:nowrap}
+  .ct-dot{bottom:-4px}
+  .ct-win{height:min(440px,calc(100svh - 300px))}
+  .ct-corner--tl{top:96px}
+}
+@media (prefers-reduced-motion:reduce){.ct-app,.ct-win,.ct-title,.ct-lead,.ct-status{transition:none}.ct-app.is-bounce .ct-face{animation:none}}
 
 /* ============ RESPONSIVE (header / loader only; the hero scales as an artboard) ============ */
 @media (max-width:900px){
