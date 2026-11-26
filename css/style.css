@@ -743,9 +743,9 @@ body.cview-open{overflow:hidden}
 /* ============ CONTACT ============
    The closing scene echoes the first screen: dollar wall, the same beam, a floor. On the floor stands a glass dock:
    every channel is an "app"; icons swell under the cursor, the call is the main one, Brief opens the chat window. */
-.contact{position:relative;min-height:100vh;min-height:100svh;overflow:hidden;background:#000;display:flex;flex-direction:column;isolation:isolate;
+.contact{position:relative;min-height:100vh;min-height:100svh;overflow:visible;overflow-x:clip;background:#000;display:flex;flex-direction:column;isolation:isolate;
   padding:clamp(64px,9vh,100px) 0 clamp(150px,20vh,200px)}
-.ct-bg{position:absolute;inset:0;z-index:0;pointer-events:none;--hz:76%}
+.ct-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;--hz:76%}
 .ct-pattern{position:absolute;left:0;right:0;top:0;height:var(--hz);overflow:hidden}
 .ct-pattern::before{content:"";position:absolute;inset:0;opacity:.03;background:url(../assets/dollars.svg) 0 0/400px 400px repeat}
 .ct-pattern::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#000 0%,rgba(0,0,0,0) 30%,rgba(0,0,0,0) 70%,#000 100%)}
@@ -816,45 +816,77 @@ body.cview-open{overflow:hidden}
 .ct-app.is-bounce .ct-face{animation:ctBounce .7s var(--ease)}
 @keyframes ctBounce{30%{transform:translateY(-40px)}60%{transform:translateY(0)}80%{transform:translateY(-12px)}}
 
-/* the brief opens like an app window over the dock; the heading steps back instead of being covered */
-.ct-win{position:absolute;left:50%;bottom:calc(100% + 18px);z-index:10;width:min(390px,calc(100vw - 32px));height:var(--winh,min(470px,calc(100svh - 330px)));
-  display:flex;flex-direction:column;text-align:left;border-radius:26px;overflow:hidden;color:var(--text);
-  background:linear-gradient(160deg,rgba(18,24,48,.94),rgba(8,11,23,.96));border:1px solid rgba(255,255,255,.14);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 40px 90px -30px rgba(0,0,0,.95);
+/* the brief opens like a messenger window: tall, like a real chat, centred in the space below the site header.
+   It grows out of the dock; the heading only fades and blurs behind it, nothing on the page moves. */
+.ct-win{--winh:min(660px,calc(100svh - 108px));position:fixed;left:50%;top:calc(78px + (100svh - 78px - var(--winh)) / 2);z-index:10;width:min(420px,calc(100vw - 24px));height:var(--winh);
+  display:flex;flex-direction:column;text-align:left;border-radius:28px;overflow:hidden;color:var(--text);
+  background:#0a0f20;border:1px solid rgba(255,255,255,.14);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 50px 110px -30px rgba(0,0,0,.95),0 30px 120px -50px rgba(23,71,255,.7);
   translate:-50% 0;transform-origin:bottom center;scale:.4;opacity:0;visibility:hidden;pointer-events:none;
   transition:scale .55s var(--ease),opacity .3s,visibility 0s .55s}
 .contact.is-chat .ct-win{scale:1;opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s}
 .contact.is-chat .ct-title,.contact.is-chat .ct-lead,.contact.is-chat .ct-status{opacity:.08;filter:blur(8px)}
-.ct-scrim{position:absolute;inset:0;z-index:4;background:rgba(2,3,8,.35);opacity:0;pointer-events:none;transition:opacity .45s}
+.contact.is-chat .ct-tip{opacity:0!important}
+.contact.is-chat .ct-in{z-index:8}
+.contact.is-chat .ct-corner,.contact.is-chat .ct-foot{opacity:.15;transition:opacity .4s}   /* above the footer and the corner mark, so nothing shows through the window */
+.ct-app,.ct-sep,.ct-dock::before,.ct-dock::after{transition:opacity .4s}
+.contact.is-chat .ct-app,.contact.is-chat .ct-sep,.contact.is-chat .ct-dock::before,.contact.is-chat .ct-dock::after{opacity:.12}
+.ct-scrim{position:fixed;inset:0;z-index:4;background:rgba(2,3,8,.5);opacity:0;pointer-events:none;transition:opacity .45s}
 .contact.is-chat .ct-scrim{opacity:1;pointer-events:auto}
-.ct-ava{width:38px;height:38px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:13px;color:#fff;background:linear-gradient(160deg,#3a66ff,#0d2aa8);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
-.ct-win__head{display:flex;align-items:center;gap:12px;padding:13px 13px 13px 15px;border-bottom:1px solid rgba(255,255,255,.08)}
-.ct-win__head b{display:block;font-family:var(--display);font-weight:800;font-size:13px;text-transform:uppercase;color:#fff}
-.ct-win__head small{display:flex;align-items:center;gap:6px;margin-top:3px;color:var(--ice)}
-.ct-win__head small::before{content:"";width:7px;height:7px;border-radius:50%;background:#3ddc84;box-shadow:0 0 8px #3ddc84}
-.ct-x{all:unset;cursor:pointer;position:relative;margin-left:auto;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08)}
-.ct-x:hover{background:rgba(255,255,255,.16)}
+/* header: avatar with an online dot, name, live status (online / typing…), close */
+.ct-win__head{position:relative;z-index:2;display:flex;align-items:center;gap:12px;padding:12px 12px 12px 14px;background:rgba(16,22,44,.92);border-bottom:1px solid rgba(255,255,255,.07)}
+.ct-ava{position:relative;width:42px;height:42px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:14px;color:#fff;background:linear-gradient(160deg,#3a66ff,#0d2aa8);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.ct-ava::after{content:"";position:absolute;right:0;bottom:0;width:11px;height:11px;border-radius:50%;background:#3ddc84;border:2px solid #10162c}
+.ct-win__head b{display:block;font-family:var(--display);font-weight:800;font-size:14px;letter-spacing:-.01em;color:#fff}
+.ct-win__head small{display:block;margin-top:3px;font-family:var(--body);font-size:11.5px;color:#7fa0ff;transition:color .2s}
+.ct-win__head small.is-typing{color:var(--ice)}
+.ct-x{all:unset;cursor:pointer;position:relative;margin-left:auto;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.07);transition:background .2s}
+.ct-x:hover{background:rgba(255,255,255,.14)}
 .ct-x:focus-visible{outline:2px solid var(--blue-hi);outline-offset:2px}
-.ct-x i{position:absolute;left:10px;right:10px;top:16px;height:2px;border-radius:2px;background:#fff;rotate:45deg}
+.ct-x i{position:absolute;left:11px;right:11px;top:17px;height:2px;border-radius:2px;background:#fff;rotate:45deg}
 .ct-x i + i{rotate:-45deg}
-.ct-log{flex:1;overflow:auto;overscroll-behavior:contain;padding:16px;display:flex;flex-direction:column;gap:10px}
-.ct-msg{max-width:86%;padding:11px 14px;border-radius:18px;font-family:var(--body);font-size:13px;line-height:1.5;animation:ctMsg .4s var(--ease) both}
-@keyframes ctMsg{from{opacity:0;transform:translateY(10px) scale(.98)}}
-.ct-msg.her{align-self:flex-start;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-bottom-left-radius:4px}
-.ct-msg.me{align-self:flex-end;background:linear-gradient(180deg,#2c5cff,#1747ff);border-bottom-right-radius:4px;color:#fff}
-.ct-msg b{color:#fff}
-.ct-msg.dots{display:flex;gap:4px;padding:14px}
-.ct-msg.dots i{width:6px;height:6px;border-radius:50%;background:var(--ice);animation:ctDot 1s infinite}
+/* conversation on a faint wallpaper (the same dollar tile as the wall behind) */
+.ct-log{position:relative;flex:1;overflow:auto;overscroll-behavior:contain;padding:14px 12px 10px;display:flex;flex-direction:column;gap:4px;
+  background:radial-gradient(ellipse 90% 60% at 50% 100%,rgba(23,71,255,.16),transparent 70%),linear-gradient(rgba(11,17,36,.94),rgba(11,17,36,.94)),url(../assets/dollars.svg) 0 0/260px 260px,#0b1124}
+.ct-day{align-self:center;margin:2px 0 8px;padding:4px 10px;border-radius:999px;font-family:var(--body);font-size:10.5px;color:#c9d4ee;background:rgba(255,255,255,.08)}
+.ct-msg{position:relative;max-width:82%;padding:8px 12px 7px;border-radius:18px;font-family:var(--body);font-size:13.5px;line-height:1.45;color:#eef2fb;animation:ctMsg .35s var(--ease) both}
+@keyframes ctMsg{from{opacity:0;transform:translateY(8px) scale(.98)}}
+.ct-msg.her{align-self:flex-start;background:#1b2340;border-bottom-left-radius:6px}
+.ct-msg.me{align-self:flex-end;background:linear-gradient(180deg,#2f5dff,#1a4bff);border-bottom-right-radius:6px;color:#fff}
+.ct-msg.her + .ct-msg.me,.ct-msg.me + .ct-msg.her{margin-top:6px}
+.ct-msg b{color:#fff;font-weight:600}
+.ct-msg .meta{float:right;display:inline-flex;align-items:center;gap:3px;margin:6px 0 -2px 10px;font-size:10px;line-height:1;color:rgba(255,255,255,.5)}
+.ct-msg.me .meta{color:rgba(255,255,255,.75)}
+.ct-msg .meta svg{width:15px;height:10px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.ct-msg.dots{display:flex;gap:4px;padding:12px 14px}
+.ct-msg.dots i{width:7px;height:7px;border-radius:50%;background:#8ea6e6;animation:ctDot 1s infinite}
 .ct-msg.dots i:nth-child(2){animation-delay:.15s}.ct-msg.dots i:nth-child(3){animation-delay:.3s}
-@keyframes ctDot{0%,100%{opacity:.3;transform:none}50%{opacity:1;transform:translateY(-3px)}}
-.ct-reply{padding:12px 14px 16px;border-top:1px solid rgba(255,255,255,.08);min-height:70px;display:flex;align-items:center}
-.ct-chips{display:flex;flex-wrap:wrap;gap:6px}
-.ct-chip{all:unset;box-sizing:border-box;cursor:pointer;padding:9px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);font-family:var(--body);font-size:11.5px;letter-spacing:.02em;color:#fff;transition:background .25s,border-color .25s,box-shadow .25s,scale .25s var(--ease)}
-.ct-chip:hover{border-color:rgba(156,188,255,.5)}
-.ct-chip:active{scale:.96}
+@keyframes ctDot{0%,100%{opacity:.35;transform:none}50%{opacity:1;transform:translateY(-3px)}}
+/* answer buttons, like a bot keyboard, then a composer bar */
+.ct-reply{position:relative;z-index:2;background:rgba(16,22,44,.96);border-top:1px solid rgba(255,255,255,.07)}
+.ct-kb{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 10px 0}
+.ct-kb:empty{display:none}
+.ct-chip{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:8px 10px;border-radius:12px;text-align:center;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);font-family:var(--body);font-size:12px;color:#fff;transition:background .2s,border-color .2s,scale .2s var(--ease)}
+.ct-chip:hover{background:rgba(255,255,255,.12)}
+.ct-chip:active{scale:.97}
 .ct-chip:focus-visible{outline:2px solid var(--blue-hi);outline-offset:2px}
-.ct-chip[aria-pressed="true"],.ct-chip.is-go{background:var(--blue);border-color:#7f9bff;box-shadow:0 0 20px -4px rgba(23,71,255,.8)}
-.ct-send{display:inline-flex;align-items:center;gap:8px;padding:11px 16px;border-radius:999px;font-family:var(--display);font-weight:800;font-size:11.5px;text-transform:uppercase;color:#fff;background:linear-gradient(180deg,#3a66ff,#1747ff);border:1px solid #7f9bff;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 14px 30px -12px rgba(23,71,255,.9)}
+.ct-chip[aria-pressed="true"]{background:rgba(23,71,255,.35);border-color:#7f9bff}
+.ct-chip[aria-pressed="true"]::before{content:"✓";font-weight:700;color:#cfe0ff}
+.ct-chip.is-go{grid-column:1 / -1;background:var(--blue);border-color:#7f9bff}
+.ct-chip.is-go[disabled]{opacity:.4;cursor:default}
+.ct-chip.is-wide{grid-column:1 / -1}
+.ct-comp{display:flex;align-items:flex-end;gap:8px;padding:10px}
+.ct-field{flex:1;min-height:42px;max-height:120px;overflow:auto;display:flex;align-items:center;padding:10px 14px;border-radius:21px;background:#0b1124;border:1px solid rgba(255,255,255,.1);font-family:var(--body);font-size:13px;line-height:1.4;color:#6f80aa}
+.ct-field.is-ready{color:#eef2fb}
+.ct-sendbtn{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:#fff;background:#26304f;transition:background .3s,scale .3s var(--ease),box-shadow .3s;pointer-events:none}
+.ct-sendbtn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.ct-sendbtn.is-on{background:linear-gradient(180deg,#3a66ff,#1747ff);box-shadow:0 10px 24px -8px rgba(23,71,255,.9);pointer-events:auto;animation:ctReady 1.6s ease-in-out infinite}
+.ct-sendbtn.is-on:hover{scale:1.06}
+@keyframes ctReady{50%{box-shadow:0 0 0 6px rgba(58,102,255,.18),0 10px 24px -8px rgba(23,71,255,.9)}}
+.ct-hint{padding:0 14px 10px;font-family:var(--body);font-size:11px;color:#7f8fb8}
+.ct-hint:empty{display:none}
+.ct-hint button{all:unset;cursor:pointer;color:#9cbcff;text-decoration:underline;text-underline-offset:3px}
 
 .ct-foot{position:absolute;left:0;right:0;bottom:0;z-index:6;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px clamp(20px,4vw,56px);color:var(--dim);border-top:1px solid rgba(120,150,255,.1)}
 .ct-foot a:hover{color:#fff}
@@ -870,6 +902,7 @@ body.cview-open{overflow:hidden}
   .ct-tip{display:none}
   .ct-lbl{display:block;position:absolute;left:50%;top:calc(100% + 5px);translate:-50% 0;font-family:var(--body);font-size:9px;color:#c9d4ee;white-space:nowrap}
   .ct-dot{bottom:-4px}
+  .ct-win{--winh:calc(100svh - 92px);width:calc(100vw - 16px);border-radius:24px}
   .ct-corner--tl{top:70px}
 }
 @media (prefers-reduced-motion:reduce){.ct-app,.ct-win,.ct-title,.ct-lead,.ct-status{transition:none}.ct-app.is-bounce .ct-face{animation:none}}

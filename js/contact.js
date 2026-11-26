@@ -76,7 +76,7 @@
   const magnify = x => { pointerX = x - dock.getBoundingClientRect().left; kick(); };   // x in viewport px
   const rest = () => { pointerX = null; kick(); };
   let touched = false;
-  dock.addEventListener("pointermove", e => { if (!fine.matches || e.target.closest(".ct-win")) return; touched = true; magnify(e.clientX); });
+  dock.addEventListener("pointermove", e => { if (!fine.matches) return; if (sec.classList.contains("is-chat") || e.target.closest(".ct-win")) { rest(); return; } touched = true; magnify(e.clientX); });
   dock.addEventListener("pointerleave", () => { if (fine.matches) rest(); });
   dock.addEventListener("pointerenter", () => { if (fine.matches) { touched = true; apps.forEach(a => a.classList.remove("is-tip", "is-lit")); } });
   apps.forEach(a => a.addEventListener("click", () => { a.classList.remove("is-bounce"); void a.offsetWidth; a.classList.add("is-bounce", "is-ran"); }));
@@ -118,11 +118,11 @@
     en: {
       need: ["SMM strategy", "Channel launch", "Content & AI", "Community", "Influencers", "Consulting"],
       market: ["iGaming", "Another industry"], start: ["ASAP", "This month", "Just exploring"],
-      q1: "Hi! Tell me about your project — what do you need help with? Pick all that fit.",
+      q1: "Hi! 👋 Tell me about your project — what do you need help with? Pick all that fit.",
       q2: "Nice. Which market is it?", q3: "And when would you like to start?",
-      done: "Done →", again: "Start over", send: "Send in Telegram ↗",
-      sum: m => `Got it. Here’s your message — tap to send it to me in Telegram:<br><br><b>“${m}”</b>`,
-      and: " and ", cvSoon: "CV link coming soon",
+      q4: "Got it! Your message is ready below — send it and I’ll reply in Telegram.",
+      done: "Done", again: "Start over", online: "online", typing: "typing…", today: "Today",
+      pick: "Pick an answer above", pickMany: "Pick one or more above", ready: "Ready to send", cvSoon: "CV link coming soon", and: " and ",
       msg: s => {
         const need = list(s.need.map(x => x.toLowerCase().replace("smm", "SMM").replace("ai", "AI")), " and ");
         const mk = s.market === "iGaming" ? " for an iGaming brand" : " for a brand outside iGaming";
@@ -133,11 +133,11 @@
     uk: {
       need: ["SMM-стратегія", "Запуск каналу", "Контент і AI", "Ком’юніті", "Інфлюенсери", "Консультація"],
       market: ["iGaming", "Інша індустрія"], start: ["Якнайшвидше", "Цього місяця", "Поки придивляюся"],
-      q1: "Привіт! Розкажіть про проєкт — з чим потрібна допомога? Оберіть усе, що підходить.",
+      q1: "Привіт! 👋 Розкажіть про проєкт — з чим потрібна допомога? Оберіть усе, що підходить.",
       q2: "Чудово. Який ринок?", q3: "І коли хочете почати?",
-      done: "Готово →", again: "Спочатку", send: "Надіслати в Telegram ↗",
-      sum: m => `Готово. Ось ваше повідомлення — натисніть, щоб надіслати мені в Telegram:<br><br><b>«${m}»</b>`,
-      and: " і ", cvSoon: "Посилання на CV скоро буде",
+      q4: "Готово! Повідомлення вже внизу — надішліть його, і я відповім у Telegram.",
+      done: "Готово", again: "Спочатку", online: "в мережі", typing: "друкує…", today: "Сьогодні",
+      pick: "Оберіть відповідь вище", pickMany: "Оберіть одну або кілька відповідей", ready: "Готово до відправки", cvSoon: "Посилання на CV скоро буде", and: " і ",
       msg: s => {
         const st = s.start === "Поки придивляюся" ? "Поки що просто придивляюся." : `Хочемо почати: ${s.start.toLowerCase()}.`;
         return `Привіт, Ольго! Мене цікавить: ${list(s.need.map((x, i) => i ? x.toLowerCase() : x), " і ")}. Ринок: ${s.market === "iGaming" ? "iGaming" : "інша індустрія"}. ${st} Можемо поговорити?`;
@@ -147,54 +147,71 @@
   const L = () => T[window.currentLang] || T.en;
   const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   function list(a, and) { return a.length < 2 ? (a[0] || "") : a.slice(0, -1).join(", ") + and + a[a.length - 1]; }
+  const now = () => { const d = new Date(); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); };
+  const TICKS = `<svg viewBox="0 0 16 10"><path d="M1 5.5 4 8.5 10 1.5M6.5 8.5l.8.6L14.5 1.5"/></svg>`;
 
-  const log = $("#ctLog"), reply = $("#ctReply"), xBtn = $("#ctClose");
+  const log = $("#ctLog"), kb = $("#ctKb"), field = $("#ctField"), sendBtn = $("#ctSend"), hint = $("#ctHint"), state = $("#ctState"), xBtn = $("#ctClose");
   let gen = 0, started = false, opener = null;
-  const add = (cls, html) => { const m = document.createElement("div"); m.className = "ct-msg " + cls; m.innerHTML = html; log.appendChild(m); log.scrollTop = log.scrollHeight; };
-  const say = html => { const g = gen; return new Promise((res, rej) => { add("her dots", "<i></i><i></i><i></i>"); const d = log.lastChild; setTimeout(() => { d.remove(); if (g !== gen) return rej(); add("her", html); res(); }, 700); }); };
+  const add = (cls, html, meta) => {
+    const m = document.createElement("div"); m.className = "ct-msg " + cls;
+    m.innerHTML = html + (meta ? `<span class="meta">${now()}${cls === "me" ? TICKS : ""}</span>` : "");
+    log.appendChild(m); log.scrollTop = log.scrollHeight; return m;
+  };
+  const composer = (text, ready, href) => {
+    field.textContent = text; field.classList.toggle("is-ready", !!ready);
+    sendBtn.classList.toggle("is-on", !!ready); sendBtn.setAttribute("aria-disabled", ready ? "false" : "true");
+    ready ? sendBtn.setAttribute("href", href) : sendBtn.removeAttribute("href");
+  };
+  const say = html => { const g = gen; return new Promise((res, rej) => {
+    state.textContent = L().typing; state.classList.add("is-typing");
+    const d = add("her dots", "<i></i><i></i><i></i>");
+    setTimeout(() => { d.remove(); state.textContent = L().online; state.classList.remove("is-typing"); if (g !== gen) return rej(); add("her", html, true); res(); }, 800);
+  }); };
   const ask = (opts, multi) => { const g = gen; return new Promise(res => {
-    const picked = [];
-    reply.innerHTML = `<div class="ct-chips">${opts.map(v => `<button class="ct-chip" type="button" aria-pressed="false">${esc(v)}</button>`).join("")}${multi ? `<button class="ct-chip is-go" type="button" data-done>${L().done}</button>` : ""}</div>`;
-    reply.onclick = e => {
-      const b = e.target.closest(".ct-chip"); if (!b || g !== gen) return;
-      if (multi && !b.hasAttribute("data-done")) { const v = b.textContent, i = picked.indexOf(v); i < 0 ? picked.push(v) : picked.splice(i, 1); b.setAttribute("aria-pressed", i < 0); return; }
-      if (multi && !picked.length) return;
-      reply.innerHTML = ""; reply.onclick = null;
-      const ans = multi ? picked : b.textContent; add("me", esc(multi ? list(picked, L().and) : ans)); res(ans);
+    const picked = [], t = L();
+    composer(multi ? t.pickMany : t.pick, false);
+    kb.innerHTML = opts.map(v => `<button class="ct-chip" type="button" aria-pressed="false">${esc(v)}</button>`).join("") +
+      (multi ? `<button class="ct-chip is-go" type="button" data-done disabled>${t.done} →</button>` : "");
+    if (opts.length % 2 && !multi) kb.lastElementChild.classList.add("is-wide");
+    const doneBtn = kb.querySelector("[data-done]");
+    kb.onclick = e => {
+      const b = e.target.closest(".ct-chip"); if (!b || g !== gen || b.disabled) return;
+      if (multi && !b.hasAttribute("data-done")) {
+        const v = b.textContent, i = picked.indexOf(v); i < 0 ? picked.push(v) : picked.splice(i, 1);
+        b.setAttribute("aria-pressed", i < 0); doneBtn.disabled = !picked.length;
+        composer(picked.length ? list(picked, t.and) : t.pickMany, false); field.classList.toggle("is-ready", !!picked.length);
+        return;
+      }
+      kb.innerHTML = ""; kb.onclick = null;
+      const ans = multi ? picked : b.textContent; add("me", esc(multi ? list(picked, t.and) : ans), true); composer("", false); res(ans);
     };
   }); };
   async function flow() {
-    gen++; log.innerHTML = ""; reply.innerHTML = ""; reply.onclick = null;
+    gen++; log.innerHTML = `<span class="ct-day">${L().today}</span>`; kb.innerHTML = ""; hint.innerHTML = ""; composer("", false);
     const t = L(), s = {};
     await say(t.q1); s.need = await ask(t.need, true);
     await say(t.q2); s.market = await ask(t.market);
     await say(t.q3); s.start = await ask(t.start);
     const m = t.msg(s);
-    await say(t.sum(esc(m)));
-    reply.innerHTML = `<div class="ct-chips"><a class="ct-send" href="${TG}?text=${encodeURIComponent(m)}" target="_blank" rel="noopener">${t.send}</a><button class="ct-chip" type="button" data-again>${t.again}</button></div>`;
-    reply.onclick = e => { if (e.target.closest("[data-again]")) flow().catch(() => {}); };
+    await say(t.q4);
+    composer(m, true, `${TG}?text=${encodeURIComponent(m)}`);
+    hint.innerHTML = `${t.ready} · <button type="button" data-again>${t.again}</button>`;
   }
-  /* the window always fits between the top of the block (below the header) and the dock, so it is never cut off */
-  const fitWin = () => {
-    const top = Math.max(sec.getBoundingClientRect().top, 0) + 86;   // below the header, inside the block
-    const room = dock.getBoundingClientRect().top - 18 - top;
-    $("#ctWin").style.setProperty("--winh", Math.max(300, Math.min(470, room)) + "px");
-    return room;
-  };
-  addEventListener("resize", fitWin);
+  hint.addEventListener("click", e => { if (e.target.closest("[data-again]")) flow().catch(() => {}); });
+
   const open = from => {
     opener = from; rest();
-    // scroll only when the window really can't fit above the dock — otherwise the page stays put (no jump behind the window)
-    if (fitWin() < 300) { window.__lenis ? window.__lenis.scrollTo(sec, { duration: .9, onComplete: fitWin }) : sec.scrollIntoView({ behavior: "smooth" }); }
     sec.classList.add("is-chat");
     if (!started) { started = true; flow().catch(() => {}); }
     setTimeout(() => xBtn.focus({ preventScroll: true }), 300);
   };
+  // the window is fixed on screen: if the visitor scrolls away from the contact block, it closes
+  new IntersectionObserver(es => { if (!es[0].isIntersecting && sec.classList.contains("is-chat")) close(); }, { threshold: .15 }).observe(sec);
   const close = () => { sec.classList.remove("is-chat"); if (opener) opener.focus({ preventScroll: true }); };
   $$("[data-openchat]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); sec.classList.contains("is-chat") ? close() : open(a); }));
   xBtn.addEventListener("click", close);
-  /* a click anywhere outside the window closes it; composedPath still knows where the click was even if the chip it hit has already been replaced */
-  sec.addEventListener("click", e => { if (!sec.classList.contains("is-chat")) return; if (!e.composedPath().some(n => n.nodeType === 1 && n.matches(".ct-win,[data-openchat]"))) close(); });
+  /* a click anywhere outside the window closes it; composedPath still knows where the click was even if the button it hit has already been replaced */
+  document.addEventListener("click", e => { if (!sec.classList.contains("is-chat")) return; if (!e.composedPath().some(n => n.nodeType === 1 && n.matches(".ct-win,[data-openchat]"))) close(); });
   addEventListener("keydown", e => { if (e.key === "Escape" && sec.classList.contains("is-chat")) close(); });
-  addEventListener("langchange", () => { if (started) { started = false; gen++; log.innerHTML = ""; reply.innerHTML = ""; if (sec.classList.contains("is-chat")) { started = true; flow().catch(() => {}); } } });
+  addEventListener("langchange", () => { if (started) { started = false; gen++; log.innerHTML = ""; kb.innerHTML = ""; hint.innerHTML = ""; composer("", false); if (sec.classList.contains("is-chat")) { started = true; flow().catch(() => {}); } } });
 })();
