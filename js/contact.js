@@ -42,7 +42,7 @@
      Only transforms move: each icon's face scales up from its bottom edge and the icons slide apart so they don't overlap.
      Nothing changes size in the layout, so the browser composites the frames instead of re-laying out the dock.
      A single rAF loop eases every icon toward its target, so pointer moves and the intro sweep share one smooth motion. */
-  const items = [...dock.children].filter(n => n.matches(".ct-app,.ct-sep"));
+  const items = [...dock.children].filter(n => n.matches(".ct-app,.ct-sep")), bar = $(".ct-bar");
   const faces = apps.map(a => a.querySelector(".ct-face")), tips = apps.map(a => a.querySelector(".ct-tip"));
   let rest0 = null, size = 72;
   let restAll = null, dockW = 0;
@@ -71,20 +71,21 @@
        pointer travels each icon only ever slides one way — no back-and-forth twitching. */
     const Rr = R(), Gk = amp * .55 * Rr / 2.6;
     const G = u => { if (sp === null) return 0; const a = Math.min(1, Math.abs(u) / Rr); return Math.sign(u) * Gk * (1 - (1 - a) ** 2.6); };
-    const sc = x => sp === null ? 1 : 1 + amp * .55 * Math.max(0, 1 - Math.abs(x - sp) / Rr) ** 1.6;
+    const half = (rest0[1] - rest0[0]) / 2;                          // half of one icon's slot (icon + gap)
     let k = 0;
     items.forEach((n, idx) => {
       const c = restAll[idx], dx = G(c - (sp ?? c));
       n.style.transform = `translate3d(${dx.toFixed(2)}px,0,0)`;
       if (n.classList.contains("ct-app")) {
-        cur[k] = sc(c);
+        // the icon grows by exactly the room the field opens across its slot, so neighbours can never overlap
+        cur[k] = sp === null ? 1 : 1 + (G(c + half - sp) - G(c - half - sp)) / size;
         faces[k].style.scale = (cur[k] / 1.55).toFixed(4);          // faces are drawn 1.55× and scaled down at rest
         if (tips[k]) tips[k].style.transform = `translateY(${(-size * (cur[k] - 1)).toFixed(2)}px)`;
         k++;
       }
     });
-    dock.style.setProperty("--growL", (-G(0 - (sp ?? 0))).toFixed(2) + "px");
-    dock.style.setProperty("--growR", G(dockW - (sp ?? dockW)).toFixed(2) + "px");
+    bar.style.left = G(0 - (sp ?? 0)).toFixed(2) + "px";
+    bar.style.right = (-G(dockW - (sp ?? dockW))).toFixed(2) + "px";
     if (moving) raf = requestAnimationFrame(frame);
   }
   const kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
@@ -102,6 +103,12 @@
     magnify(e.clientX);
   });
   dock.addEventListener("pointerleave", () => { over = false; if (fine.matches && !sweeping) rest(); });
+  /* the swell must never stay stuck: a dock link opens a new tab, the window loses focus, and no pointerleave ever arrives */
+  const unstick = () => { over = false; if (!sweeping) rest(); };
+  addEventListener("blur", unstick);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) unstick(); });
+  document.addEventListener("pointermove", e => { if (pointerX !== null && !sweeping && !dock.contains(e.target)) unstick(); }, { passive: true });
+  apps.forEach(a => a.addEventListener("click", () => { if (a.target === "_blank") setTimeout(unstick, 250); }));
   apps.forEach(a => a.addEventListener("click", () => { a.classList.remove("is-bounce"); void a.offsetWidth; a.classList.add("is-bounce", "is-ran"); }));
 
   /* ---------- intro sweep: once, the first time the dock is in view ---------- */

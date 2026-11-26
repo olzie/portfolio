@@ -783,7 +783,7 @@ body.cview-open{overflow:hidden}
 .ct-dock{position:relative;display:flex;align-items:flex-end;gap:10px;height:94px;margin-top:clamp(110px,17vh,190px);padding:10px 14px;isolation:isolate}
 /* the glass bar is a separate layer: it widens with the swelling icons (only its own box changes, nothing else re-lays out),
    and it has no backdrop blur, so nothing behind it has to be re-blurred on every frame */
-.ct-dock::before{content:"";position:absolute;top:0;bottom:0;left:calc(var(--growL,0px) * -1);right:calc(var(--growR,0px) * -1);z-index:-1;border-radius:30px;pointer-events:none;
+.ct-bar{position:absolute;top:0;bottom:0;left:0;right:0;z-index:-1;border-radius:30px;pointer-events:none;
   background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.05)),rgba(10,14,32,.62);border:1px solid rgba(255,255,255,.18);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
 /* the big soft shadows sit on a layer that never changes size, so they are painted once, not on every frame of the swell */
@@ -833,8 +833,8 @@ body.cview-open{overflow:hidden}
 .contact.is-chat .ct-tip{opacity:0!important}
 .contact.is-chat .ct-in{z-index:8}
 .contact.is-chat .ct-corner,.contact.is-chat .ct-foot{opacity:.15;transition:opacity .4s}   /* above the footer and the corner mark, so nothing shows through the window */
-.ct-app,.ct-sep,.ct-dock::before,.ct-dock::after{transition:opacity .4s}
-.contact.is-chat .ct-app,.contact.is-chat .ct-sep,.contact.is-chat .ct-dock::before,.contact.is-chat .ct-dock::after{opacity:.12}
+.ct-app,.ct-sep,.ct-bar,.ct-dock::after{transition:opacity .4s}
+.contact.is-chat .ct-app,.contact.is-chat .ct-sep,.contact.is-chat .ct-bar,.contact.is-chat .ct-dock::after{opacity:.12}
 .ct-scrim{position:fixed;inset:0;z-index:4;background:rgba(2,3,8,.5);opacity:0;pointer-events:none;transition:opacity .45s}
 .contact.is-chat .ct-scrim{opacity:1;pointer-events:auto}
 /* header: avatar with an online dot, name, live status (online / typing…), close */
@@ -901,7 +901,7 @@ body.cview-open{overflow:hidden}
   .ct-in::before{top:24%;height:70vw}
   .ct-title{font-size:var(--tfs,clamp(60px,19vw,150px));white-space:normal;line-height:.82}
   .ct-dock{gap:6px;height:auto;margin-top:clamp(56px,9vh,90px);padding:8px 10px 24px}
-  .ct-dock::before,.ct-dock::after{border-radius:22px}
+  .ct-bar,.ct-dock::after{border-radius:22px}
   .ct-app{width:46px;height:46px}
   .ct-tip{display:none}
   .ct-lbl{display:block;position:absolute;left:50%;top:calc(100% + 5px);translate:-50% 0;font-family:var(--body);font-size:9px;color:#c9d4ee;white-space:nowrap}
