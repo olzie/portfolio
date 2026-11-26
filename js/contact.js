@@ -45,37 +45,46 @@
   const items = [...dock.children].filter(n => n.matches(".ct-app,.ct-sep"));
   const faces = apps.map(a => a.querySelector(".ct-face")), tips = apps.map(a => a.querySelector(".ct-tip"));
   let rest0 = null, size = 72;
-  const measure = () => { size = apps[0].offsetWidth; rest0 = apps.map(a => a.offsetLeft + a.offsetWidth / 2); };   // offsets ignore transforms
+  let restAll = null, dockW = 0;
+  const measure = () => { size = apps[0].offsetWidth; rest0 = apps.map(a => a.offsetLeft + a.offsetWidth / 2); restAll = items.map(n => n.offsetLeft + n.offsetWidth / 2); dockW = dock.offsetWidth; };   // offsets ignore transforms
   addEventListener("resize", () => { rest0 = null; });
   const cur = apps.map(() => 1), tgt = apps.map(() => 1);
   let raf = 0, pointerX = null, anchorX = 0;                                   // pointer x relative to the dock box, or null = at rest
   const R = () => wide.matches ? 170 : 110;
-  function targets() {
-    apps.forEach((a, i) => { tgt[i] = pointerX === null ? 1 : 1 + .55 * Math.max(0, 1 - Math.abs(pointerX - rest0[i]) / R()) ** 1.6; });
-  }
+  /* positions are a pure function of two eased values: `sp` (where the pointer is) and `amp` (0 = at rest, 1 = fully swollen).
+     Easing each icon's size separately from the anchor let them disagree from frame to frame, and the icons twitched. */
+  let sp = null, amp = 0;
   function frame() {
-    raf = 0; if (!rest0) measure(); targets();
+    raf = 0; if (!rest0) measure();
     let moving = false;
-    apps.forEach((a, i) => { cur[i] += (tgt[i] - cur[i]) * .22; if (Math.abs(tgt[i] - cur[i]) > .002) moving = true; else cur[i] = tgt[i]; });
-    /* extra width of each icon. The dock grows around the point under the pointer (like macOS): that point stays still,
-       icons to its left are pushed left, icons to its right pushed right. Centring the whole group instead made the icon
-       you were heading for (the Chat icon at the far end most of all) slide away from the cursor. */
-    const extra = apps.map((a, i) => size * (cur[i] - 1)), total = extra.reduce((x, y) => x + y, 0);
-    if (pointerX !== null) anchorX = pointerX;
-    let pin = 0;                                                     // how much of the growth lies left of the anchor
-    apps.forEach((a, i) => { pin += extra[i] * Math.min(1, Math.max(0, (anchorX - (rest0[i] - size / 2)) / size)); });
-    let run = 0, k = 0;
-    items.forEach(n => {
+    if (pointerX !== null) {
+      if (sp === null) sp = pointerX;
+      sp += (pointerX - sp) * .25;
+      if (Math.abs(pointerX - sp) > .2) moving = true; else sp = pointerX;
+    }
+    const aT = pointerX === null ? 0 : 1;
+    amp += (aT - amp) * .2;
+    if (Math.abs(aT - amp) > .002) moving = true; else amp = aT;
+    /* The swell is a smooth "magnification field" along the dock: scale(t) = 1 + amp·0.55·(1 − |t − sp|/R)^1.6.
+       Every point of the dock is moved by the integral of that extra scale from the pointer to the point (G below), the same
+       idea as the macOS dock: the point under the cursor stays put, sizes and gaps grow together, nothing overlaps, and as the
+       pointer travels each icon only ever slides one way — no back-and-forth twitching. */
+    const Rr = R(), Gk = amp * .55 * Rr / 2.6;
+    const G = u => { if (sp === null) return 0; const a = Math.min(1, Math.abs(u) / Rr); return Math.sign(u) * Gk * (1 - (1 - a) ** 2.6); };
+    const sc = x => sp === null ? 1 : 1 + amp * .55 * Math.max(0, 1 - Math.abs(x - sp) / Rr) ** 1.6;
+    let k = 0;
+    items.forEach((n, idx) => {
+      const c = restAll[idx], dx = G(c - (sp ?? c));
+      n.style.transform = `translate3d(${dx.toFixed(2)}px,0,0)`;
       if (n.classList.contains("ct-app")) {
-        const e = extra[k], dx = run + e / 2 - pin;
-        n.style.transform = `translate3d(${dx.toFixed(2)}px,0,0)`;
+        cur[k] = sc(c);
         faces[k].style.scale = (cur[k] / 1.55).toFixed(4);          // faces are drawn 1.55× and scaled down at rest
-        if (tips[k]) tips[k].style.transform = `translateY(${(-e).toFixed(2)}px)`;
-        run += e; k++;
-      } else n.style.transform = `translate3d(${(run - pin).toFixed(2)}px,0,0)`;
+        if (tips[k]) tips[k].style.transform = `translateY(${(-size * (cur[k] - 1)).toFixed(2)}px)`;
+        k++;
+      }
     });
-    dock.style.setProperty("--growL", pin.toFixed(2) + "px");
-    dock.style.setProperty("--growR", (total - pin).toFixed(2) + "px");
+    dock.style.setProperty("--growL", (-G(0 - (sp ?? 0))).toFixed(2) + "px");
+    dock.style.setProperty("--growR", G(dockW - (sp ?? dockW)).toFixed(2) + "px");
     if (moving) raf = requestAnimationFrame(frame);
   }
   const kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
@@ -225,24 +234,35 @@
   function genieFrames() {
     const w = win.getBoundingClientRect(), ic = chatIcon.querySelector(".ct-face").getBoundingClientRect();
     const dx = (ic.left + ic.width / 2) - (w.left + w.width / 2), dy = ic.bottom - w.bottom;
-    const k = Math.max(4, ic.width / w.width * 50);                    // half-width of the icon, in % of the window
-    const sx = ic.width / w.width, sy = ic.height / w.height;
-    const full = "polygon(0% 0%,100% 0%,100% 100%,0% 100%)";
-    const pinch = `polygon(0% 0%,100% 0%,${50 + k}% 100%,${50 - k}% 100%)`;
-    const thin = `polygon(${50 - k * 1.6}% 0%,${50 + k * 1.6}% 0%,${50 + k}% 100%,${50 - k}% 100%)`;
+    const k = Math.max(4, ic.width / w.width * 50);                    // half the icon's width, in % of the window
+    const sy = Math.max(.06, ic.height / w.height);
+    /* the window's outline: a polygon with curved sides. `pinch` pulls the bottom in to the icon's width along an S-curve
+       (the top stays wide), `squeeze` then narrows the top too, until the window is an icon-wide ribbon. */
+    const N = 12, smooth = t => t * t * (3 - 2 * t);
+    const shape = (pinch, squeeze) => {
+      const L = [], R = [];
+      for (let n = 0; n <= N; n++) {
+        const y = n / N, maxIn = 50 - k;
+        const inset = maxIn * Math.min(1, smooth(y) * pinch + (1 - smooth(y)) * squeeze);
+        L.push(`${inset.toFixed(2)}% ${(y * 100).toFixed(2)}%`); R.unshift(`${(100 - inset).toFixed(2)}% ${(y * 100).toFixed(2)}%`);
+      }
+      const v = `polygon(${L.concat(R).join(",")})`;
+      return { clipPath: v, webkitClipPath: v };
+    };
     return [
-      { offset: 0, transform: "translate(0,0) scale(1,1)", clipPath: full, opacity: 1, easing: "cubic-bezier(.5,0,.75,0)" },
-      { offset: .35, transform: `translate(${dx * .08}px,${dy * .04}px) scale(1,.92)`, clipPath: pinch, opacity: 1, easing: "cubic-bezier(.4,0,.6,1)" },
-      { offset: .7, transform: `translate(${dx * .55}px,${dy * .45}px) scale(${Math.max(sx * 1.6, .18)},.45)`, clipPath: thin, opacity: 1 },
-      { offset: 1, transform: `translate(${dx}px,${dy}px) scale(${sx},${sy})`, clipPath: thin, opacity: .2 }
+      { offset: 0,   transform: "translate(0px,0px) scale(1,1)", opacity: 1, ...shape(0, 0), easing: "cubic-bezier(.45,0,.55,1)" },
+      { offset: .38, transform: `translate(${dx * .12}px,0px) scale(1,1)`, opacity: 1, ...shape(1, 0), easing: "cubic-bezier(.5,0,.7,.4)" },
+      { offset: .72, transform: `translate(${dx * .7}px,${dy * .6}px) scale(1,${(.35 + sy * .65).toFixed(3)})`, opacity: 1, ...shape(1, .7), easing: "cubic-bezier(.3,.6,.4,1)" },
+      { offset: 1,   transform: `translate(${dx}px,${dy}px) scale(1,${sy.toFixed(3)})`, opacity: .35, ...shape(1, 1) }
     ];
   }
+
   const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
   const open = from => {
     opener = from; rest(); sweeping = false;
     if (genieAnim) genieAnim.cancel();
     sec.classList.remove("is-closing"); sec.classList.add("is-chat", "is-genie");
-    if (!reduced()) { genieAnim = win.animate(genieFrames().reverse().map(f => ({ ...f, offset: 1 - f.offset })), { duration: 620, easing: "linear" });
+    if (!reduced()) { genieAnim = win.animate(genieFrames().reverse().map(f => ({ ...f, offset: 1 - f.offset })), { duration: 720, easing: "linear" });
       genieAnim.onfinish = () => { genieAnim = null; sec.classList.remove("is-genie"); }; }
     else sec.classList.remove("is-genie");
     if (!started) { started = true; flow().catch(() => {}); }
@@ -263,7 +283,7 @@
       requestAnimationFrame(() => { if (!sec.classList.contains("is-chat")) sec.classList.remove("is-genie"); });
       chatIcon.classList.remove("is-bounce"); void chatIcon.offsetWidth; chatIcon.classList.add("is-bounce");
     };
-    if (frames) { const anim = genieAnim = win.animate(frames, { duration: 560, easing: "linear", fill: "forwards" }); anim.onfinish = () => { if (genieAnim === anim) done(anim); }; }
+    if (frames) { const anim = genieAnim = win.animate(frames, { duration: 660, easing: "linear", fill: "forwards" }); anim.onfinish = () => { if (genieAnim === anim) done(anim); }; }
     else done(null);
     if (viaKey === true && opener) opener.focus({ preventScroll: true });   // keyboard users get focus back on the icon; a mouse close leaves no tooltip hanging
   };
