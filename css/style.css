@@ -743,7 +743,7 @@ body.cview-open{overflow:hidden}
 /* ============ CONTACT ============
    The closing scene echoes the first screen: dollar wall, the same beam, a floor. On the floor stands a glass dock:
    every channel is an "app"; icons swell under the cursor, the call is the main one, Brief opens the chat window. */
-.contact{position:relative;min-height:100vh;min-height:100svh;overflow:visible;overflow-x:clip;background:#000;display:flex;flex-direction:column;isolation:isolate;
+.contact{position:relative;z-index:2;min-height:100vh;min-height:100svh;overflow:visible;overflow-x:clip;background:#000;display:flex;flex-direction:column;isolation:isolate;
   padding:clamp(64px,9vh,100px) 0 clamp(150px,20vh,200px)}
 .ct-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;--hz:76%}
 .ct-pattern{position:absolute;left:0;right:0;top:0;height:var(--hz);overflow:hidden}
