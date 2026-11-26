@@ -351,11 +351,11 @@ body::after{
 .crow{border-bottom:1px solid var(--line);opacity:0;translate:0 24px;transition:opacity .8s var(--ease),translate .8s var(--ease)}
 .cases.is-in .crow{opacity:1;translate:0 0;transition-delay:calc(min(var(--i),10) * .06s)}
 .crow__btn{all:unset;box-sizing:border-box;width:100%;cursor:pointer;position:relative;display:grid;align-items:center;gap:24px;
-  grid-template-columns:72px minmax(0,1fr) minmax(0,300px) 210px 28px;padding:clamp(22px,2.3vw,34px) 4px}
+  grid-template-columns:96px minmax(0,1fr) minmax(0,300px) 210px 28px;padding:clamp(22px,2.3vw,34px) 4px}
 .crow__logo{display:none}
 .crow__btn:focus-visible{outline:2px solid var(--blue-hi);outline-offset:4px}
 .crow__btn::before{content:"";position:absolute;left:0;bottom:-1px;height:1px;width:100%;background:var(--blue-hi);transform:scaleX(0);transform-origin:0 50%;transition:transform .7s var(--ease)}
-.crow__i{color:var(--dim)}
+.crow__i{color:var(--dim);white-space:nowrap}
 .crow__name{font-family:var(--display);font-weight:800;font-size:clamp(28px,3.8vw,58px);line-height:.95;letter-spacing:-.04em;text-transform:uppercase;color:var(--text);
   text-wrap:balance;transition:translate .6s var(--ease),color .4s}
 .crow__meta{color:var(--dim)}
@@ -372,6 +372,9 @@ body::after{
 .crow.is-hot .crow__name{translate:10px 0}
 /* small labels above the top 3 and above the rest */
 .crow:first-child{border-top:1px solid var(--line)}
+/* the running line of tenders stays hidden until the list is opened */
+.cases.is-collapsed .also{display:none}
+.cases.is-opening .also{animation:rise .8s var(--ease) both;animation-delay:.3s}
 .clist.is-opening .crow--rest{animation:rise .7s var(--ease) both;animation-delay:calc(min(var(--r),12) * .04s)}
 .cmore{display:flex;justify-content:center;padding-top:clamp(18px,2vw,28px)}
 .cmore__btn{all:unset;box-sizing:border-box;position:relative;cursor:pointer;display:inline-flex;align-items:center;gap:12px;padding:17px 28px;border-radius:999px;color:var(--text);
@@ -384,7 +387,11 @@ body::after{
 /* folded list: the last of the top 3 fades towards the button */
 .clist.is-collapsed .crow--last{-webkit-mask-image:linear-gradient(#000 30%,rgba(0,0,0,.18));mask-image:linear-gradient(#000 30%,rgba(0,0,0,.18));transition:-webkit-mask-image .4s}
 .clist.is-collapsed .crow--last.is-hot,.clist.is-collapsed .crow--last:focus-within{-webkit-mask-image:none;mask-image:none}
-.clist.is-collapsed .cmore{margin-top:-18px;position:relative}
+.clist.is-collapsed .crow--last{border-bottom-color:transparent}
+.clist.is-collapsed .crow--last .crow__btn::before{display:none}
+/* the button sits a little over the faded Kilinski row */
+.clist.is-collapsed .cmore{margin-top:-46px;position:relative;z-index:2;pointer-events:none}
+.clist.is-collapsed .cmore__btn{pointer-events:auto}
 /* each year starts with a slightly heavier line */
 .crow--year{border-top:1px solid rgba(120,150,255,.32)}
 .crow.is-hot .crow__btn::before{transform:scaleX(1)}
@@ -396,8 +403,8 @@ body::after{
 .ccard.is-on{opacity:1;scale:1}
 .ccard__item{position:absolute;inset:0;clip-path:inset(100% 0 0 0);transition:clip-path .6s var(--ease)}
 .ccard__item.is-on{clip-path:inset(0 0 0 0);z-index:1}
-.ccard .lg{width:46%;height:30%}
-.ccard .lg--type{width:76%;height:44%;font-size:14px}
+.ccard .lg{width:68%;height:48%}
+.ccard .lg--type{width:84%;height:56%;font-size:17px}
 /* every brand the same way: its own logo in white on its colour */
 .brand{position:absolute;inset:0;display:grid;place-items:center;
   background:radial-gradient(120% 100% at 28% 18%,color-mix(in srgb,var(--c) 82%,#fff),var(--c) 52%,color-mix(in srgb,var(--c) 62%,#000) 100%)}
@@ -516,7 +523,7 @@ body.cview-open{overflow:hidden}
 .reel__strip span{height:1em;line-height:1;text-align:center;font-variant-numeric:tabular-nums}
 
 @media (max-width:1100px){
-  .crow__btn{grid-template-columns:44px minmax(0,1fr) 190px 24px}
+  .crow__btn{grid-template-columns:90px minmax(0,1fr) 190px 24px}
   .crow__meta{display:none}
 }
 @media (max-width:760px){
@@ -531,6 +538,7 @@ body.cview-open{overflow:hidden}
   .crow__key b{font-size:24px}
   .crow__meta{grid-area:meta;display:block}
   .crow__yr{display:inline}
+  .clist.is-collapsed .cmore{margin-top:-26px}
   .crow__key{grid-area:key;flex-direction:row;align-items:baseline;justify-content:flex-start;gap:10px;margin-top:6px}
   .crow__arrow{grid-area:arrow;opacity:1;translate:0 0;width:22px;height:22px}
   .also{flex-direction:column;align-items:flex-start;gap:14px;padding-left:0}

@@ -47,6 +47,7 @@
   }
 
   let collapsed = true;     // the rest of the list stays folded until the button is pressed
+  const section = $("#cases");
 
   /* ---------- list + running line ---------- */
   function render() {
@@ -76,6 +77,7 @@
     list.innerHTML = TOP.map((ci, n) => row(ci, n, true)).join("") +
       (collapsed ? "" : REST.map((ci, n) => row(ci, n + TOP.length, false)).join("")) + btn;
     list.classList.toggle("is-collapsed", collapsed);
+    section && section.classList.toggle("is-collapsed", collapsed);
     card.innerHTML = MAIN.map(ci => `<div class="ccard__item" data-i="${ci}">${tile(ALL[ci])}</div>`).join("");
 
     // running line: tenders (one window), then small cases (their own windows)
@@ -107,7 +109,7 @@
     if (!e.target.closest(".cmore__btn")) return;
     collapsed = !collapsed;
     render();
-    if (!collapsed) list.classList.add("is-opening");
+    if (!collapsed) { list.classList.add("is-opening"); section.classList.add("is-opening"); }
     else {
       const last = list.querySelectorAll(".crow--top")[TOP.length - 1];
       if (window.__lenis) window.__lenis.scrollTo(last, { offset: -160 }); else last.scrollIntoView({ block: "center" });
@@ -118,7 +120,6 @@
   window.addEventListener("langchange", () => { render(); if (cur) show(cur, false); });
 
   /* rows rise in when the list scrolls into view */
-  const section = $("#cases");
   if ("IntersectionObserver" in window) {
     const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { section.classList.add("is-in"); io.disconnect(); } }, { threshold: 0.08 });
     io.observe(section);
