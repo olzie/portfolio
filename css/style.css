@@ -592,7 +592,7 @@ body.cview-open{overflow:hidden}
 .cview.is-open .cview__panel{clip-path:inset(0 0 0 0 round 22px)}
 .cview__media{position:relative;display:grid;padding:0;background:color-mix(in srgb,var(--c,#1747ff) 22%,#05070d);min-height:0}
 .cview.is-tenders .cview__media{padding:10px}
-.cview__fig{position:relative;margin:0;border-radius:14px;overflow:hidden;min-height:0}
+.cview__fig{position:relative;margin:0;border-radius:0;overflow:hidden;min-height:0}   /* fills the left half edge to edge; the panel rounds the outer corners */
 .cview__fig .lg{width:58%;height:34%}
 /* work examples as stories: bars on top, one slide at a time */
 .cview__media.has-shots{min-width:0}
