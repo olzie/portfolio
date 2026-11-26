@@ -14,6 +14,9 @@
   const TOP = idx.filter(i => ALL[i].top).sort((a, b) => ALL[a].top - ALL[b].top);
   const REST = idx.filter(i => !ALL[i].top).sort((a, b) => ALL[b].y - ALL[a].y);
   const MAIN = [...TOP, ...REST];
+  // opened, the list is one timeline: the top 3 move to their own years (each first in its year), so every year is named once
+  const TIMELINE = [...TOP, ...REST].sort((a, b) => ALL[b].y - ALL[a].y);
+  const shownOrder = () => collapsed ? MAIN : TIMELINE;
   const yearOf = d => (d.meta.match(/\d{4}(–\d{2})?/) || [""])[0];
   const SMALL = (window.CASES_SMALL_ORDER || []).map(id => ALL.findIndex(c => c.id === id)).filter(i => i >= 0);
   const hover = matchMedia("(hover: hover) and (pointer: fine)").matches;
@@ -54,18 +57,20 @@
   function render() {
     const L = lang();
     let lastYear = "";
+    let restN = 0;
     const row = (ci, n, top) => {
       const c = ALL[ci], d = c[L];
-      const yr = top ? "" : yearOf(d), firstOfYear = yr !== lastYear;
-      if (!top) lastYear = yr;
+      const yr = yearOf(d), firstOfYear = yr !== lastYear;
+      if (!collapsed) lastYear = yr;
+      const r = top ? 0 : restN++;
       const key = d.key
         ? `<b>${d.key[0].replace(/([+%×])/g, "<em>$1</em>")}</b><small class="mono">${d.key[1]}</small>`
         : `<small class="mono crow__did">${d.did.slice(0, 2).join(" · ")}</small>`;
       const meta = d.meta.replace(/( · \d{4}(–\d{2})?)/, `<span class="crow__yr">$1</span>`);   // the year has its own column on desktop
       return `
-      <li class="crow${top ? ` crow--top${n === TOP.length - 1 ? " crow--last" : ""}` : ` crow--rest${firstOfYear ? " crow--year" : ""}`}" style="--i:${n};--r:${n - TOP.length}">
+      <li class="crow${top ? ` crow--top${collapsed && n === TOP.length - 1 ? " crow--last" : ""}` : " crow--rest"}${!collapsed && firstOfYear ? " crow--year" : ""}" style="--i:${n};--r:${r}">
         <button class="crow__btn" type="button" data-i="${ci}" aria-label="${c.name}: ${t("cases.open") || "Open case"}">
-          <span class="crow__i mono">${top || firstOfYear ? yearOf(d) : ""}</span>
+          <span class="crow__i mono">${collapsed || firstOfYear ? yr : ""}</span>
           <span class="crow__logo" style="--c:${c.color}" aria-hidden="true">${logo(c)}</span>
           <span class="crow__name">${c.name}</span>
           <span class="crow__meta mono"><span class="crow__mt">${meta}</span>${c.logo ? `<img class="crow__lg" src="${c.logo}" alt="" decoding="async">` : `<span class="crow__lg crow__lg--type">${c.name}</span>`}</span>
@@ -75,8 +80,18 @@
       </li>`;
     };
     const btn = `<button class="cmore__btn glass mono" type="button" aria-expanded="${!collapsed}">${collapsed ? t("cases.more").replace("{n}", REST.length) : t("cases.less")}<span aria-hidden="true">${collapsed ? "↓" : "↑"}</span></button>`;
-    list.innerHTML = TOP.map((ci, n) => row(ci, n, true)).join("") +
-      (collapsed ? `<li class="cmore">${btn}</li>` : REST.map((ci, n) => row(ci, n + TOP.length, false)).join(""));
+    // the top rows slide to their new places instead of jumping (FLIP: measure, re-render, play the difference back)
+    const before = {};
+    list.querySelectorAll(".crow--top .crow__btn").forEach(b => before[b.dataset.i] = b.getBoundingClientRect().top);
+    list.innerHTML = collapsed
+      ? TOP.map((ci, n) => row(ci, n, true)).join("") + `<li class="cmore">${btn}</li>`
+      : TIMELINE.map((ci, n) => row(ci, n, !!ALL[ci].top)).join("");
+    const moved = [];
+    list.querySelectorAll(".crow--top .crow__btn").forEach(b => {
+      const d = before[b.dataset.i] == null ? 0 : before[b.dataset.i] - b.getBoundingClientRect().top;
+      if (Math.abs(d) > 1) { const li = b.parentNode; li.style.transition = "none"; li.style.transform = `translateY(${d}px)`; moved.push(li); }
+    });
+    if (moved.length) { void list.offsetHeight; moved.forEach(li => { li.style.transition = "transform .8s var(--ease)"; li.style.transform = ""; }); }
     // open list: "Show less" goes under the running line of tenders
     let after = document.getElementById("cmoreEnd");
     if (!after) { after = document.createElement("div"); after.id = "cmoreEnd"; after.className = "cmore cmore--end"; $(".also").after(after); }
@@ -319,7 +334,7 @@
     const g = cur.group, k = (g.indexOf(cur.i) + d + g.length) % g.length;
     cur = { kind: "c", i: g[k], group: g }; show(cur);
   };
-  list.addEventListener("click", e => { const b = e.target.closest(".crow__btn"); if (b) openView({ kind: "c", i: +b.dataset.i, group: MAIN }); });
+  list.addEventListener("click", e => { const b = e.target.closest(".crow__btn"); if (b) openView({ kind: "c", i: +b.dataset.i, group: shownOrder() }); });
   track.addEventListener("click", e => {
     const b = e.target.closest(".also__item"); if (!b) return;
     if (b.dataset.k === "t") openView({ kind: "t" });
