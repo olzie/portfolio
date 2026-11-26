@@ -22,7 +22,34 @@
   /* ---------- smooth scroll (wheel only; touch stays native) ---------- */
   let lenis = null;
   if (!reduce && window.Lenis) {
-    lenis = new Lenis({ duration: 1.15, smoothWheel: true, wheelMultiplier: 0.9 });
+    /* The first block can't be flown through. One wheel or trackpad gesture (a flick plus its
+       inertia) moves at most ~85% of a screen while inside the first block, and it stops at the
+       block's edge: going down it stops where the cat finishes its turn, going up from below it stops
+       there too. The next gesture carries on. A gesture ends after a short pause, or when the
+       fingers push again (the deltas grow instead of fading). */
+    const g = { last: 0, abs: 0, dir: 0, start: 0, capped: false };
+    const guard = e => {
+      if (!e.event || !e.event.type.includes("wheel") || !lenis || window.__heroEnd == null) return true;
+      const now = performance.now(), dy = e.deltaY, a = Math.abs(dy), dir = Math.sign(dy);
+      if (!dir) return true;
+      if (now - g.last > 140 || dir !== g.dir || (g.capped && a > g.abs * 1.4 + 6))
+        Object.assign(g, { dir, start: lenis.targetScroll, capped: false });
+      g.last = now; g.abs = a;
+      const lo = window.__heroTop || 0, hi = window.__heroEnd, budget = innerHeight * 0.85, s0 = g.start;
+      let limit = null;
+      if (dir > 0 && s0 < hi - 2) limit = Math.min(hi, Math.max(s0, lo) + budget);
+      else if (dir < 0 && s0 > hi + 2) limit = hi;
+      else if (dir < 0 && s0 > lo + 2) limit = Math.max(lo, s0 - budget);
+      if (limit === null) return true;
+      const t = lenis.targetScroll, room = limit - t;
+      if (dir > 0 ? dy > room : dy < room) {
+        g.capped = true;
+        if (Math.abs(room) < 0.5) return false;          // swallow the rest of this flick
+        e.deltaY = room;
+      }
+      return true;
+    };
+    lenis = new Lenis({ duration: 1.15, smoothWheel: true, wheelMultiplier: 0.9, virtualScroll: guard });
     const raf = t => { lenis.raf(t); requestAnimationFrame(raf); };
     requestAnimationFrame(raf);
     lenis.stop();
@@ -266,24 +293,13 @@
     else if (Math.abs(d) >= 0.85) turn.shown += Math.sign(d) * Math.floor(Math.abs(d) + 0.15);   // step, don't skip
     return ((turn.shown % FRAMES) + FRAMES) % FRAMES;
   }
-  /* A trackpad flick throws the page a couple of screens in half a second, and the cat used to
-     follow it through the whole turn just as fast. The ease is now time-based (same feel at 60 and
-     120 Hz) and the turn has a top speed: a full turn takes at least ~1.7 s, so a fast swipe makes
-     the cat catch up smoothly instead of whizzing round. Once the scene is off screen it just snaps. */
-  const MAX_SPEED = 70;                                  // frames of the turn per second
-  let lastT = 0;
-  function tick(t) {
-    const dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 1 / 60;
-    lastT = t;
-    let step = (turn.target - turn.cur) * (1 - Math.pow(1 - 0.18, dt * 60));
-    const cap = MAX_SPEED * dt;
-    if (Math.abs(step) > cap) step = Math.sign(step) * cap;
-    turn.cur += step;
-    if (Math.abs(turn.target - turn.cur) < 0.01 || (lenis ? lenis.scroll : scrollY) > window.__heroEnd + innerHeight) turn.cur = turn.target;
+  function tick() {
+    turn.cur += (turn.target - turn.cur) * 0.18;
+    if (Math.abs(turn.target - turn.cur) < 0.01) turn.cur = turn.target;
     const f = shownFrame();
     if (f !== drawn || needDraw) { needDraw = false; drawCat(f); }
     if (turn.cur !== turn.target || needDraw) requestAnimationFrame(tick);
-    else { looping = false; lastT = 0; }
+    else looping = false;
   }
   const kick = () => { if (!looping) { looping = true; requestAnimationFrame(tick); } };
   // put the cat straight on the frame for the current scroll, with no turn in between (used by menu jumps)
@@ -380,6 +396,7 @@
   const measure = () => {
     heroTop = hero.offsetTop;
     heroLen = Math.max(1, hero.offsetHeight - innerHeight);
+    window.__heroTop = heroTop;
     window.__heroEnd = heroTop + heroLen;               // the menu fades instead of scrolling through this range
     docLen = Math.max(1, document.documentElement.scrollHeight - innerHeight);
   };

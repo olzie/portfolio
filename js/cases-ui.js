@@ -210,6 +210,8 @@
       <button class="st__tap st__tap--prev" type="button" aria-label="${t("cases.prev")}"></button>
       <button class="st__tap st__tap--next" type="button" aria-label="${t("cases.next")}"></button>
     </div>`;
+    // decode every shot up front, so a fast tap doesn't land on a picture that is still being unpacked
+    vMedia.querySelectorAll(".st__slide > img").forEach(im => { if (im.decode) im.decode().catch(() => {}); });
     stN = slides.length; stPaused = false; stGo(0);
   }
   function stGo(i) {
