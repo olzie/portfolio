@@ -266,13 +266,24 @@
     else if (Math.abs(d) >= 0.85) turn.shown += Math.sign(d) * Math.floor(Math.abs(d) + 0.15);   // step, don't skip
     return ((turn.shown % FRAMES) + FRAMES) % FRAMES;
   }
-  function tick() {
-    turn.cur += (turn.target - turn.cur) * 0.18;
-    if (Math.abs(turn.target - turn.cur) < 0.01) turn.cur = turn.target;
+  /* A trackpad flick throws the page a couple of screens in half a second, and the cat used to
+     follow it through the whole turn just as fast. The ease is now time-based (same feel at 60 and
+     120 Hz) and the turn has a top speed: a full turn takes at least ~1.7 s, so a fast swipe makes
+     the cat catch up smoothly instead of whizzing round. Once the scene is off screen it just snaps. */
+  const MAX_SPEED = 70;                                  // frames of the turn per second
+  let lastT = 0;
+  function tick(t) {
+    const dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 1 / 60;
+    lastT = t;
+    let step = (turn.target - turn.cur) * (1 - Math.pow(1 - 0.18, dt * 60));
+    const cap = MAX_SPEED * dt;
+    if (Math.abs(step) > cap) step = Math.sign(step) * cap;
+    turn.cur += step;
+    if (Math.abs(turn.target - turn.cur) < 0.01 || (lenis ? lenis.scroll : scrollY) > window.__heroEnd + innerHeight) turn.cur = turn.target;
     const f = shownFrame();
     if (f !== drawn || needDraw) { needDraw = false; drawCat(f); }
     if (turn.cur !== turn.target || needDraw) requestAnimationFrame(tick);
-    else looping = false;
+    else { looping = false; lastT = 0; }
   }
   const kick = () => { if (!looping) { looping = true; requestAnimationFrame(tick); } };
   // put the cat straight on the frame for the current scroll, with no turn in between (used by menu jumps)
