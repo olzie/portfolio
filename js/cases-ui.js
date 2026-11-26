@@ -147,6 +147,10 @@
       vCount.textContent = `${pad(pos + 1)} / ${pad(s.group.length)}`;
       vNav.hidden = s.group.length < 2;
     }
+    // long single-word names shrink to fit the column instead of running off the edge
+    vName.style.fontSize = "";
+    const room = vName.parentNode.clientWidth - parseFloat(getComputedStyle(vName.parentNode).paddingLeft) - parseFloat(getComputedStyle(vName.parentNode).paddingRight);
+    if (vName.scrollWidth > room) vName.style.fontSize = `${parseFloat(getComputedStyle(vName).fontSize) * room / vName.scrollWidth * 0.98}px`;
     view.classList.remove("is-swap"); void view.offsetWidth; view.classList.add("is-swap");
     $(".cview__text").scrollTop = 0;
     if (s.kind === "c") { if (animate) requestAnimationFrame(() => spin(vStats, 0.35)); else spin(vStats, 0); }

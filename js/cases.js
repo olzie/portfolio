@@ -18,6 +18,16 @@ window.CASES = [
           stats: [["1M", "охоплення в пік сезону, Казахстан"], ["208K", "охоплення на місяць у Польщі"], ["1,000", "B2B-агентів у Telegram"]],
           did: ["Стратегія", "Керування командою", "Кампанії", "Інфлюенсери", "Звіти"] } },
 
+  { id: "appleroom", name: "Appleroom", logo: caseLogo("appleroom"), color: "#2b2f36",
+    en: { meta: "Tech store · 2023–24 · Ukraine",
+          line: "My part here was narrow: stories and analytics.",
+          body: "Stories from idea to publishing: scripts, design, polls and quizzes. Plus analytics: what the audience reacts to, what to change, and reports with conclusions for the team.",
+          key: null, stats: [], did: ["Stories", "Interactive", "Analytics", "Reports"] },
+    uk: { meta: "Магазин техніки · 2023–24 · Україна",
+          line: "Тут у мене була вузька ділянка: сторіс і аналітика.",
+          body: "Сторіс від ідеї до публікації: сценарії, дизайн, опитування й квізи. Плюс аналітика: на що реагує аудиторія, що змінити, і звіти з висновками для команди.",
+          key: null, stats: [], did: ["Сторіс", "Інтерактив", "Аналітика", "Звіти"] } },
+
   { id: "kilinski", name: "Kilinski", logo: caseLogo("kilinski"), color: "#1c3a30",
     en: { meta: "French restaurant · 2023 · Lviv",
           line: "Valentine's Day was booked out three weeks early.",
