@@ -39,11 +39,24 @@
   addEventListener("langchange", () => requestAnimationFrame(layout));
 
   /* ---------- magnify + bounce ---------- */
-  const magnify = x => apps.forEach(a => {
-    const r = a.getBoundingClientRect(), d = Math.abs(x - (r.left + r.width / 2));
-    a.style.setProperty("--s", (1 + .55 * Math.max(0, 1 - d / 170) ** 1.6).toFixed(3));
-  });
+  /* distances are measured from where the icons sit at rest (relative to the dock's centre), not from where they are mid-swell:
+     reading live positions while sizes change made the icons chase each other and wobble */
+  let base = null;
+  const measure = () => {
+    const prev = apps.map(a => a.style.getPropertyValue("--s"));
+    apps.forEach(a => { a.style.transition = "none"; a.style.setProperty("--s", 1); });
+    const d = dock.getBoundingClientRect(), mid = d.left + d.width / 2;
+    base = apps.map(a => { const r = a.getBoundingClientRect(); return r.left + r.width / 2 - mid; });
+    apps.forEach((a, i) => { a.style.setProperty("--s", prev[i] || 1); void a.offsetWidth; a.style.transition = ""; });
+  };
+  const dockMid = () => { const d = dock.getBoundingClientRect(); return d.left + d.width / 2; };
+  const magnify = x => {
+    if (!base) measure();
+    const rel = x - dockMid(), R = wide.matches ? 170 : 110;
+    apps.forEach((a, i) => a.style.setProperty("--s", (1 + .55 * Math.max(0, 1 - Math.abs(rel - base[i]) / R) ** 1.6).toFixed(3)));
+  };
   const rest = () => apps.forEach(a => a.style.setProperty("--s", 1));
+  addEventListener("resize", () => { base = null; });
   let touched = false;
   dock.addEventListener("pointermove", e => { if (!fine.matches || e.target.closest(".ct-win")) return; touched = true; magnify(e.clientX); });
   dock.addEventListener("pointerleave", () => { if (fine.matches) rest(); });
@@ -51,11 +64,12 @@
   apps.forEach(a => a.addEventListener("click", () => { a.classList.remove("is-bounce"); void a.offsetWidth; a.classList.add("is-bounce", "is-ran"); }));
 
   /* ---------- intro sweep: once, the first time the dock is in view ---------- */
-  const center = a => { const r = a.getBoundingClientRect(); return r.left + r.width / 2; };
+  const center = a => { if (!base) measure(); return dockMid() + base[apps.indexOf(a)]; };
   const tipAt = x => { let best = null, bd = 1e9; apps.forEach(a => { const d = Math.abs(x - center(a)); if (d < bd) { bd = d; best = a; } }); apps.forEach(a => a.classList.toggle("is-tip", a === best)); };
   function sweep() {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const r = dock.getBoundingClientRect(), x0 = r.left + 30, x1 = r.right - 30, xc = center(apps[0]);
+    rest(); measure();
+    const x0 = center(apps[0]) - 20, x1 = center(apps[apps.length - 1]) + 20, xc = center(apps[0]);
     const T1 = 2200, T2 = 700, t0 = performance.now(), tips = wide.matches;
     const step = now => {
       if (touched) return;
