@@ -259,6 +259,76 @@ body::after{
   .cta__arrow{width:42px;height:42px;align-self:center}
 }
 
+/* ---------- skills: glass panels on the studio stage (js/skills.js) ---------- */
+.skills{position:relative;z-index:1;height:470vh;background:#000}
+.skills__pin{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;--hz:82%}
+.sk-studio{position:absolute;inset:0;background:#000}
+.sk-studio::before{content:"";position:absolute;left:0;right:0;top:0;height:22%;z-index:1;background:linear-gradient(180deg,var(--bg),rgba(4,6,12,0))}   /* meets the cases block without a step */
+.sk-beam{position:absolute;left:50%;top:-4%;width:min(1100px,120vw);height:108%;translate:-50% 0;pointer-events:none;
+  background:radial-gradient(ellipse 26% 92% at 50% 0%,rgba(156,188,255,.22),rgba(58,102,255,.14) 30%,rgba(23,71,255,.05) 60%,transparent 78%)}
+.sk-floor{position:absolute;left:0;right:0;bottom:0;top:var(--hz);
+  background:radial-gradient(ellipse 45% 40% at 50% 0%,rgba(58,102,255,.16),transparent 70%),linear-gradient(180deg,rgba(8,12,26,0),rgba(6,9,20,.75) 35%,#010103 100%);
+}
+.sk-vig{position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(ellipse 80% 75% at 50% 50%,transparent 50%,rgba(0,0,0,.75) 100%),linear-gradient(180deg,transparent 80%,rgba(0,0,0,.6))}
+.sk-corner{position:absolute;z-index:6;width:34px;height:34px;pointer-events:none}
+.sk-corner--tl{left:clamp(16px,2.5vw,36px);top:clamp(80px,12vh,110px);border-left:2px solid var(--blue);border-top:2px solid var(--blue)}
+.sk-corner--br{right:clamp(16px,2.5vw,36px);bottom:clamp(20px,4vh,40px)}
+.sk-corner--br::before,.sk-corner--br::after{content:"";position:absolute;background:var(--blue)}
+.sk-corner--br::before{left:16px;top:0;bottom:0;width:2px}
+.sk-corner--br::after{top:16px;left:0;right:0;height:2px}
+.sk-head{position:absolute;left:50%;top:clamp(84px,12vh,120px);translate:-50% 0;z-index:5;text-align:center;width:max-content;max-width:90vw}
+.sk-title{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(34px,4.6vw,72px);letter-spacing:-.04em;line-height:.9;text-transform:uppercase;color:#e9edf6}
+.sk-note{margin:12px 0 0;color:var(--dim)}
+.sk-stage{position:absolute;inset:0;z-index:3;perspective:1300px;perspective-origin:50% 40%}
+.sk-track{position:absolute;left:50%;top:calc(var(--hz) - var(--ph));transform-style:preserve-3d;--ph:min(460px,52vh);--pw:min(320px,70vw)}
+.sk-panel{position:absolute;left:0;top:0;width:var(--pw);height:var(--ph);margin-left:calc(var(--pw) / -2);will-change:transform,opacity;transform-style:preserve-3d}
+/* glass without backdrop blur: only black is behind, and blur would be recomputed every frame the panels move */
+.sk-face{position:absolute;inset:0;border-radius:28px;isolation:isolate;
+  background:linear-gradient(135deg,rgba(255,255,255,.13) 0%,rgba(255,255,255,.04) 45%,rgba(120,150,255,.07) 100%),rgba(8,11,23,.93);   /* nearly opaque: the panels behind don't show through */
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.38),inset 0 -1px 0 rgba(255,255,255,.08),inset 1px 0 0 rgba(255,255,255,.10),inset 0 0 22px rgba(156,188,255,.10),0 10px 30px rgba(0,0,0,.35)}
+.sk-face::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+  background:linear-gradient(140deg,rgba(255,255,255,.55),rgba(255,255,255,.06) 35%,rgba(120,150,255,.12) 65%,rgba(255,255,255,.35));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+/* lit state: a ready-made glow layer that only fades in (no box-shadow animation, no repaint) */
+.sk-face::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .35s,visibility 0s .35s;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 0 40px rgba(58,102,255,.25),0 0 0 1px rgba(58,102,255,.55),0 30px 90px -20px rgba(23,71,255,.7)}
+.sk-panel.is-on .sk-face::after{opacity:1;visibility:visible;transition:opacity .35s}
+.sk-in{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;padding:26px 24px 22px;opacity:.35;transition:opacity .35s}
+.sk-panel.is-on .sk-in{opacity:1}
+.sk-n{display:flex;justify-content:space-between;color:var(--ice)}
+.sk-n b{font-weight:800;color:#fff}
+.sk-big{margin:auto 0 0;font-family:var(--display);font-weight:800;font-size:clamp(64px,8vw,104px);line-height:.8;letter-spacing:-.06em;color:transparent;
+  background:linear-gradient(180deg,rgba(233,237,246,.9),rgba(233,237,246,.08));-webkit-background-clip:text;background-clip:text}
+.sk-t{margin:14px 0 8px;font-family:var(--display);font-weight:800;font-size:clamp(20px,2vw,26px);letter-spacing:-.03em;text-transform:uppercase;line-height:1;color:#e9edf6}
+.sk-d{margin:0 0 14px;font-size:11.5px;line-height:1.6;color:var(--ice);letter-spacing:.05em}
+.sk-chips{display:flex;flex-wrap:wrap;gap:6px}
+.sk-chips span{font-family:var(--display);font-size:10.5px;letter-spacing:.04em;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:#fff;white-space:nowrap}
+/* reflection on the floor: a flipped copy that moves with its panel */
+.sk-refl{position:absolute;left:0;right:0;top:calc(100% + 6px);height:100%;transform:scaleY(-1);pointer-events:none;opacity:0;visibility:hidden;transition:opacity .35s,visibility 0s .35s;
+  -webkit-mask:linear-gradient(180deg,transparent 58%,#000 100%);mask:linear-gradient(180deg,transparent 58%,#000 100%)}
+.sk-panel.is-on .sk-refl{opacity:.22;visibility:visible;transition:opacity .35s}   /* only the lit panel is reflected: masked layers are costly */
+.sk-panel{cursor:pointer;outline:none}
+.sk-panel.is-on{cursor:default}
+.sk-panel:focus-visible .sk-face{outline:2px solid var(--blue-hi);outline-offset:4px}
+.sk-panel:not(.is-on):hover .sk-in{opacity:.6}
+.sk-arrows{position:absolute;right:clamp(64px,6vw,100px);bottom:clamp(14px,4vh,32px);z-index:6;display:flex;gap:10px}
+.sk-arrow{all:unset;position:relative;box-sizing:border-box;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff;cursor:pointer;transition:opacity .3s,scale .3s var(--ease)}
+.sk-arrow svg{width:20px;height:20px}
+.sk-arrow:hover{scale:1.06}
+.sk-arrow:focus-visible{outline:2px solid var(--blue-hi);outline-offset:3px}
+.sk-arrow:disabled{opacity:.3;cursor:default;scale:1}
+.sk-prog{position:absolute;left:clamp(20px,4vw,56px);bottom:clamp(20px,5vh,44px);z-index:6;display:flex;gap:10px;align-items:center;color:var(--dim)}
+.sk-prog b{color:#fff;font-weight:400}
+.sk-prog i{display:block;width:120px;height:2px;background:rgba(156,188,255,.15);overflow:hidden}
+.sk-prog s{display:block;height:100%;background:var(--blue);box-shadow:0 0 8px var(--blue);transform:scaleX(0);transform-origin:0 50%;text-decoration:none}
+@media (max-width:760px){
+  .skills{height:430vh}
+  .sk-track{--ph:min(420px,54vh)}
+  .sk-head{top:96px}
+  .sk-prog i{width:64px}
+}
+
 /* short fade that hides menu jumps through the first block (main.js) */
 .veil{position:fixed;inset:0;z-index:44;background:var(--bg);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .26s ease,visibility 0s .26s}
 .veil.is-on{opacity:1;visibility:visible;transition:opacity .26s ease}
@@ -354,6 +424,8 @@ body::after{
 .cases__in{max-width:1368px;margin:0 auto;padding:0 clamp(20px,3vw,36px)}
 .cases__head{display:grid;grid-template-columns:1fr auto;align-items:end;gap:16px 40px;margin-bottom:clamp(28px,3.4vw,52px)}
 .cases__title{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(40px,5.6vw,84px);line-height:.92;letter-spacing:-.035em;text-transform:uppercase;color:var(--text)}
+.cases__count{text-align:right}
+.cases__num{display:block;font-family:var(--display);font-weight:800;font-size:clamp(56px,6.4vw,104px);line-height:.85;letter-spacing:-.05em;color:#e9edf6;margin-bottom:12px}
 .cases__note{margin:0;color:var(--dim);text-align:right;white-space:nowrap}
 
 /* the list: big names, one row per case */
@@ -449,7 +521,7 @@ body::after{
 .lg--type{display:grid;place-items:center;width:84%;height:60%;font-family:var(--display);font-weight:800;font-size:clamp(24px,2.4vw,38px);line-height:.95;letter-spacing:-.04em;text-transform:uppercase;color:#fff;text-align:center}
 
 /* "also wrote for": one slow line of names */
-.also{margin-top:clamp(48px,6vw,84px);display:flex;align-items:center;gap:28px;padding-left:clamp(20px,3vw,36px)}
+.also{margin-top:clamp(22px,2.8vw,40px);display:flex;align-items:center;gap:28px;padding-left:clamp(20px,3vw,36px)}
 .also__label{flex:none;margin:0;color:var(--dim);line-height:1.6}
 .also__viewport{position:relative;overflow:hidden;flex:1}
 /* soft edges drawn on top instead of a mask: a mask over a moving layer made the browser repaint every frame */
@@ -488,16 +560,18 @@ body.cview-open{overflow:hidden}
 .cview.is-open{visibility:visible;opacity:1;transition:none}
 /* once the case view has finished opening, the page under it stops being drawn (the glass header and the cat cost a lot to composite) */
 .cview-settled .header,.cview-settled main{visibility:hidden}
-.cview__panel{position:absolute;inset:clamp(10px,1.4vw,20px);border-radius:22px;overflow:hidden;background:#05070d;border:1px solid var(--line);
+.cview__panel{position:absolute;inset:clamp(10px,1.4vw,20px);border-radius:22px;overflow:hidden;border:1px solid var(--line);
+  background:radial-gradient(70% 90% at 22% 50%,color-mix(in srgb,var(--c,#1747ff) 38%,transparent),transparent 75%),#05070d;   /* the brand colour glows behind the glass */
   display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
   clip-path:inset(100% 0 0 0 round 22px);transition:clip-path .8s cubic-bezier(.76,0,.24,1)}
 .cview.is-open .cview__panel{clip-path:inset(0 0 0 0 round 22px)}
-.cview__media{position:relative;display:grid;padding:10px;background:color-mix(in srgb,var(--c,#1747ff) 22%,#05070d);min-height:0}
+.cview__media{position:relative;display:grid;padding:0;background:color-mix(in srgb,var(--c,#1747ff) 22%,#05070d);min-height:0}
+.cview.is-tenders .cview__media{padding:10px}
 .cview__fig{position:relative;margin:0;border-radius:14px;overflow:hidden;min-height:0}
 .cview__fig .lg{width:58%;height:34%}
 /* work examples as stories: bars on top, one slide at a time */
 .cview__media.has-shots{min-width:0}
-.st{position:relative;height:100%;min-height:0;border-radius:14px;overflow:hidden;background:#070a14;opacity:0;translate:0 26px}
+.st{position:relative;height:100%;min-height:0;border-radius:0;overflow:hidden;background:#070a14;opacity:0;translate:0 26px}
 .cview.is-open.is-swap .st{animation:rise .8s var(--ease) both;animation-delay:.25s}
 .st__bars{position:absolute;left:14px;right:14px;top:14px;z-index:4;display:flex;gap:5px}
 .st__bars i{flex:1;height:3px;border-radius:3px;background:rgba(255,255,255,.28);overflow:hidden}
@@ -539,7 +613,13 @@ body.cview-open{overflow:hidden}
 .cview__did span{color:var(--dim);margin-right:6px}
 .cview__did i{font-style:normal;font-size:13px;color:var(--text);padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03)}
 .cview__did:empty,.cview__stats[hidden]{display:none}
-.cview__text{position:relative;display:flex;flex-direction:column;padding:clamp(28px,4vw,64px) clamp(24px,4vw,64px) clamp(24px,3vw,40px);overflow:auto}
+.cview__text{position:relative;display:flex;flex-direction:column;padding:clamp(28px,4vw,64px) clamp(24px,4vw,64px) clamp(24px,3vw,40px);overflow:auto;isolation:isolate;
+  /* liquid glass, like the header: frosted over the brand glow, light rim, top specular edge */
+  background:linear-gradient(135deg,rgba(255,255,255,.10) 0%,rgba(255,255,255,.03) 45%,rgba(120,150,255,.06) 100%),rgba(8,11,22,.55);
+  -webkit-backdrop-filter:blur(28px) saturate(170%);backdrop-filter:blur(28px) saturate(170%);
+  box-shadow:inset 1px 0 0 rgba(255,255,255,.22),inset 0 1px 0 rgba(255,255,255,.18),inset 0 0 40px rgba(156,188,255,.06)}
+.cview__text::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;
+  background:radial-gradient(60% 40% at 20% 0%,rgba(255,255,255,.08),transparent 70%)}
 .cview__meta{margin:0 0 18px;color:var(--dim)}
 .cview__name{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(44px,5.4vw,92px);line-height:.9;letter-spacing:-.045em;text-transform:uppercase;color:var(--text)}
 .cview__line{margin:22px 0 0;max-width:520px;font-size:clamp(16px,1.3vw,20px);line-height:1.45;color:var(--text)}
@@ -593,7 +673,8 @@ body.cview-open{overflow:hidden}
   .crow__meta{font-size:11.5px;letter-spacing:.02em}
   .crow__key small{font-size:11.5px;letter-spacing:.04em}
   .cases__head{grid-template-columns:1fr}
-  .cases__note{text-align:left}
+  .cases__note,.cases__count{text-align:left}
+  .cases__num{font-size:56px;margin-bottom:8px}
   .crow__btn{grid-template-columns:44px minmax(0,1fr) auto;grid-template-areas:"lg name arrow" "lg meta meta" "lg key key";gap:2px 12px;padding:14px 2px}
   .crow__i{display:none}
   .crow__logo{grid-area:lg;align-self:start;position:relative;display:block;width:44px;height:44px;border-radius:10px;overflow:hidden;background:#10162b;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}   /* one colour for all, so the list stays calm */
@@ -617,6 +698,7 @@ body.cview-open{overflow:hidden}
     clip-path:none;transform:translate3d(0,100%,0);transition:transform .7s cubic-bezier(.76,0,.24,1)}
   .cview.is-open .cview__panel{clip-path:none;transform:none}
   .cview__text{overflow:visible;padding:26px 20px 28px}
+  .cview__text{-webkit-backdrop-filter:none;backdrop-filter:none;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02)),#070a14}   /* phones: the text scrolls, a live blur under it would cost every frame */
   .cview__panel:has(.has-shots){grid-template-rows:68vh auto}
   .cview__stats{grid-template-columns:1fr}
   .cview.is-tenders .cview__panel{grid-template-rows:max-content max-content}

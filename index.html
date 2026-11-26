@@ -24,13 +24,14 @@
   <link rel="preload" href="assets/fonts/unbounded-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/cat/seq/000.webp?v=20261126a" as="image" media="(min-aspect-ratio: 3/4)">
   <link rel="preload" href="assets/cat/seq-m/000.webp?v=20261126a" as="image" media="(max-aspect-ratio: 3/4)">
-  <link rel="stylesheet" href="css/style.css?v=20261128e">
+  <link rel="stylesheet" href="css/style.css?v=20261129i">
   <!-- scripts start downloading right away but run after the page is parsed, in this order -->
   <script defer src="vendor/lenis.min.js"></script>
-  <script defer src="js/i18n.js?v=20261128e"></script>
-  <script defer src="js/main.js?v=20261128e"></script>
-  <script defer src="js/cases.js?v=20261128e"></script>
-  <script defer src="js/cases-ui.js?v=20261128e"></script>
+  <script defer src="js/i18n.js?v=20261129i"></script>
+  <script defer src="js/main.js?v=20261129i"></script>
+  <script defer src="js/cases.js?v=20261129i"></script>
+  <script defer src="js/cases-ui.js?v=20261129i"></script>
+  <script defer src="js/skills.js?v=20261129i"></script>
 </head>
 <body class="is-loading">
 
@@ -206,7 +207,7 @@
       <div class="cases__in">
         <header class="cases__head">
           <h2 class="cases__title" data-i18n="cases.title">Outside <br>iGaming</h2>
-          <p class="cases__note mono" data-i18n="cases.note">2020–2024</p>
+          <div class="cases__count"><b class="cases__num" id="casesNum">38</b><p class="cases__note mono" data-i18n="cases.note">projects, tenders included <br>2020–2024</p></div>
         </header>
         <ol class="clist" id="clist"></ol>
       </div>
@@ -216,8 +217,25 @@
       </div>
     </section>
 
+    <section class="skills" id="skills" aria-labelledby="skTitle">
+      <div class="skills__pin">
+        <div class="sk-studio" aria-hidden="true"><div class="sk-beam"></div><div class="sk-floor"></div><div class="sk-vig"></div></div>
+        <span class="sk-corner sk-corner--tl" aria-hidden="true"></span><span class="sk-corner sk-corner--br" aria-hidden="true"></span>
+        <header class="sk-head">
+          <h2 class="sk-title" id="skTitle" data-i18n="skills.title">Skills</h2>
+          <p class="sk-note mono" data-i18n="skills.note">What I do, from strategy to reports</p>
+        </header>
+        <div class="sk-stage"><div class="sk-track"></div></div>
+        <div class="sk-prog mono"><b id="skNum">01</b><i aria-hidden="true"><s id="skBar"></s></i><span>06</span></div>
+        <div class="sk-arrows">
+          <button class="sk-arrow sk-prev glass" type="button" aria-label="Previous skill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+          <button class="sk-arrow sk-next glass" type="button" aria-label="Next skill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+        </div>
+      </div>
+    </section>
+
     <section class="next">
-      <p class="mono next__note" data-i18n="next.note">// NEXT BLOCK: NUMBERS — IN PROGRESS</p>
+      <p class="mono next__note" data-i18n="next.note">// NEXT BLOCK: CONTACT — IN PROGRESS</p>
     </section>
   </main>
 
