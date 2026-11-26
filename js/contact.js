@@ -156,8 +156,16 @@
     reply.innerHTML = `<div class="ct-chips"><a class="ct-send" href="${TG}?text=${encodeURIComponent(m)}" target="_blank" rel="noopener">${t.send}</a><button class="ct-chip" type="button" data-again>${t.again}</button></div>`;
     reply.onclick = e => { if (e.target.closest("[data-again]")) flow().catch(() => {}); };
   }
+  /* the window always fits between the top of the block (below the header) and the dock, so it is never cut off */
+  const fitWin = () => {
+    const room = dock.getBoundingClientRect().top - sec.getBoundingClientRect().top - 86;
+    $("#ctWin").style.setProperty("--winh", Math.max(300, Math.min(470, room)) + "px");
+  };
+  addEventListener("resize", fitWin);
   const open = from => {
-    opener = from; sec.classList.add("is-chat"); rest();
+    opener = from; fitWin(); sec.classList.add("is-chat"); rest();
+    const top = sec.getBoundingClientRect().top;                      // bring the whole block into view if it isn't yet
+    if (top > 1 || top < -40) window.__lenis ? window.__lenis.scrollTo(sec, { duration: .9 }) : sec.scrollIntoView({ behavior: "smooth" });
     if (!started) { started = true; flow().catch(() => {}); }
     setTimeout(() => xBtn.focus({ preventScroll: true }), 300);
   };
