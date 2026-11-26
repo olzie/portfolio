@@ -433,8 +433,13 @@ body::after{
 /* "also wrote for": one slow line of names */
 .also{margin-top:clamp(48px,6vw,84px);display:flex;align-items:center;gap:28px;padding-left:clamp(20px,3vw,36px)}
 .also__label{flex:none;margin:0;color:var(--dim);line-height:1.6}
-.also__viewport{overflow:hidden;flex:1;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
-.also__track{display:flex;align-items:center;gap:clamp(26px,3vw,44px);width:max-content;animation:marquee 70s linear infinite}
+.also__viewport{position:relative;overflow:hidden;flex:1}
+/* soft edges drawn on top instead of a mask: a mask over a moving layer made the browser repaint every frame */
+.also__viewport::before,.also__viewport::after{content:"";position:absolute;top:0;bottom:0;z-index:1;width:6%;pointer-events:none}
+.also__viewport::before{left:0;background:linear-gradient(90deg,var(--bg),transparent)}
+.also__viewport::after{right:0;background:linear-gradient(270deg,var(--bg),transparent)}
+.also__track{display:flex;align-items:center;gap:clamp(26px,3vw,44px);width:max-content;animation:marquee 70s linear infinite paused;will-change:transform;backface-visibility:hidden}
+.also__track.is-ready{animation-play-state:running}
 .also__item{all:unset;box-sizing:border-box;cursor:pointer;flex:none;display:flex;align-items:center;height:clamp(54px,5vw,72px);padding:0 4px;opacity:.55;transition:opacity .3s,translate .4s var(--ease)}
 .also__item{--lh:clamp(24px,2.3vw,34px)}
 .also__item img{display:block;height:var(--lh);width:auto;max-width:220px}
@@ -445,8 +450,8 @@ body::after{
 .also__track i::before,.also__track i::after{content:"";position:absolute;background:var(--blue)}
 .also__track i::before{left:0;right:0;top:5px;height:2px}
 .also__track i::after{top:0;bottom:0;left:5px;width:2px}
-.also:hover .also__track{animation-play-state:paused}
-@keyframes marquee{to{transform:translateX(-50%)}}
+.also:hover .also__track.is-ready{animation-play-state:paused}
+@keyframes marquee{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
 
 body.cview-open{overflow:hidden}
 /* ---------- case view ---------- */

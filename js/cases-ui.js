@@ -85,21 +85,6 @@
     list.classList.toggle("is-collapsed", collapsed);
     section && section.classList.toggle("is-collapsed", collapsed);
 
-    // running line: tenders (one window), then small cases (their own windows)
-    const byId = Object.fromEntries(T.items.map(x => [x.id, x]));
-    const items = [
-      ...T.line_ids.map(id => ({ kind: "t", id, name: byId[id].name, logo: byId[id].logo })),
-      ...SMALL.map(i => ({ kind: "c", id: i, name: ALL[i].name, logo: ALL[i].logo }))
-    ];
-    const one = (x, hidden) => `<button class="also__item${x.kind === "t" ? " is-tender" : ""}" type="button" data-k="${x.kind}" data-id="${x.id}"${hidden ? ' tabindex="-1" aria-hidden="true"' : ""} aria-label="${x.name}">${
-      x.logo ? `<img src="${x.logo}" alt="" loading="lazy" decoding="async">` : `<span>${x.name}</span>`}</button>`;
-    const sep = `<i aria-hidden="true"></i>`;
-    track.innerHTML = items.map(x => one(x) + sep).join("") + items.map(x => one(x, true) + sep).join("");   // twice, so the loop is seamless
-    // round logos get taller, long wordmarks shorter, so they all read the same size
-    track.querySelectorAll("img").forEach(im => {
-      const fit = () => { const ar = im.naturalWidth / im.naturalHeight || 3; im.style.height = `calc(var(--lh) * ${Math.min(1.55, Math.max(0.72, Math.sqrt(2.6 / ar))).toFixed(2)})`; };
-      im.complete && im.naturalWidth ? fit() : im.addEventListener("load", fit, { once: true });
-    });
   }
   /* the button is drawn here, after main.js set up the glass highlight: follow the cursor for it too */
   if (hover) section.addEventListener("pointermove", e => {
@@ -121,6 +106,27 @@
     }
   });
 
+  /* running line: tenders (one window), then small cases (their own windows). Built once: names don't change with the language */
+  function buildTrack() {
+  const byId = Object.fromEntries(T.items.map(x => [x.id, x]));
+  const items = [
+    ...T.line_ids.map(id => ({ kind: "t", id, name: byId[id].name, logo: byId[id].logo })),
+    ...SMALL.map(i => ({ kind: "c", id: i, name: ALL[i].name, logo: ALL[i].logo }))
+  ];
+  const one = (x, hidden) => `<button class="also__item${x.kind === "t" ? " is-tender" : ""}" type="button" data-k="${x.kind}" data-id="${x.id}"${hidden ? ' tabindex="-1" aria-hidden="true"' : ""} aria-label="${x.name}">${
+    x.logo ? `<img src="${x.logo}" alt="" decoding="async">` : `<span>${x.name}</span>`}</button>`;
+  const sep = `<i aria-hidden="true"></i>`;
+  track.innerHTML = items.map(x => one(x) + sep).join("") + items.map(x => one(x, true) + sep).join("");   // twice, so the loop is seamless
+  // round logos get taller, long wordmarks shorter, so they all read the same size.
+  // The line starts moving only once every logo has its size: a logo that resized mid-loop changed
+  // the track's width and made the whole line jump.
+  const imgs = [...track.querySelectorAll("img")];
+  Promise.all(imgs.map(im => (im.complete && im.naturalWidth ? Promise.resolve() : new Promise(r => { im.onload = im.onerror = r; })).then(() => {
+    const ar = im.naturalWidth / im.naturalHeight || 3;
+    im.style.height = `calc(var(--lh) * ${Math.min(1.55, Math.max(0.72, Math.sqrt(2.6 / ar))).toFixed(2)})`;
+  }))).then(() => track.classList.add("is-ready"));
+  }
+  buildTrack();
   render();
   window.addEventListener("langchange", () => { render(); if (cur) show(cur, false); });
 
