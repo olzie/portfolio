@@ -333,8 +333,9 @@ body::after{
 .sk-prog s{display:block;height:100%;background:var(--blue);box-shadow:0 0 8px var(--blue);transform:scaleX(0);transform-origin:0 50%;text-decoration:none}
 @media (max-width:760px){
   .skills{height:500vh}
-  .sk-track,.sk-halo{--ph:min(420px,54vh)}
-  .sk-head{top:96px}
+  .skills__pin{--hz:85%}                                  /* the cards stand lower, clear of the bigger heading and its subtitle */
+  .sk-track,.sk-halo{--ph:min(400px,51vh)}
+  .sk-head{top:84px}
   .sk-prog i{width:64px}
   .sk-corner--tl{top:64px;width:26px;height:26px}   /* clear of the subtitle on narrow screens */
 }
