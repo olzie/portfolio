@@ -2,7 +2,7 @@
    logo: white SVG of the brand's own logo, shown on the brand colour (null = name set in type).
    small: shown in the running line, not in the list. y: when (bigger = newer). top: place in the top 3. key: the number shown in the list (null = none).
    stats: numbers that roll in like slot reels when a case opens. did: what I did, shown as tags. */
-const caseLogo = n => `assets/cases/logos/${n}.svg`;
+const caseLogo = n => `assets/cases/logos/${n}.svg?v=2`;   // bump when a logo file changes, so browsers don't keep the old one
 window.CASES = [
   { id: "joinup", name: "Join UP!", logo: caseLogo("joinup"), color: "#d76836", y: 2024.6, top: 1,
     en: { meta: "Travel & Tourism · 2023–24 · PL, KZ, UA",

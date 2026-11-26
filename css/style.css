@@ -260,7 +260,8 @@ body::after{
 }
 
 /* ---------- skills: glass panels on the studio stage (js/skills.js) ---------- */
-.skills{position:relative;z-index:1;height:470vh;background:var(--bg);margin-top:clamp(-90px,-6vw,-40px)}   /* the empty top of the stage slides under the cases block's end */
+.skills{position:relative;z-index:1;height:470vh;background:var(--bg);margin-top:clamp(-90px,-6vw,-40px)}
+.cases:not(.is-collapsed) + .skills{margin-top:0}   /* list open: the stage must not cover "Show less" under the running line */   /* the empty top of the stage slides under the cases block's end */
 .skills__pin{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;--hz:78%}
 .sk-studio{position:absolute;inset:0;background:#000}   /* opaque: Safari doesn't have to blend the stage with the page under it */
 /* the top of the stage is the cases block's colour, fading to black: an opaque layer over the beam and the shade, no masks */

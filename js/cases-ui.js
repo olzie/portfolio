@@ -44,7 +44,7 @@
   /* the brand's own logo in white on its colour; the name in type when there is no logo */
   /* Every logo gets the same visual weight, not the same frame: CSS sizes it by its proportions (--ar),
      so a square mark isn't tiny next to a long wordmark. */
-  const arOf = src => (window.LOGO_AR || {})[(src || "").split("/").pop().replace(".svg", "")] || 2;
+  const arOf = src => (window.LOGO_AR || {})[(src || "").split("/").pop().split("?")[0].replace(".svg", "")] || 2;
   const logo = (c, cls = "") => c.logo
     ? `<img class="lg ${cls}" src="${c.logo}" alt="${c.name}" decoding="async" style="--ar:${arOf(c.logo)}">`
     : `<span class="lg lg--type ${cls}">${c.name}</span>`;
