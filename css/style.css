@@ -298,9 +298,12 @@ body::after{
   box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 0 40px rgba(58,102,255,.25),0 0 0 1px rgba(58,102,255,.55)}
 /* the big blue glow stays put under the spotlight and fades while the panels move (js/skills.js sets its opacity),
    instead of jumping from one moving panel to the next halfway through the switch */
-.sk-halo{position:absolute;left:50%;top:calc(var(--hz) - var(--ph));width:var(--pw);height:var(--ph);margin-left:calc(var(--pw) / -2);border-radius:28px;pointer-events:none;
+.sk-halo{position:absolute;left:50%;top:calc(var(--hz) - var(--ph) * 1.12);width:calc(var(--pw) * 1.9);height:calc(var(--ph) * 1.4);margin-left:calc(var(--pw) * -.95);pointer-events:none;
   --ph:min(460px,52vh);--pw:min(320px,70vw);
-  box-shadow:0 30px 90px -20px rgba(23,71,255,.75),0 0 70px -10px rgba(23,71,255,.35);will-change:opacity}
+  /* a soft pool of light, filled and edgeless (a box-shadow leaves a dark hole where its box is once the panel moves away) */
+  background:radial-gradient(ellipse 34% 40% at 50% 52%,rgba(23,71,255,.30),rgba(23,71,255,.12) 55%,transparent 100%),
+             radial-gradient(ellipse 30% 9% at 50% 80%,rgba(58,102,255,.45),rgba(58,102,255,.12) 55%,transparent 100%);
+  will-change:opacity}
 .sk-panel.is-on .sk-face::after{visibility:visible}
 .sk-in{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;padding:26px 24px 22px;opacity:.4}
 .sk-panel.is-on .sk-in{opacity:1}
@@ -430,12 +433,12 @@ body::after{
 .cases__in{max-width:1368px;margin:0 auto;padding:0 clamp(20px,3vw,36px)}
 .cases__head{display:grid;grid-template-columns:1fr auto;align-items:end;gap:16px 40px;margin-bottom:clamp(28px,3.4vw,52px)}
 .cases__title{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(40px,5.6vw,84px);line-height:.92;letter-spacing:-.035em;text-transform:uppercase;color:var(--text)}
-.cases__count{text-align:right}
-.cases__nums{display:flex;align-items:flex-start;justify-content:flex-end;gap:clamp(12px,1.4vw,22px);margin-bottom:14px}
-.cases__n{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
-.cases__n b{font-family:var(--display);font-weight:800;font-size:clamp(52px,5.8vw,96px);line-height:.85;letter-spacing:-.05em;color:#e9edf6}
-.cases__n i{font-style:normal;color:var(--ice)}
-.cases__plus{font-family:var(--display);font-weight:400;font-size:clamp(30px,3vw,50px);line-height:1;color:var(--blue-hi);margin-top:clamp(8px,1vw,16px)}
+.cases__count{display:flex;flex-direction:column;align-items:flex-end;padding-right:56px}   /* right edge lines up with the case figures (row padding + arrow column + gap) */
+.cases__big{font-family:var(--display);font-weight:800;font-size:clamp(52px,5.8vw,96px);line-height:.85;letter-spacing:-.05em;color:#e9edf6}
+.cases__lbl{margin-top:10px;color:var(--ice)}
+.cases__more{display:flex;align-items:baseline;gap:8px;margin:16px 0 8px;color:var(--ice)}
+.cases__more b{font-family:var(--display);font-weight:800;font-size:clamp(22px,2vw,30px);letter-spacing:-.04em;color:#e9edf6;line-height:1}
+.cases__more em{font-style:normal;color:var(--blue-hi);margin-right:.08em}
 .cases__note{margin:0;color:var(--dim);text-align:right;white-space:nowrap}
 
 /* the list: big names, one row per case */
@@ -673,6 +676,7 @@ body.cview-open{overflow:hidden}
 
 @media (max-width:1100px){
   .crow__btn{grid-template-columns:90px minmax(0,1fr) 190px 24px}
+  .cases__count{padding-right:52px}
   /* narrow case view: numbers stack, each with its label on the right */
   .cview__stats{grid-template-columns:1fr!important}
   .cview__stats li,.cview__stats li+li{padding:16px 0;border-left:0;border-bottom:1px solid var(--line);display:flex;align-items:baseline;justify-content:space-between;gap:16px}
@@ -687,8 +691,8 @@ body.cview-open{overflow:hidden}
   .crow__key small{font-size:11.5px;letter-spacing:.04em}
   .cases__head{grid-template-columns:1fr}
   .cases__note,.cases__count{text-align:left}
-  .cases__nums{justify-content:flex-start}
-  .cases__n b{font-size:52px}
+  .cases__count{align-items:flex-start;padding-right:0}
+  .cases__big{font-size:52px}
   .crow__btn{grid-template-columns:44px minmax(0,1fr) auto;grid-template-areas:"lg name arrow" "lg meta meta" "lg key key";gap:2px 12px;padding:14px 2px}
   .crow__i{display:none}
   .crow__logo{grid-area:lg;align-self:start;position:relative;display:block;width:44px;height:44px;border-radius:10px;overflow:hidden;background:#10162b;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}   /* one colour for all, so the list stays calm */
