@@ -12,20 +12,22 @@
   const lang = () => (window.currentLang === "uk" ? "uk" : "en");
   const SK = {
     en: [
-      ["Strategy", "Positioning, content systems, channel launches from zero, end-to-end SMM direction.", ["Notion", "Jira", "Trello"]],
-      ["AI production", "AI video, virtual creators and content automation. 2× output with the same team.", ["Claude", "Midjourney", "Seedance", "Nano Banana"]],
+      ["Strategy", "Positioning, content systems, channel launches from zero, end-to-end SMM direction.", ["Notion", "Jira", "Trello", "Asana"]],
+      ["AI production", "AI video, virtual creators and content automation. 2× output with the same team.", ["Claude", "Midjourney", "Seedance", "Nano Banana", "Higgsfield"]],
       ["Content", "Reels, TikTok, carousels and stories, localised for 7 languages at once.", ["Figma", "Canva", "CapCut", "Premiere Pro", "Final Cut Pro", "Lightroom"]],
-      ["Community", "Telegram and WhatsApp: VIP chats, promo drops, engagement and retention flows.", ["Telegram", "WhatsApp"]],
-      ["Influencers", "Creator collaborations and contract-based ambassadors.", ["TrendHero"]],
-      ["Analytics", "KPIs, reporting and growth experiments that feed the next plan.", ["Meta Business Suite", "TrendHero"]]
+      ["Platforms", "Native formats, tone and growth mechanics for each network, from feeds to messengers.", ["Instagram", "Facebook", "TikTok", "X (Twitter)", "YouTube", "Telegram", "WhatsApp", "Discord"]],
+      ["Community", "Telegram, WhatsApp and Discord: VIP chats, promo drops, engagement and retention flows.", ["Telegram", "WhatsApp", "Discord"]],
+      ["Influencers", "Creator collaborations and contract-based ambassadors.", ["TrendHero", "HypeAuditor"]],
+      ["Analytics", "KPIs, reporting and growth experiments that feed the next plan.", ["Meta Business Suite", "Internal CRM", "Google Analytics 4", "AppsFlyer", "TrendHero"]]
     ],
     uk: [
-      ["Стратегія", "Позиціонування, контент-системи, запуск каналів з нуля, SMM-напрям від початку до кінця.", ["Notion", "Jira", "Trello"]],
-      ["AI-продакшн", "AI-відео, віртуальні кріейтори й автоматизація контенту. Удвічі більше контенту тією ж командою.", ["Claude", "Midjourney", "Seedance", "Nano Banana"]],
+      ["Стратегія", "Позиціонування, контент-системи, запуск каналів з нуля, SMM-напрям від початку до кінця.", ["Notion", "Jira", "Trello", "Asana"]],
+      ["AI-продакшн", "AI-відео, віртуальні кріейтори й автоматизація контенту. Удвічі більше контенту тією ж командою.", ["Claude", "Midjourney", "Seedance", "Nano Banana", "Higgsfield"]],
       ["Контент", "Reels, TikTok, каруселі й сторіс, локалізовані одразу на 7 мов.", ["Figma", "Canva", "CapCut", "Premiere Pro", "Final Cut Pro", "Lightroom"]],
-      ["Ком'юніті", "Telegram і WhatsApp: VIP-чати, промо-дропи, залучення й утримання.", ["Telegram", "WhatsApp"]],
-      ["Інфлюенсери", "Колаборації з кріейторами та амбасадори за контрактом.", ["TrendHero"]],
-      ["Аналітика", "KPI, звіти й експерименти з росту, з яких складається наступний план.", ["Meta Business Suite", "TrendHero"]]
+      ["Платформи", "Нативні формати, тон і механіки росту для кожної мережі, від стрічок до месенджерів.", ["Instagram", "Facebook", "TikTok", "X (Twitter)", "YouTube", "Telegram", "WhatsApp", "Discord"]],
+      ["Ком'юніті", "Telegram, WhatsApp і Discord: VIP-чати, промо-дропи, залучення й утримання.", ["Telegram", "WhatsApp", "Discord"]],
+      ["Інфлюенсери", "Колаборації з кріейторами та амбасадори за контрактом.", ["TrendHero", "HypeAuditor"]],
+      ["Аналітика", "KPI, звіти й експерименти з росту, з яких складається наступний план.", ["Meta Business Suite", "Внутрішня CRM", "Google Analytics 4", "AppsFlyer", "TrendHero"]]
     ]
   };
   const N = SK.en.length, pad = n => String(n).padStart(2, "0");
@@ -45,6 +47,7 @@
   }
   render();
   window.addEventListener("langchange", render);
+  { const tot = section.querySelector(".sk-prog span"); if (tot) tot.textContent = pad(N); }
 
   /* click a neighbouring panel to bring it under the spotlight: the block is scroll-driven,
      so this scrolls the page to the spot where that panel is the lit one */
