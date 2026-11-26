@@ -59,11 +59,11 @@
       const key = d.key
         ? `<b>${d.key[0].replace(/([+%×])/g, "<em>$1</em>")}</b><small class="mono">${d.key[1]}</small>`
         : `<small class="mono crow__did">${d.did.slice(0, 2).join(" · ")}</small>`;
-      const meta = top ? d.meta : d.meta.replace(/( · \d{4}(–\d{2})?)/, `<span class="crow__yr">$1</span>`);   // the year has its own column on desktop
+      const meta = d.meta.replace(/( · \d{4}(–\d{2})?)/, `<span class="crow__yr">$1</span>`);   // the year has its own column on desktop
       return `
-      <li class="crow${top ? " crow--top" : ` crow--rest${firstOfYear ? " crow--year" : ""}`}" style="--i:${n};--r:${n - TOP.length}">
+      <li class="crow${top ? ` crow--top${n === TOP.length - 1 ? " crow--last" : ""}` : ` crow--rest${firstOfYear ? " crow--year" : ""}`}" style="--i:${n};--r:${n - TOP.length}">
         <button class="crow__btn" type="button" data-i="${ci}" aria-label="${c.name}: ${t("cases.open") || "Open case"}">
-          <span class="crow__i mono">${top ? pad(n + 1) : (firstOfYear ? yearOf(d) : "")}</span>
+          <span class="crow__i mono">${top || firstOfYear ? yearOf(d) : ""}</span>
           <span class="crow__logo" style="--c:${c.color}" aria-hidden="true">${logo(c)}</span>
           <span class="crow__name">${c.name}</span>
           <span class="crow__meta mono">${meta}</span>

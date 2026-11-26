@@ -281,7 +281,7 @@ body::after{
 /* ============ NUMBERS ============ */
 .nums{position:relative;z-index:1;overflow:hidden;
   background:linear-gradient(180deg,#000 0,var(--bg) 360px);   /* starts exactly where the hero ends: no line, no colour step */
-  padding:clamp(40px,4.5vw,72px) 0 clamp(36px,4.4vw,64px)}
+  padding:clamp(60px,6.8vw,104px) 0 clamp(36px,4.4vw,64px)}
 /* a soft electric-blue glow behind the big number, so the block carries on the hero's light */
 .nums::before{content:"";position:absolute;left:50%;top:0;width:min(1400px,120vw);height:1100px;translate:-50% 0;pointer-events:none;
   background:radial-gradient(ellipse 45% 34% at 50% 48%,rgba(23,71,255,.15),rgba(23,71,255,.04) 55%,transparent 72%)}   /* fades out well before the top edge */
@@ -382,7 +382,11 @@ body::after{
 .cmore__btn span{color:var(--blue-hi);font-size:14px;transition:translate .3s}
 .cmore__btn:hover,.cmore__btn:focus-visible{border-color:var(--blue-hi);background:rgba(23,71,255,.12)}
 .cmore__btn:hover span{translate:0 2px}
-.crow--year .crow__i{color:var(--ice)}
+.crow__i{color:var(--ice)}
+/* folded list: the last of the top 3 fades towards the button */
+.clist.is-collapsed .crow--last{-webkit-mask-image:linear-gradient(#000 30%,rgba(0,0,0,.18));mask-image:linear-gradient(#000 30%,rgba(0,0,0,.18));transition:-webkit-mask-image .4s}
+.clist.is-collapsed .crow--last.is-hot,.clist.is-collapsed .crow--last:focus-within{-webkit-mask-image:none;mask-image:none}
+.clist.is-collapsed .cmore{margin-top:-18px;position:relative}
 /* each year starts with a slightly heavier line */
 .crow--year{border-top:1px solid rgba(120,150,255,.32)}
 .crow.is-hot .crow__btn::before{transform:scaleX(1)}
