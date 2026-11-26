@@ -13,7 +13,10 @@
 
   // Always open at the top: no restored scroll position on reload, so the cat starts face-forward
   if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-  if (!location.hash) scrollTo(0, 0);
+  // a leftover #contact (or any #anchor) in the address would make the browser jump to that block on load:
+  // drop it, so the landing always starts at the first screen
+  if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+  scrollTo(0, 0);
 
   // Chromium can refract the backdrop through an SVG filter; others get plain frosted glass
   const brands = (navigator.userAgentData && navigator.userAgentData.brands) || [];
@@ -446,10 +449,10 @@
   })();
   // Everything is laid out and drawn before the loader leaves, so the page appears complete.
   function finishLoader() {
-    if (!location.hash) scrollTo(0, 0);                 // undo any scroll that slipped in during loading
+    scrollTo(0, 0);                                      // undo any scroll that slipped in during loading
     body.classList.remove("is-loading");
     setScale(); fitTitle(); fit(); measure();
-    if (lenis && !location.hash) lenis.scrollTo(0, { immediate: true, force: true });
+    if (lenis) lenis.scrollTo(0, { immediate: true, force: true });
     onScroll();
     turn.cur = turn.target;                              // no visible spin when the page appears
     turn.shown = Math.round(turn.cur);
