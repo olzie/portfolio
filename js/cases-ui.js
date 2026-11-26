@@ -125,6 +125,9 @@
     const ar = im.naturalWidth / im.naturalHeight || 3;
     im.style.height = `calc(var(--lh) * ${Math.min(1.55, Math.max(0.72, Math.sqrt(2.6 / ar))).toFixed(2)})`;
   }))).then(() => track.classList.add("is-ready"));
+  // the line only moves while it is on screen
+  if ("IntersectionObserver" in window) new IntersectionObserver(es => track.classList.toggle("is-vis", es[0].isIntersecting)).observe(track);
+  else track.classList.add("is-vis");
   }
   buildTrack();
   render();
@@ -143,7 +146,8 @@
       const r = section.getBoundingClientRect();          // the section moves when the page scrolls: aim in its coordinates
       x += (tx - r.left - x) * 0.07; y += (ty - r.top - y) * 0.07;
       glow.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
-      raf = shown || glow.classList.contains("is-on") ? requestAnimationFrame(loop) : 0;
+      const still = Math.abs(tx - r.left - x) < 0.3 && Math.abs(ty - r.top - y) < 0.3;
+      raf = !still && (shown || glow.classList.contains("is-on")) ? requestAnimationFrame(loop) : 0;
     };
     const setActive = i => {
       if (i === active) return;
@@ -169,7 +173,7 @@
     list.addEventListener("pointermove", e => {
       tx = e.clientX; ty = e.clientY;
       const btn = e.target.closest(".crow__btn");
-      if (btn) show(+btn.dataset.i);
+      if (btn) { show(+btn.dataset.i); if (!raf) raf = requestAnimationFrame(loop); }
       // over the button it goes at once; between rows it waits a moment, so it doesn't blink on the line between them
       else if (e.target.closest(".cmore")) { clearTimeout(hideT); hide(); }
       else { clearTimeout(hideT); hideT = setTimeout(hide, 90); }
@@ -179,9 +183,11 @@
     addEventListener("pointermove", e => { if (!list.contains(e.target)) { tx = e.clientX; ty = e.clientY; } }, { passive: true });
     document.addEventListener("pointerleave", () => { tx = ty = -1; hide(); });
     // the list moves under a still cursor while the page scrolls: each frame, look at what is under the cursor now
-    let chk = 0;
+    let chk = 0, near = false;
+    if ("IntersectionObserver" in window) new IntersectionObserver(es => { near = es[0].isIntersecting; if (!near) hide(); }).observe(section);
+    else near = true;
     addEventListener("scroll", () => {
-      if (chk) return;
+      if (chk || (!near && !shown)) return;
       chk = requestAnimationFrame(() => {
         chk = 0;
         const el = tx >= 0 && document.elementFromPoint(tx, ty), btn = el && el.closest(".crow__btn");
@@ -192,7 +198,7 @@
 
   /* ---------- case view ---------- */
   // cur = { kind: "c", i, group: [indices] } for a case, { kind: "t" } for the tenders window
-  let cur = null, lastFocus = null;
+  let cur = null, lastFocus = null, settleT = 0;
   const vMedia = $("#cviewMedia"), vMeta = $("#cviewMeta"), vName = $("#cviewName"), vLine = $("#cviewLine"),
         vStats = $("#cviewStats"), vBody = $("#cviewBody"), vDid = $("#cviewDid"), vCount = $("#cviewCount"), vNav = $("#cviewNav");
   /* work examples play like Instagram stories: logo first, then each screenshot.
@@ -293,6 +299,7 @@
     view.setAttribute("aria-hidden", "false");
     view.classList.add("is-open");
     document.body.classList.add("cview-open");
+    clearTimeout(settleT); settleT = setTimeout(() => cur && document.body.classList.add("cview-settled"), 900);
     if (window.__lenis) window.__lenis.stop();
     setTimeout(() => $("#cviewClose").focus({ preventScroll: true }), 60);
   }
@@ -300,6 +307,7 @@
     if (!cur) return;
     clearTimeout(stT);
     cur = null;
+    clearTimeout(settleT); document.body.classList.remove("cview-settled");
     view.classList.remove("is-open");
     view.setAttribute("aria-hidden", "true");
     document.body.classList.remove("cview-open");

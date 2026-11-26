@@ -230,8 +230,10 @@ body::after{
 .hero.is-scrolled .hero__list{opacity:0;translate:-30px 0}
 .hero.is-scrolled .hero__scroll{opacity:0}
 .hero__scroll i{position:relative;width:1px;height:28px;background:var(--line);overflow:hidden}
-.hero__scroll i::after{content:"";position:absolute;left:0;top:-40%;width:1px;height:40%;background:var(--ice);animation:drip 1.6s var(--ease) infinite}
-@keyframes drip{to{top:100%}}
+/* moved with transform (no layout or repaint per frame), and stopped once the hint has faded out */
+.hero__scroll i::after{content:"";position:absolute;left:0;top:0;width:1px;height:40%;background:var(--ice);transform:translateY(-100%);animation:drip 1.6s var(--ease) infinite}
+.hero.is-scrolled .hero__scroll i::after{animation-play-state:paused}
+@keyframes drip{to{transform:translateY(250%)}}
 
 /* ---------- portrait screens: a 390×844 artboard ---------- */
 @media (max-aspect-ratio:3/4){
@@ -418,12 +420,14 @@ body::after{
 
 /* glow in the hovered brand's colour behind the list (desktop) */
 /* the glow fades out towards the top and bottom of the block, so it never shows a hard edge against the block above */
-.cglow-wrap{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+.cglow-wrap{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;visibility:hidden;transition:visibility 0s .6s;
   -webkit-mask-image:linear-gradient(transparent,#000 220px,#000 calc(100% - 160px),transparent);mask-image:linear-gradient(transparent,#000 220px,#000 calc(100% - 160px),transparent)}
 .cglow{position:absolute;left:0;top:0;width:620px;height:620px;margin:-310px 0 0 -310px;border-radius:50%;pointer-events:none;
-  background:radial-gradient(closest-side,color-mix(in srgb,color-mix(in srgb,var(--gc,#1747ff) 85%,#fff) 65%,transparent),transparent 70%);filter:blur(30px);
+  --g:color-mix(in srgb,var(--gc,#1747ff) 85%,#fff);
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--g) 62%,transparent) 0%,color-mix(in srgb,var(--g) 52%,transparent) 22%,color-mix(in srgb,var(--g) 30%,transparent) 48%,color-mix(in srgb,var(--g) 12%,transparent) 70%,color-mix(in srgb,var(--g) 3%,transparent) 88%,transparent 100%);
   opacity:0;transition:opacity .6s;will-change:transform}
 .cglow.is-on{opacity:.6}
+.cglow-wrap:has(.is-on){visibility:visible;transition:none}
 .cases__in,.also,.cmore--end{position:relative;z-index:1}
 /* every brand the same way: its own logo in white on its colour */
 .brand{position:absolute;inset:0;display:grid;place-items:center;
@@ -441,7 +445,7 @@ body::after{
 .also__viewport::before{left:0;background:linear-gradient(90deg,var(--bg),transparent)}
 .also__viewport::after{right:0;background:linear-gradient(270deg,var(--bg),transparent)}
 .also__track{display:flex;align-items:center;gap:clamp(26px,3vw,44px);width:max-content;animation:marquee 70s linear infinite paused;will-change:transform;backface-visibility:hidden}
-.also__track.is-ready{animation-play-state:running}
+.also__track.is-ready.is-vis{animation-play-state:running}   /* off screen it stops, so the page isn't redrawn for nothing */
 .also__item{all:unset;box-sizing:border-box;cursor:pointer;flex:none;display:flex;align-items:center;height:clamp(54px,5vw,72px);padding:0 4px;opacity:.55;transition:opacity .3s,translate .4s var(--ease)}
 .also__item{--lh:clamp(24px,2.3vw,34px)}
 .also__item img{display:block;height:var(--lh);width:auto;max-width:220px}
@@ -452,13 +456,15 @@ body::after{
 .also__track i::before,.also__track i::after{content:"";position:absolute;background:var(--blue)}
 .also__track i::before{left:0;right:0;top:5px;height:2px}
 .also__track i::after{top:0;bottom:0;left:5px;width:2px}
-.also:hover .also__track.is-ready{animation-play-state:paused}
+.also:hover .also__track.is-ready.is-vis{animation-play-state:paused}
 @keyframes marquee{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
 
 body.cview-open{overflow:hidden}
 /* ---------- case view ---------- */
 .cview{position:fixed;inset:0;z-index:90;visibility:hidden;opacity:0;transition:opacity .35s ease .45s,visibility 0s .8s;background:rgba(2,3,8,.6)}
 .cview.is-open{visibility:visible;opacity:1;transition:none}
+/* once the case view has finished opening, the page under it stops being drawn (the glass header and the cat cost a lot to composite) */
+.cview-settled .header,.cview-settled main{visibility:hidden}
 .cview__panel{position:absolute;inset:clamp(10px,1.4vw,20px);border-radius:22px;overflow:hidden;background:#05070d;border:1px solid var(--line);
   display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
   clip-path:inset(100% 0 0 0 round 22px);transition:clip-path .8s cubic-bezier(.76,0,.24,1)}
@@ -524,8 +530,8 @@ body.cview-open{overflow:hidden}
 .cview__btn{all:unset;cursor:pointer;color:var(--text);padding:12px 18px;border:1px solid var(--line);border-radius:999px;transition:border-color .3s,background .3s}
 .cview__btn:hover,.cview__btn:focus-visible{border-color:var(--blue-hi);background:rgba(23,71,255,.12)}
 .cview__count{color:var(--dim)}
-.cview__close{all:unset;cursor:pointer;position:absolute;right:18px;top:18px;z-index:3;width:48px;height:48px;border-radius:50%;background:rgba(4,6,12,.6);border:1px solid var(--line);
-  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:rotate .5s var(--ease),border-color .3s}
+.cview__close{all:unset;cursor:pointer;position:absolute;right:18px;top:18px;z-index:3;width:48px;height:48px;border-radius:50%;background:rgba(6,9,18,.82);border:1px solid var(--line);
+  transition:rotate .5s var(--ease),border-color .3s}
 .cview__close:hover,.cview__close:focus-visible{rotate:90deg;border-color:var(--blue-hi)}
 .cview__close i{position:absolute;left:14px;right:14px;top:23px;height:2px;background:#fff;rotate:45deg}
 .cview__close i+i{rotate:-45deg}
