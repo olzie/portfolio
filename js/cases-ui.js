@@ -158,7 +158,11 @@
     let hideT = 0;
     const show = i => {
       clearTimeout(hideT);
-      if (!shown) { x = tx; y = ty; shown = true; card.classList.add("is-on"); list.classList.add("is-hovering"); }
+      if (!shown) {
+        x = tx; y = ty; shown = true;
+        card.classList.add("no-wipe"); setActive(i); void card.offsetWidth; card.classList.remove("no-wipe");
+        card.classList.add("is-on"); list.classList.add("is-hovering");
+      }
       setActive(i);
       if (!raf) raf = requestAnimationFrame(loop);
     };
@@ -169,7 +173,6 @@
     // the card shows only while the cursor is on a row: labels and gaps between rows hide it
     list.addEventListener("pointermove", e => {
       tx = e.clientX; ty = e.clientY;
-      if (scrolling) return;
       const btn = e.target.closest(".crow__btn");
       if (btn) show(+btn.dataset.i);
       // over the button the card goes at once; between rows it waits a moment, so it doesn't blink on the line between them
@@ -180,16 +183,15 @@
     // keep the cursor position current everywhere, so the check after scrolling uses where the cursor really is
     addEventListener("pointermove", e => { if (!list.contains(e.target)) { tx = e.clientX; ty = e.clientY; } }, { passive: true });
     document.addEventListener("pointerleave", () => { tx = ty = -1; hide(); });
-    // while the page scrolls the card steps aside; when scrolling stops it comes back if a row is under the cursor
-    let scrolling = false, idle = 0;
+    // the list moves under a still cursor while the page scrolls: each frame, look at what is under the cursor now
+    let chk = 0;
     addEventListener("scroll", () => {
-      scrolling = true; hide();
-      clearTimeout(idle);
-      idle = setTimeout(() => {
-        scrolling = false;
+      if (chk) return;
+      chk = requestAnimationFrame(() => {
+        chk = 0;
         const el = tx >= 0 && document.elementFromPoint(tx, ty), btn = el && el.closest(".crow__btn");
-        if (btn && list.contains(btn)) show(+btn.dataset.i);
-      }, 140);
+        if (btn && list.contains(btn)) show(+btn.dataset.i); else hide();
+      });
     }, { passive: true });
   }
 
