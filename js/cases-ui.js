@@ -13,7 +13,12 @@
   const fitGlow = () => {
     if (!glowWrap || !list.offsetParent) return;
     const sec = glowWrap.parentNode.getBoundingClientRect(), lb = list.getBoundingClientRect().bottom;
-    glowWrap.style.bottom = Math.max(0, Math.round(sec.bottom - lb - 40)) + "px";
+    // folded: no running line below, but the Skills stage slides over the block's last strip, so the glow
+    // fades out fully above it, slowly, instead of meeting an edge. Open: it ends above the running line.
+    const overlap = Math.abs(parseFloat(getComputedStyle(document.getElementById("skills") || document.body).marginTop) || 0);
+    const folded = list.classList.contains("is-collapsed");
+    glowWrap.style.bottom = (folded ? Math.round(overlap) : Math.max(0, Math.round(sec.bottom - lb - 40))) + "px";
+    glowWrap.style.setProperty("--gf", folded ? "200px" : "100px");
   };
   if ("ResizeObserver" in window) new ResizeObserver(fitGlow).observe(list);
   if (!list || !window.CASES) return;
