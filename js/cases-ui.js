@@ -1,11 +1,12 @@
 /* Cases outside iGaming
-   - every main case is a row; on desktop a card with the brand's logo follows the cursor
+   - every main case is a row; on desktop a soft glow in the brand's colour drifts behind the list
+     after the cursor, and the hovered row shows the brand's white logo
    - below, a running line: tenders first (all open one window), then small cases (each opens its own)
    - a case opens over the page; its numbers roll in like slot reels
    Plain JS + CSS transitions. Text comes from cases.js in the current language. */
 (() => {
   const $ = (s, r = document) => r.querySelector(s);
-  const list = $("#clist"), card = $("#ccard"), view = $("#cview"), track = $("#alsoTrack");
+  const list = $("#clist"), glow = $("#cglow"), view = $("#cview"), track = $("#alsoTrack");
   if (!list || !window.CASES) return;
   const ALL = window.CASES, T = window.CASES_TENDERS;
   // top 3 by numbers first, then everything else from newest to oldest
@@ -67,7 +68,7 @@
           <span class="crow__i mono">${top || firstOfYear ? yearOf(d) : ""}</span>
           <span class="crow__logo" style="--c:${c.color}" aria-hidden="true">${logo(c)}</span>
           <span class="crow__name">${c.name}</span>
-          <span class="crow__meta mono">${meta}</span>
+          <span class="crow__meta mono"><span class="crow__mt">${meta}</span>${c.logo ? `<img class="crow__lg" src="${c.logo}" alt="" decoding="async">` : `<span class="crow__lg crow__lg--type">${c.name}</span>`}</span>
           <span class="crow__key">${key}</span>
           <span class="crow__arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span>
         </button>
@@ -83,7 +84,6 @@
     after.hidden = collapsed;
     list.classList.toggle("is-collapsed", collapsed);
     section && section.classList.toggle("is-collapsed", collapsed);
-    card.innerHTML = MAIN.map(ci => `<div class="ccard__item" data-i="${ci}">${tile(ALL[ci])}</div>`).join("");
 
     // running line: tenders (one window), then small cases (their own windows)
     const byId = Object.fromEntries(T.items.map(x => [x.id, x]));
@@ -130,52 +130,41 @@
     io.observe(section);
   } else section.classList.add("is-in");
 
-  /* ---------- logo card follows the cursor (desktop only) ---------- */
+  /* ---------- a glow in the brand's colour follows the cursor behind the list (desktop only) ---------- */
   if (hover) {
-    let tx = 0, ty = 0, x = 0, y = 0, vx = 0, active = -1, raf = 0, shown = false;
+    let tx = 0, ty = 0, x = 0, y = 0, active = -1, raf = 0, shown = false;
     const loop = () => {
-      const px = x;
-      x += (tx - x) * 0.14; y += (ty - y) * 0.14;
-      vx += ((x - px) - vx) * 0.2;
-      const rot = Math.max(-8, Math.min(8, vx * 0.5));
-      const W = card.offsetWidth, H = card.offsetHeight;
-      let cx = x - W / 2, cy = y - H / 2;
-      // never slide over the "Show all" button: stop just above it
-      const b = collapsed && list.querySelector(".cmore__btn");
-      if (b) {
-        const r = b.getBoundingClientRect();
-        if (cx < r.right && cx + W > r.left && cy + H > r.top - 10) cy = r.top - 10 - H;
-      }
-      card.style.transform = `translate3d(${cx.toFixed(1)}px,${cy.toFixed(1)}px,0) rotate(${rot.toFixed(2)}deg)`;
-      raf = (shown || Math.abs(tx - x) > 0.5) ? requestAnimationFrame(loop) : 0;
+      const r = section.getBoundingClientRect();          // the section moves when the page scrolls: aim in its coordinates
+      x += (tx - r.left - x) * 0.07; y += (ty - r.top - y) * 0.07;
+      glow.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
+      raf = shown || glow.classList.contains("is-on") ? requestAnimationFrame(loop) : 0;
     };
     const setActive = i => {
       if (i === active) return;
       active = i;
-      card.querySelectorAll(".ccard__item").forEach(el => el.classList.toggle("is-on", +el.dataset.i === i));
+      if (i >= 0) glow.style.setProperty("--gc", ALL[i].color);
       list.querySelectorAll(".crow__btn").forEach(el => el.parentNode.classList.toggle("is-hot", +el.dataset.i === i));
     };
     let hideT = 0;
     const show = i => {
       clearTimeout(hideT);
       if (!shown) {
-        x = tx; y = ty; shown = true;
-        card.classList.add("no-wipe"); setActive(i); void card.offsetWidth; card.classList.remove("no-wipe");
-        card.classList.add("is-on"); list.classList.add("is-hovering");
+        if (!glow.classList.contains("is-on")) { const r = section.getBoundingClientRect(); x = tx - r.left; y = ty - r.top; }
+        shown = true; glow.classList.add("is-on"); list.classList.add("is-hovering");
       }
       setActive(i);
       if (!raf) raf = requestAnimationFrame(loop);
     };
     const hide = () => {
       if (!shown) return;
-      shown = false; card.classList.remove("is-on"); list.classList.remove("is-hovering"); setActive(-1);
+      shown = false; glow.classList.remove("is-on"); list.classList.remove("is-hovering"); setActive(-1);
     };
-    // the card shows only while the cursor is on a row: labels and gaps between rows hide it
+    // the glow shows only while the cursor is on a row
     list.addEventListener("pointermove", e => {
       tx = e.clientX; ty = e.clientY;
       const btn = e.target.closest(".crow__btn");
       if (btn) show(+btn.dataset.i);
-      // over the button the card goes at once; between rows it waits a moment, so it doesn't blink on the line between them
+      // over the button it goes at once; between rows it waits a moment, so it doesn't blink on the line between them
       else if (e.target.closest(".cmore")) { clearTimeout(hideT); hide(); }
       else { clearTimeout(hideT); hideT = setTimeout(hide, 90); }
     });

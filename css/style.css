@@ -360,6 +360,16 @@ body::after{
   text-wrap:balance;transition:translate .6s var(--ease),color .4s}
 .crow__meta{color:var(--dim)}
 .crow__yr{display:none}
+/* on hover the niche gives way to the brand's white logo */
+.crow__meta{position:relative}
+.crow__mt{display:block;transition:opacity .3s}
+.crow__lg{position:absolute;left:0;top:50%;width:150px;height:46px;object-fit:contain;object-position:left center;translate:0 -50%;opacity:0;scale:.9;transform-origin:0 50%;
+  transition:opacity .35s,scale .5s var(--ease);pointer-events:none}
+.crow__lg--type{width:auto;height:auto;font-family:var(--display);font-weight:800;font-size:16px;letter-spacing:-.02em;color:#fff;white-space:nowrap}
+.crow.is-hot .crow__lg{opacity:1;scale:1}
+.crow.is-hot .crow__mt{opacity:0}
+.clist.is-hovering .crow:not(.is-hot) .crow__key em{color:#3c4560}
+.clist.is-hovering .crow:not(.is-hot) .crow__i{color:#3c4560}
 .crow__key{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;text-align:right;gap:4px;
   min-height:calc(clamp(30px,3vw,46px) * 1.25 + 21px)}   /* rows without a number are as tall as rows with one */
 .crow__key b{font-family:var(--display);font-weight:800;font-size:clamp(30px,3vw,46px);letter-spacing:-.03em;color:var(--text)}
@@ -400,15 +410,12 @@ body::after{
 .crow.is-hot .crow__btn::before{transform:scaleX(1)}
 .crow.is-hot .crow__arrow,.crow__btn:focus-visible .crow__arrow{opacity:1;translate:0 0}
 
-/* preview card that follows the cursor */
-.ccard{position:fixed;left:0;top:0;z-index:30;width:190px;height:128px;pointer-events:none;border-radius:14px;overflow:hidden;
-  opacity:0;scale:.75;transition:opacity .18s,scale .3s var(--ease);will-change:transform;box-shadow:0 30px 80px rgba(0,0,0,.55)}
-.ccard.is-on{opacity:1;scale:1}
-.ccard__item{position:absolute;inset:0;clip-path:inset(100% 0 0 0);transition:clip-path .45s var(--ease)}
-.ccard.no-wipe .ccard__item{transition:none}
-.ccard__item.is-on{clip-path:inset(0 0 0 0);z-index:1}
-.ccard .lg{width:68%;height:48%}
-.ccard .lg--type{width:84%;height:56%;font-size:17px}
+/* glow in the hovered brand's colour behind the list (desktop) */
+.cglow{position:absolute;left:0;top:0;z-index:0;width:900px;height:900px;margin:-450px 0 0 -450px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,color-mix(in srgb,color-mix(in srgb,var(--gc,#1747ff) 85%,#fff) 65%,transparent),transparent 70%);filter:blur(30px);
+  opacity:0;transition:opacity .6s;will-change:transform}
+.cglow.is-on{opacity:.6}
+.cases__in,.also,.cmore--end{position:relative;z-index:1}
 /* every brand the same way: its own logo in white on its colour */
 .brand{position:absolute;inset:0;display:grid;place-items:center;
   background:radial-gradient(120% 100% at 28% 18%,color-mix(in srgb,var(--c) 82%,#fff),var(--c) 52%,color-mix(in srgb,var(--c) 62%,#000) 100%)}
@@ -548,6 +555,7 @@ body.cview-open{overflow:hidden}
   .crow__key b{font-size:24px}
   .crow__meta{grid-area:meta;display:block}
   .crow__yr{display:inline}
+  .crow__lg{display:none}
   .clist.is-collapsed .cmore{margin-top:-26px}
   .crow__key{grid-area:key;min-height:0;flex-direction:row;align-items:baseline;justify-content:flex-start;gap:10px;margin-top:6px}
   .crow__arrow{grid-area:arrow;opacity:1;translate:0 0;width:22px;height:22px}
