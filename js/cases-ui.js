@@ -46,22 +46,24 @@
     });
   }
 
-  const PEEK = 3;           // rows of "everything else" visible while the list is folded
-  let collapsed = true;
+  let collapsed = true;     // the rest of the list stays folded until the button is pressed
 
   /* ---------- list + running line ---------- */
   function render() {
     const L = lang();
+    let lastYear = "";
     const row = (ci, n, top) => {
       const c = ALL[ci], d = c[L];
+      const yr = top ? "" : yearOf(d), firstOfYear = yr !== lastYear;
+      if (!top) lastYear = yr;
       const key = d.key
         ? `<b>${d.key[0].replace(/([+%×])/g, "<em>$1</em>")}</b><small class="mono">${d.key[1]}</small>`
         : `<small class="mono crow__did">${d.did.slice(0, 2).join(" · ")}</small>`;
       const meta = top ? d.meta : d.meta.replace(/( · \d{4}(–\d{2})?)/, `<span class="crow__yr">$1</span>`);   // the year has its own column on desktop
       return `
-      <li class="crow${top ? " crow--top" : ` crow--rest${n - TOP.length < PEEK ? " crow--peek" : ""}${n - TOP.length === PEEK - 1 ? " crow--fade" : ""}`}" style="--i:${n};--r:${n - TOP.length}">
+      <li class="crow${top ? " crow--top" : ` crow--rest${firstOfYear ? " crow--year" : ""}`}" style="--i:${n};--r:${n - TOP.length}">
         <button class="crow__btn" type="button" data-i="${ci}" aria-label="${c.name}: ${t("cases.open") || "Open case"}">
-          <span class="crow__i mono">${top ? pad(n + 1) : yearOf(d)}</span>
+          <span class="crow__i mono">${top ? pad(n + 1) : (firstOfYear ? yearOf(d) : "")}</span>
           <span class="crow__logo" style="--c:${c.color}" aria-hidden="true">${logo(c)}</span>
           <span class="crow__name">${c.name}</span>
           <span class="crow__meta mono">${meta}</span>
@@ -70,14 +72,10 @@
         </button>
       </li>`;
     };
-    list.innerHTML =
-      `<li class="clabel mono" aria-hidden="true">${t("cases.top")}</li>` +
-      TOP.map((ci, n) => row(ci, n, true)).join("") +
-      `<li class="clabel clabel--rest mono" aria-hidden="true"><span>${t("cases.rest")}</span><span class="yrail__y">${[0, 1, 2, 3].map(() => `<span class="yreel"><span>${[...Array(10).keys()].map(d => `<i>${d}</i>`).join("")}</span></span>`).join("")}</span></li>` +
-      REST.map((ci, n) => row(ci, n + TOP.length, false)).join("") +
-      `<li class="cmore"><button class="cmore__btn mono" type="button" aria-expanded="${!collapsed}">${collapsed ? t("cases.more").replace("{n}", REST.length) : t("cases.less")}<span aria-hidden="true">${collapsed ? "↓" : "↑"}</span></button></li>`;
+    const btn = `<li class="cmore"><button class="cmore__btn mono" type="button" aria-expanded="${!collapsed}">${collapsed ? t("cases.more").replace("{n}", REST.length) : t("cases.less")}<span aria-hidden="true">${collapsed ? "↓" : "↑"}</span></button></li>`;
+    list.innerHTML = TOP.map((ci, n) => row(ci, n, true)).join("") +
+      (collapsed ? "" : REST.map((ci, n) => row(ci, n + TOP.length, false)).join("")) + btn;
     list.classList.toggle("is-collapsed", collapsed);
-    setupYear();
     card.innerHTML = MAIN.map(ci => `<div class="ccard__item" data-i="${ci}">${tile(ALL[ci])}</div>`).join("");
 
     // running line: tenders (one window), then small cases (their own windows)
@@ -96,36 +94,18 @@
       im.complete && im.naturalWidth ? fit() : im.addEventListener("load", fit, { once: true });
     });
   }
-  /* the rest of the list starts folded: three rows and a button that opens all of them */
+  /* everything after the top 3 opens with the button under them */
   list.addEventListener("click", e => {
     if (!e.target.closest(".cmore__btn")) return;
     collapsed = !collapsed;
-    const lbl = list.querySelector(".clabel--rest");
     render();
     if (!collapsed) list.classList.add("is-opening");
-    else if (lbl && window.__lenis) window.__lenis.scrollTo(lbl, { offset: -120 });
-    else if (lbl) lbl.scrollIntoView({ block: "start" });
+    else {
+      const last = list.querySelectorAll(".crow--top")[TOP.length - 1];
+      if (window.__lenis) window.__lenis.scrollTo(last, { offset: -160 }); else last.scrollIntoView({ block: "center" });
+    }
   });
 
-  /* the "everything else" bar sticks under the header while you scroll; its year rolls to the year of the rows passing under it */
-  let yio = null;
-  function setupYear() {
-    const lbl = list.querySelector(".clabel--rest");
-    if (!lbl) return;
-    const strips = [...lbl.querySelectorAll(".yreel > span")];
-    let shownY = "";
-    const setY = y => {
-      if (y === shownY) return; shownY = y;
-      [...y].forEach((d, k) => { strips[k].style.transform = `translateY(${-d}em)`; strips[k].style.transitionDelay = `${k * 50}ms`; });
-    };
-    setY(String(Math.floor(ALL[REST[0]].y)));
-    if (yio) yio.disconnect();
-    yio = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) setY(e.target.dataset.y); }), { rootMargin: "-22% 0px -76% 0px" });
-    list.querySelectorAll(".crow:not(.crow--top)").forEach(li => {
-      li.dataset.y = String(Math.floor(ALL[+li.querySelector(".crow__btn").dataset.i].y));
-      yio.observe(li);
-    });
-  }
   render();
   window.addEventListener("langchange", () => { render(); if (cur) show(cur, false); });
 
