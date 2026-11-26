@@ -77,7 +77,8 @@
           const d = i - cam, ad = Math.abs(d);
           const x = d * SP + Math.sign(d) * Math.min(ad, 1) * SP * .18;
           const ry = clamp(-d * 38, -58, 58) + sx * 10, z = -Math.min(ad, 3) * 170;
-          const op = clamp(ad <= 2 ? 1.15 - ad * .38 : .39 - (ad - 2) * .27, 0, 1);   // the third neighbour stays faintly visible (~.12)
+          // neighbours stay solid so the panels behind don't show through them; the third one is faint (~.12)
+          const op = clamp(ad <= 1 ? 1 : ad <= 2 ? 1 - (ad - 1) * .5 : .5 - (ad - 2) * .38, 0, 1);
           // write only what changed: Safari restyles even when a value is set to what it already was
           set(el, "transform", `translate3d(${x.toFixed(1)}px,0,${z.toFixed(1)}px) rotateY(${ry.toFixed(2)}deg)`);
           set(el, "opacity", op.toFixed(2));
