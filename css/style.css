@@ -263,7 +263,7 @@ body::after{
 .skills{position:relative;z-index:1;height:470vh;background:#000}
 .skills__pin{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;--hz:82%}
 .sk-studio{position:absolute;inset:0;background:#000}
-.sk-studio::before{content:"";position:absolute;left:0;right:0;top:0;height:22%;z-index:1;background:linear-gradient(180deg,var(--bg),rgba(4,6,12,0))}   /* meets the cases block without a step */
+.sk-studio::before{content:"";position:absolute;left:0;right:0;top:0;height:26%;z-index:3;background:linear-gradient(180deg,var(--bg) 0%,rgba(4,6,12,.6) 45%,rgba(4,6,12,0))}   /* meets the cases block without a step */
 .sk-beam{position:absolute;left:50%;top:-4%;width:min(1100px,120vw);height:108%;translate:-50% 0;pointer-events:none;
   background:radial-gradient(ellipse 26% 92% at 50% 0%,rgba(156,188,255,.22),rgba(58,102,255,.14) 30%,rgba(23,71,255,.05) 60%,transparent 78%)}
 .sk-floor{position:absolute;left:0;right:0;bottom:0;top:var(--hz);
@@ -280,7 +280,7 @@ body::after{
 .sk-head{position:absolute;left:50%;top:clamp(84px,12vh,120px);translate:-50% 0;z-index:5;text-align:center;width:max-content;max-width:90vw}
 .sk-title{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(34px,4.6vw,72px);letter-spacing:-.04em;line-height:.9;text-transform:uppercase;color:#e9edf6}
 .sk-note{margin:12px 0 0;color:var(--dim)}
-.sk-stage{position:absolute;inset:0;z-index:3;perspective:1300px;perspective-origin:50% 40%}
+.sk-stage{position:absolute;inset:0;z-index:4;perspective:1300px;perspective-origin:50% 40%}
 .sk-track{position:absolute;left:50%;top:calc(var(--hz) - var(--ph));transform-style:preserve-3d;--ph:min(460px,52vh);--pw:min(320px,70vw)}
 .sk-panel{position:absolute;left:0;top:0;width:var(--pw);height:var(--ph);margin-left:calc(var(--pw) / -2);will-change:transform,opacity;transform-style:preserve-3d}
 /* glass without backdrop blur: only black is behind, and blur would be recomputed every frame the panels move */
@@ -495,7 +495,7 @@ body::after{
 /* glow in the hovered brand's colour behind the list (desktop) */
 /* the glow fades out towards the top and bottom of the block, so it never shows a hard edge against the block above */
 .cglow-wrap{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;visibility:hidden;transition:visibility 0s .6s;
-  -webkit-mask-image:linear-gradient(transparent,#000 220px,#000 calc(100% - 160px),transparent);mask-image:linear-gradient(transparent,#000 220px,#000 calc(100% - 160px),transparent)}
+  -webkit-mask-image:linear-gradient(transparent,#000 220px,#000 calc(100% - 100px),transparent);mask-image:linear-gradient(transparent,#000 220px,#000 calc(100% - 100px),transparent)}
 .cglow{position:absolute;left:0;top:0;width:620px;height:620px;margin:-310px 0 0 -310px;border-radius:50%;pointer-events:none;
   --g:color-mix(in srgb,var(--gc,#1747ff) 85%,#fff);
   background:radial-gradient(closest-side,color-mix(in srgb,var(--g) 62%,transparent) 0%,color-mix(in srgb,var(--g) 52%,transparent) 22%,color-mix(in srgb,var(--g) 30%,transparent) 48%,color-mix(in srgb,var(--g) 12%,transparent) 70%,color-mix(in srgb,var(--g) 3%,transparent) 88%,transparent 100%);

@@ -7,6 +7,15 @@
 (() => {
   const $ = (s, r = document) => r.querySelector(s);
   const list = $("#clist"), glow = $("#cglow"), view = $("#cview"), track = $("#alsoTrack");
+  /* the glow stays over the list: it fades out above the running line, whose edge fades are
+     drawn in the background colour and would show as dark boxes over a coloured glow */
+  const glowWrap = glow && glow.parentNode;
+  const fitGlow = () => {
+    if (!glowWrap || !list.offsetParent) return;
+    const sec = glowWrap.parentNode.getBoundingClientRect(), lb = list.getBoundingClientRect().bottom;
+    glowWrap.style.bottom = Math.max(0, Math.round(sec.bottom - lb - 40)) + "px";
+  };
+  if ("ResizeObserver" in window) new ResizeObserver(fitGlow).observe(list);
   if (!list || !window.CASES) return;
   const ALL = window.CASES, T = window.CASES_TENDERS;
   // top 3 by numbers first, then everything else from newest to oldest
