@@ -48,7 +48,7 @@
   const measure = () => { size = apps[0].offsetWidth; rest0 = apps.map(a => a.offsetLeft + a.offsetWidth / 2); };   // offsets ignore transforms
   addEventListener("resize", () => { rest0 = null; });
   const cur = apps.map(() => 1), tgt = apps.map(() => 1);
-  let raf = 0, pointerX = null;                                   // pointer x relative to the dock box, or null = at rest
+  let raf = 0, pointerX = null, anchorX = 0;                                   // pointer x relative to the dock box, or null = at rest
   const R = () => wide.matches ? 170 : 110;
   function targets() {
     apps.forEach((a, i) => { tgt[i] = pointerX === null ? 1 : 1 + .55 * Math.max(0, 1 - Math.abs(pointerX - rest0[i]) / R()) ** 1.6; });
@@ -57,19 +57,25 @@
     raf = 0; if (!rest0) measure(); targets();
     let moving = false;
     apps.forEach((a, i) => { cur[i] += (tgt[i] - cur[i]) * .22; if (Math.abs(tgt[i] - cur[i]) > .002) moving = true; else cur[i] = tgt[i]; });
-    // extra width of each icon, then shift everything so the group stays centred
+    /* extra width of each icon. The dock grows around the point under the pointer (like macOS): that point stays still,
+       icons to its left are pushed left, icons to its right pushed right. Centring the whole group instead made the icon
+       you were heading for (the Chat icon at the far end most of all) slide away from the cursor. */
     const extra = apps.map((a, i) => size * (cur[i] - 1)), total = extra.reduce((x, y) => x + y, 0);
+    if (pointerX !== null) anchorX = pointerX;
+    let pin = 0;                                                     // how much of the growth lies left of the anchor
+    apps.forEach((a, i) => { pin += extra[i] * Math.min(1, Math.max(0, (anchorX - (rest0[i] - size / 2)) / size)); });
     let run = 0, k = 0;
     items.forEach(n => {
       if (n.classList.contains("ct-app")) {
-        const e = extra[k], dx = run + e / 2 - total / 2;
+        const e = extra[k], dx = run + e / 2 - pin;
         n.style.transform = `translate3d(${dx.toFixed(2)}px,0,0)`;
         faces[k].style.scale = (cur[k] / 1.55).toFixed(4);          // faces are drawn 1.55× and scaled down at rest
         if (tips[k]) tips[k].style.transform = `translateY(${(-e).toFixed(2)}px)`;
         run += e; k++;
-      } else n.style.transform = `translate3d(${(run - total / 2).toFixed(2)}px,0,0)`;
+      } else n.style.transform = `translate3d(${(run - pin).toFixed(2)}px,0,0)`;
     });
-    dock.style.setProperty("--grow", (total / 2).toFixed(2) + "px");
+    dock.style.setProperty("--growL", pin.toFixed(2) + "px");
+    dock.style.setProperty("--growR", (total - pin).toFixed(2) + "px");
     if (moving) raf = requestAnimationFrame(frame);
   }
   const kick = () => { if (!raf) raf = requestAnimationFrame(frame); };

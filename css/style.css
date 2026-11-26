@@ -783,7 +783,7 @@ body.cview-open{overflow:hidden}
 .ct-dock{position:relative;display:flex;align-items:flex-end;gap:10px;height:94px;margin-top:clamp(110px,17vh,190px);padding:10px 14px;isolation:isolate}
 /* the glass bar is a separate layer: it widens with the swelling icons (only its own box changes, nothing else re-lays out),
    and it has no backdrop blur, so nothing behind it has to be re-blurred on every frame */
-.ct-dock::before{content:"";position:absolute;top:0;bottom:0;left:calc(var(--grow,0px) * -1);right:calc(var(--grow,0px) * -1);z-index:-1;border-radius:30px;pointer-events:none;
+.ct-dock::before{content:"";position:absolute;top:0;bottom:0;left:calc(var(--growL,0px) * -1);right:calc(var(--growR,0px) * -1);z-index:-1;border-radius:30px;pointer-events:none;
   background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.05)),rgba(10,14,32,.62);border:1px solid rgba(255,255,255,.18);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
 /* the big soft shadows sit on a layer that never changes size, so they are painted once, not on every frame of the swell */
