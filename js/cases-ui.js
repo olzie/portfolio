@@ -135,7 +135,54 @@
   let cur = null, lastFocus = null;
   const vMedia = $("#cviewMedia"), vMeta = $("#cviewMeta"), vName = $("#cviewName"), vLine = $("#cviewLine"),
         vStats = $("#cviewStats"), vBody = $("#cviewBody"), vDid = $("#cviewDid"), vCount = $("#cviewCount"), vNav = $("#cviewNav");
+  /* work examples play like Instagram stories: logo first, then each screenshot.
+     Tap the right half for the next one, the left half for the previous; hovering pauses. */
+  let stT = 0, stI = 0, stN = 0, stPaused = false, stLeft = 0, stStart = 0;
+  const LOGO_MS = 1600, SHOT_MS = 4200;
+  function story(c, shots) {
+    clearTimeout(stT);
+    const slides = [`<div class="st__slide st__slide--logo">${tile(c)}</div>`].concat(shots.map((x, k) =>
+      `<div class="st__slide" style="--bg:url('assets/cases/shots/${x[0]}')"><img src="assets/cases/shots/${x[0]}" width="${x[1]}" height="${x[2]}" alt="${c.name}, ${t("cases.example")} ${k + 1}" decoding="async"></div>`));
+    vMedia.innerHTML = `<div class="st" style="--c:${c.color}">
+      <div class="st__bars">${slides.map(() => "<i></i>").join("")}</div>
+      <div class="st__head"><span class="st__ava">${logo(c)}</span><b>${c.name}</b></div>
+      ${slides.join("")}
+      <button class="st__tap st__tap--prev" type="button" aria-label="${t("cases.prev")}"></button>
+      <button class="st__tap st__tap--next" type="button" aria-label="${t("cases.next")}"></button>
+    </div>`;
+    stN = slides.length; stPaused = false; stGo(0);
+  }
+  function stGo(i) {
+    clearTimeout(stT);
+    const st = vMedia.querySelector(".st"); if (!st) return;
+    stI = (i + stN) % stN;
+    st.querySelectorAll(".st__slide").forEach((e, k) => e.classList.toggle("on", k === stI));
+    const d = stI === 0 ? LOGO_MS : SHOT_MS;
+    st.querySelectorAll(".st__bars i").forEach((b, k) => {
+      b.className = k < stI ? "done" : "";
+      b.style.setProperty("--d", d + "ms");
+    });
+    const bar = st.querySelectorAll(".st__bars i")[stI]; void bar.offsetWidth; bar.className = "run";
+    stLeft = d; stStart = performance.now();
+    if (!stPaused) stT = setTimeout(() => stGo(stI + 1), d);
+  }
+  function stPause(on) {
+    const st = vMedia.querySelector(".st"); if (!st || stPaused === on) return;
+    stPaused = on; st.classList.toggle("is-paused", on);
+    if (on) { clearTimeout(stT); stLeft -= performance.now() - stStart; }
+    else { stStart = performance.now(); stT = setTimeout(() => stGo(stI + 1), Math.max(200, stLeft)); }
+  }
+  vMedia.addEventListener("click", e => {
+    if (e.target.closest(".st__tap--next")) stGo(stI + 1);
+    else if (e.target.closest(".st__tap--prev")) stGo(stI - 1);
+  });
+  if (hover) {
+    vMedia.addEventListener("pointerenter", () => stPause(true));
+    vMedia.addEventListener("pointerleave", () => stPause(false));
+  }
+
   function show(s, animate = true) {
+    clearTimeout(stT);
     const L = lang();
     view.classList.toggle("is-tenders", s.kind === "t");
     if (s.kind === "t") {
@@ -151,9 +198,8 @@
       view.style.setProperty("--c", c.color);
       const shots = (window.CASES_SHOTS || {})[c.id] || [];
       vMedia.classList.toggle("has-shots", shots.length > 0);
-      vMedia.innerHTML = `<figure class="cview__fig">${tile(c)}</figure>` + (shots.length
-        ? `<div class="cview__shots">${shots.map((x, k) => `<button class="shot" type="button" style="--r:${x[1] / x[2]};--k:${k}" data-src="assets/cases/shots/${x[0]}" aria-label="${c.name}, ${t("cases.example")} ${k + 1}"><img src="assets/cases/shots/${x[0]}" width="${x[1]}" height="${x[2]}" alt="" loading="lazy" decoding="async"></button>`).join("")}</div>`
-        : "");
+      if (!shots.length) vMedia.innerHTML = `<figure class="cview__fig">${tile(c)}</figure>`;
+      else story(c, shots);
       vMeta.textContent = d.meta; vName.textContent = c.name; vLine.textContent = d.line;
       vStats.style.setProperty("--n", Math.max(1, d.stats.length));
       vStats.innerHTML = d.stats.map(x => `<li><div class="cnum">${reels(x[0])}</div><p class="mono">${x[1]}</p></li>`).join("");
@@ -182,7 +228,7 @@
   }
   function closeView() {
     if (!cur) return;
-    lbClose();
+    clearTimeout(stT);
     cur = null;
     view.classList.remove("is-open");
     view.setAttribute("aria-hidden", "true");
@@ -201,22 +247,12 @@
     if (b.dataset.k === "t") openView({ kind: "t" });
     else openView({ kind: "c", i: +b.dataset.id, group: SMALL });
   });
-  /* a work example opens big over the case; click or Esc closes it */
-  const lb = document.createElement("div");
-  lb.className = "lightbox"; lb.setAttribute("aria-hidden", "true");
-  lb.innerHTML = `<img alt="">`;
-  view.appendChild(lb);
-  const lbOpen = src => { lb.firstElementChild.src = src; lb.classList.add("is-on"); lb.setAttribute("aria-hidden", "false"); };
-  const lbClose = () => { lb.classList.remove("is-on"); lb.setAttribute("aria-hidden", "true"); };
-  vMedia.addEventListener("click", e => { const b = e.target.closest(".shot"); if (b) lbOpen(b.dataset.src); });
-  lb.addEventListener("click", lbClose);
   $("#cviewClose").addEventListener("click", closeView);
   $("#cviewPrev").addEventListener("click", () => go(-1));
   $("#cviewNext").addEventListener("click", () => go(1));
   view.addEventListener("click", e => { if (e.target === view) closeView(); });
   addEventListener("keydown", e => {
     if (!cur) return;
-    if (lb.classList.contains("is-on")) { if (e.key === "Escape") lbClose(); return; }
     if (e.key === "Escape") closeView();
     if (e.key === "ArrowRight") go(1);
     if (e.key === "ArrowLeft") go(-1);
