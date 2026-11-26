@@ -56,6 +56,7 @@
   };
   track.addEventListener("click", e => { const p = e.target.closest(".sk-panel"); if (p) go(+p.dataset.i); });
   track.addEventListener("keydown", e => { const p = e.target.closest(".sk-panel"); if (p && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); go(+p.dataset.i); } });
+  const set = (el, k, v) => { const c = el._s || (el._s = {}); if (c[k] !== v) { c[k] = v; el.style[k] = v; } };
   const progress = () => { const r = section.getBoundingClientRect(); return clamp(-r.top / (r.height - innerHeight), 0, 1); };
   const near = () => { const r = section.getBoundingClientRect(); return r.bottom > -100 && r.top < innerHeight + 100; };
   const hover = matchMedia("(hover:hover)").matches;
@@ -76,18 +77,19 @@
           const d = i - cam, ad = Math.abs(d);
           const x = d * SP + Math.sign(d) * Math.min(ad, 1) * SP * .18;
           const ry = clamp(-d * 38, -58, 58) + sx * 10, z = -Math.min(ad, 3) * 170;
-          el.style.transform = `translate3d(${x.toFixed(1)}px,0,${z.toFixed(1)}px) rotateY(${ry.toFixed(2)}deg)`;
-          const op = clamp(1.15 - ad * .38, 0, 1);
-          el.style.opacity = op.toFixed(3);
-          el.style.visibility = op < .03 ? "hidden" : "visible";   // panels too far to see are not drawn at all
-          el.style.zIndex = 100 - Math.round(ad * 10);
+          const op = clamp(ad <= 2 ? 1.15 - ad * .38 : .39 - (ad - 2) * .27, 0, 1);   // the third neighbour stays faintly visible (~.12)
+          // write only what changed: Safari restyles even when a value is set to what it already was
+          set(el, "transform", `translate3d(${x.toFixed(1)}px,0,${z.toFixed(1)}px) rotateY(${ry.toFixed(2)}deg)`);
+          set(el, "opacity", op.toFixed(2));
+          set(el, "visibility", op < .03 ? "hidden" : "visible");   // panels too far to see are not drawn at all
+          set(el, "zIndex", String(100 - Math.round(ad * 10)));
         });
         if (c !== cur) {
           cur = c;
           panels.forEach((el, i) => el.classList.toggle("is-on", i === c));
           num.textContent = pad(c + 1);
         }
-        bar.style.transform = `scaleX(${(cam / (N - 1)).toFixed(4)})`;
+        set(bar, "transform", `scaleX(${(cam / (N - 1)).toFixed(3)})`);
       }
     }
     requestAnimationFrame(frame);
