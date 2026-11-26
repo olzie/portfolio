@@ -35,14 +35,14 @@
   function spin(root, baseDelay = 0) {
     root.querySelectorAll(".reel").forEach((r, i) => {
       const strip = r.firstElementChild, d = +r.dataset.d;
-      const step = strip.firstElementChild.getBoundingClientRect().height;
+      // every digit in the strip is exactly 1em tall, so move in em: no measuring while the view is still opening
+      const y = -(TURNS * 10 + d);
       strip.style.transition = "none";
       strip.style.transform = "translateY(0)";
       void strip.offsetHeight;
-      const y = -(TURNS * 10 + d) * step;
-      if (reduce) { strip.style.transform = `translateY(${y}px)`; return; }
+      if (reduce) { strip.style.transform = `translateY(${y}em)`; return; }
       strip.style.transition = `transform ${1.1 + (i % 6) * 0.12}s cubic-bezier(.2,.9,.25,1.12) ${baseDelay + i * 0.07}s`;
-      strip.style.transform = `translateY(${y}px)`;
+      strip.style.transform = `translateY(${y}em)`;
     });
   }
 
@@ -73,9 +73,14 @@
         </button>
       </li>`;
     };
-    const btn = `<li class="cmore"><button class="cmore__btn glass mono" type="button" aria-expanded="${!collapsed}">${collapsed ? t("cases.more").replace("{n}", REST.length) : t("cases.less")}<span aria-hidden="true">${collapsed ? "↓" : "↑"}</span></button></li>`;
+    const btn = `<button class="cmore__btn glass mono" type="button" aria-expanded="${!collapsed}">${collapsed ? t("cases.more").replace("{n}", REST.length) : t("cases.less")}<span aria-hidden="true">${collapsed ? "↓" : "↑"}</span></button>`;
     list.innerHTML = TOP.map((ci, n) => row(ci, n, true)).join("") +
-      (collapsed ? "" : REST.map((ci, n) => row(ci, n + TOP.length, false)).join("")) + btn;
+      (collapsed ? `<li class="cmore">${btn}</li>` : REST.map((ci, n) => row(ci, n + TOP.length, false)).join(""));
+    // open list: "Show less" goes under the running line of tenders
+    let after = document.getElementById("cmoreEnd");
+    if (!after) { after = document.createElement("div"); after.id = "cmoreEnd"; after.className = "cmore cmore--end"; $(".also").after(after); }
+    after.innerHTML = collapsed ? "" : btn;
+    after.hidden = collapsed;
     list.classList.toggle("is-collapsed", collapsed);
     section && section.classList.toggle("is-collapsed", collapsed);
     card.innerHTML = MAIN.map(ci => `<div class="ccard__item" data-i="${ci}">${tile(ALL[ci])}</div>`).join("");
@@ -97,7 +102,7 @@
     });
   }
   /* the button is drawn here, after main.js set up the glass highlight: follow the cursor for it too */
-  if (hover) list.addEventListener("pointermove", e => {
+  if (hover) section.addEventListener("pointermove", e => {
     const b = e.target.closest(".cmore__btn"); if (!b) return;
     const r = b.getBoundingClientRect();
     b.style.setProperty("--gl-x", e.clientX - r.left + "px");
@@ -105,7 +110,7 @@
   });
 
   /* everything after the top 3 opens with the button under them */
-  list.addEventListener("click", e => {
+  section.addEventListener("click", e => {
     if (!e.target.closest(".cmore__btn")) return;
     collapsed = !collapsed;
     render();
@@ -133,7 +138,15 @@
       x += (tx - x) * 0.14; y += (ty - y) * 0.14;
       vx += ((x - px) - vx) * 0.2;
       const rot = Math.max(-8, Math.min(8, vx * 0.5));
-      card.style.transform = `translate3d(${(x - card.offsetWidth / 2).toFixed(1)}px,${(y - card.offsetHeight / 2).toFixed(1)}px,0) rotate(${rot.toFixed(2)}deg)`;
+      const W = card.offsetWidth, H = card.offsetHeight;
+      let cx = x - W / 2, cy = y - H / 2;
+      // never slide over the "Show all" button: stop just above it
+      const b = collapsed && list.querySelector(".cmore__btn");
+      if (b) {
+        const r = b.getBoundingClientRect();
+        if (cx < r.right && cx + W > r.left && cy + H > r.top - 10) cy = r.top - 10 - H;
+      }
+      card.style.transform = `translate3d(${cx.toFixed(1)}px,${cy.toFixed(1)}px,0) rotate(${rot.toFixed(2)}deg)`;
       raf = (shown || Math.abs(tx - x) > 0.5) ? requestAnimationFrame(loop) : 0;
     };
     const setActive = i => {
@@ -142,7 +155,9 @@
       card.querySelectorAll(".ccard__item").forEach(el => el.classList.toggle("is-on", +el.dataset.i === i));
       list.querySelectorAll(".crow__btn").forEach(el => el.parentNode.classList.toggle("is-hot", +el.dataset.i === i));
     };
+    let hideT = 0;
     const show = i => {
+      clearTimeout(hideT);
       if (!shown) { x = tx; y = ty; shown = true; card.classList.add("is-on"); list.classList.add("is-hovering"); }
       setActive(i);
       if (!raf) raf = requestAnimationFrame(loop);
@@ -156,7 +171,10 @@
       tx = e.clientX; ty = e.clientY;
       if (scrolling) return;
       const btn = e.target.closest(".crow__btn");
-      btn ? show(+btn.dataset.i) : hide();
+      if (btn) show(+btn.dataset.i);
+      // over the button the card goes at once; between rows it waits a moment, so it doesn't blink on the line between them
+      else if (e.target.closest(".cmore")) { clearTimeout(hideT); hide(); }
+      else { clearTimeout(hideT); hideT = setTimeout(hide, 90); }
     });
     list.addEventListener("pointerleave", hide);
     // keep the cursor position current everywhere, so the check after scrolling uses where the cursor really is
@@ -249,6 +267,14 @@
       vStats.style.setProperty("--n", Math.max(1, d.stats.length));
       vStats.innerHTML = d.stats.map(x => `<li><div class="cnum">${reels(x[0])}</div><p class="mono">${x[1]}</p></li>`).join("");
       vStats.hidden = !d.stats.length;
+      // if a number is wider than its column, shrink all three by the same amount so they stay one size
+      requestAnimationFrame(() => {
+        const nums = [...vStats.querySelectorAll(".cnum")];
+        nums.forEach(n => n.style.fontSize = "");
+        let k = 1;
+        nums.forEach(n => { const room = n.parentNode.clientWidth - (n.parentNode === vStats.firstElementChild ? 18 : 36); if (n.scrollWidth > room) k = Math.min(k, room / n.scrollWidth); });
+        if (k < 1) nums.forEach(n => n.style.fontSize = `${parseFloat(getComputedStyle(n).fontSize) * k * 0.97}px`);
+      });
       vBody.textContent = d.body;
       vDid.innerHTML = `<span class="mono">${t("cases.did")}</span>` + d.did.map(x => `<i>${x}</i>`).join("");
       vCount.textContent = `${pad(pos + 1)} / ${pad(s.group.length)}`;

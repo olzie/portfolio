@@ -377,6 +377,8 @@ body::after{
 .cases.is-opening .also{animation:rise .8s var(--ease) both;animation-delay:.3s}
 .clist.is-opening .crow--rest{animation:rise .7s var(--ease) both;animation-delay:calc(min(var(--r),12) * .04s)}
 .cmore{display:flex;justify-content:center;padding-top:clamp(18px,2vw,28px)}
+.cmore--end{padding-top:clamp(36px,4vw,56px)}
+.cases.is-opening .cmore--end{animation:rise .8s var(--ease) both;animation-delay:.45s}
 .cmore__btn{all:unset;box-sizing:border-box;position:relative;cursor:pointer;display:inline-flex;align-items:center;gap:12px;padding:17px 28px;border-radius:999px;color:var(--text);
   transition:scale .4s var(--ease)}
 .cmore__btn span{color:var(--blue-hi);font-size:14px;transition:translate .3s}
@@ -390,7 +392,7 @@ body::after{
 .clist.is-collapsed .crow--last{border-bottom-color:transparent}
 .clist.is-collapsed .crow--last .crow__btn::before{display:none}
 /* the button sits a little over the faded Kilinski row */
-.clist.is-collapsed .cmore{margin-top:-46px;position:relative;z-index:2;pointer-events:none}
+.clist.is-collapsed .cmore{margin-top:-46px;position:relative;z-index:31;pointer-events:none}   /* above the logo card (z 30), so the card never covers the button */
 .clist.is-collapsed .cmore__btn{pointer-events:auto}
 /* each year starts with a slightly heavier line */
 .crow--year{border-top:1px solid rgba(120,150,255,.32)}
@@ -492,7 +494,7 @@ body.cview-open{overflow:hidden}
 .cview__stats{list-style:none;margin:clamp(28px,3.4vw,52px) 0 0;padding:0;display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));border-top:1px solid var(--line)}
 .cview__stats li{padding:22px 18px 0 0}
 .cview__stats li+li{padding-left:18px;border-left:1px solid var(--line)}
-.cnum{display:flex;align-items:flex-end;font-family:var(--display);font-weight:800;font-size:clamp(30px,3.2vw,52px);line-height:1;letter-spacing:-.04em;color:var(--text);white-space:nowrap}
+.cnum{display:flex;align-items:flex-end;font-family:var(--display);font-weight:800;font-size:clamp(28px,2.9vw,48px);line-height:1;letter-spacing:-.04em;color:var(--text);white-space:nowrap}
 .cview__stats p{margin:12px 0 0;color:var(--ice);font-size:11px}
 .cview__body{margin:clamp(24px,3vw,40px) 0 0;max-width:520px;font-size:14px;line-height:1.7;color:#9aa6c4}
 .cview__nav{margin-top:auto;padding-top:32px;display:flex;align-items:center;justify-content:space-between;gap:16px}
@@ -518,12 +520,18 @@ body.cview-open{overflow:hidden}
 @keyframes rise{from{opacity:0;translate:0 26px}to{opacity:1;translate:0 0}}
 
 /* slot reels */
-.reel{position:relative;display:inline-block;height:1em;overflow:hidden}
+.reel{position:relative;display:inline-block;height:1em;line-height:1;overflow:hidden;vertical-align:bottom}
 .reel__strip{display:flex;flex-direction:column;will-change:transform}
-.reel__strip span{height:1em;line-height:1;text-align:center;font-variant-numeric:tabular-nums}
+.reel__strip span{display:block;height:1em;line-height:1;text-align:center;font-variant-numeric:tabular-nums}
+.reel__static,.cnum em{display:inline-block;line-height:1}
+.cnum > *{flex:none}   /* digits never squeeze; the size is fitted to the column instead (cases-ui.js) */
 
 @media (max-width:1100px){
   .crow__btn{grid-template-columns:90px minmax(0,1fr) 190px 24px}
+  /* narrow case view: numbers stack, each with its label on the right */
+  .cview__stats{grid-template-columns:1fr!important}
+  .cview__stats li,.cview__stats li+li{padding:16px 0;border-left:0;border-bottom:1px solid var(--line);display:flex;align-items:baseline;justify-content:space-between;gap:16px}
+  .cview__stats p{margin:0;text-align:right;max-width:55%}
   .crow__meta{display:none}
 }
 @media (max-width:760px){
