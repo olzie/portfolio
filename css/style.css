@@ -825,6 +825,9 @@ body.cview-open{overflow:hidden}
   translate:-50% 0;transform-origin:bottom center;scale:.4;opacity:0;visibility:hidden;pointer-events:none;
   transition:scale .55s var(--ease),opacity .3s,visibility 0s .55s}
 .contact.is-chat .ct-win{scale:1;opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s}
+/* during the genie the keyframes drive the window: no CSS transition on top, and it stays visible while it closes */
+.contact.is-genie .ct-win{transition:none;transform-origin:50% 100%;will-change:transform,clip-path}
+.contact.is-closing .ct-win{scale:1;opacity:1;visibility:visible;pointer-events:none}
 .contact.is-chat .ct-title,.contact.is-chat .ct-lead,.contact.is-chat .ct-status{opacity:.08;filter:blur(8px)}
 .contact.is-chat .ct-tip{opacity:0!important}
 .contact.is-chat .ct-in{z-index:8}
