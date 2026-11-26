@@ -430,7 +430,11 @@ body::after{
 .cases__head{display:grid;grid-template-columns:1fr auto;align-items:end;gap:16px 40px;margin-bottom:clamp(28px,3.4vw,52px)}
 .cases__title{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(40px,5.6vw,84px);line-height:.92;letter-spacing:-.035em;text-transform:uppercase;color:var(--text)}
 .cases__count{text-align:right}
-.cases__num{display:block;font-family:var(--display);font-weight:800;font-size:clamp(56px,6.4vw,104px);line-height:.85;letter-spacing:-.05em;color:#e9edf6;margin-bottom:12px}
+.cases__nums{display:flex;align-items:flex-start;justify-content:flex-end;gap:clamp(12px,1.4vw,22px);margin-bottom:14px}
+.cases__n{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.cases__n b{font-family:var(--display);font-weight:800;font-size:clamp(52px,5.8vw,96px);line-height:.85;letter-spacing:-.05em;color:#e9edf6}
+.cases__n i{font-style:normal;color:var(--ice)}
+.cases__plus{font-family:var(--display);font-weight:400;font-size:clamp(30px,3vw,50px);line-height:1;color:var(--blue-hi);margin-top:clamp(8px,1vw,16px)}
 .cases__note{margin:0;color:var(--dim);text-align:right;white-space:nowrap}
 
 /* the list: big names, one row per case */
@@ -682,7 +686,8 @@ body.cview-open{overflow:hidden}
   .crow__key small{font-size:11.5px;letter-spacing:.04em}
   .cases__head{grid-template-columns:1fr}
   .cases__note,.cases__count{text-align:left}
-  .cases__num{font-size:56px;margin-bottom:8px}
+  .cases__nums{justify-content:flex-start}
+  .cases__n b{font-size:52px}
   .crow__btn{grid-template-columns:44px minmax(0,1fr) auto;grid-template-areas:"lg name arrow" "lg meta meta" "lg key key";gap:2px 12px;padding:14px 2px}
   .crow__i{display:none}
   .crow__logo{grid-area:lg;align-self:start;position:relative;display:block;width:44px;height:44px;border-radius:10px;overflow:hidden;background:#10162b;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}   /* one colour for all, so the list stays calm */

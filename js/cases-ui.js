@@ -29,8 +29,10 @@
   const REST = idx.filter(i => !ALL[i].top).sort((a, b) => ALL[b].y - ALL[a].y);
   const MAIN = [...TOP, ...REST];
   const shownOrder = () => MAIN;
-  // headline figure: every project outside iGaming, tenders and small ones included
-  { const n = document.getElementById("casesNum"); if (n) n.textContent = new Set([...ALL.map(c => c.id), ...(window.CASES_TENDERS?.items || []).map(x => x.id)]).size; }   // the top 3 stay first when the list opens; the rest follow, newest first
+  // headline figures: brands worked with outside iGaming, plus tenders
+  { const b = document.getElementById("casesBrands"), t = document.getElementById("casesTenders");
+    if (b) b.textContent = ALL.length;                                   // every brand in the list and the running line
+    if (t) t.textContent = (window.CASES_TENDERS?.items || []).length; }   // the top 3 stay first when the list opens; the rest follow, newest first
   const yearOf = d => (d.meta.match(/\d{4}(–\d{2})?/) || [""])[0];
   const SMALL = (window.CASES_SMALL_ORDER || []).map(id => ALL.findIndex(c => c.id === id)).filter(i => i >= 0);
   const hover = matchMedia("(hover: hover) and (pointer: fine)").matches;

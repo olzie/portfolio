@@ -24,14 +24,14 @@
   <link rel="preload" href="assets/fonts/unbounded-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/cat/seq/000.webp?v=20261126a" as="image" media="(min-aspect-ratio: 3/4)">
   <link rel="preload" href="assets/cat/seq-m/000.webp?v=20261126a" as="image" media="(max-aspect-ratio: 3/4)">
-  <link rel="stylesheet" href="css/style.css?v=20261130b">
+  <link rel="stylesheet" href="css/style.css?v=20261130c">
   <!-- scripts start downloading right away but run after the page is parsed, in this order -->
   <script defer src="vendor/lenis.min.js"></script>
-  <script defer src="js/i18n.js?v=20261130b"></script>
-  <script defer src="js/main.js?v=20261130b"></script>
-  <script defer src="js/cases.js?v=20261130b"></script>
-  <script defer src="js/cases-ui.js?v=20261130b"></script>
-  <script defer src="js/skills.js?v=20261130b"></script>
+  <script defer src="js/i18n.js?v=20261130c"></script>
+  <script defer src="js/main.js?v=20261130c"></script>
+  <script defer src="js/cases.js?v=20261130c"></script>
+  <script defer src="js/cases-ui.js?v=20261130c"></script>
+  <script defer src="js/skills.js?v=20261130c"></script>
 </head>
 <body class="is-loading">
 
@@ -207,7 +207,14 @@
       <div class="cases__in">
         <header class="cases__head">
           <h2 class="cases__title" data-i18n="cases.title">Outside <br>iGaming</h2>
-          <div class="cases__count"><b class="cases__num" id="casesNum">38</b><p class="cases__note mono" data-i18n="cases.note">projects, tenders included <br>2020–2024</p></div>
+          <div class="cases__count">
+            <div class="cases__nums">
+              <span class="cases__n"><b id="casesBrands">25</b><i class="mono" data-i18n="cases.brands">brands</i></span>
+              <span class="cases__plus" aria-hidden="true">+</span>
+              <span class="cases__n"><b id="casesTenders">13</b><i class="mono" data-i18n="cases.tenders">tenders</i></span>
+            </div>
+            <p class="cases__note mono" data-i18n="cases.note">2020–2024</p>
+          </div>
         </header>
         <ol class="clist" id="clist"></ol>
       </div>
