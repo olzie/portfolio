@@ -14,9 +14,7 @@
   const TOP = idx.filter(i => ALL[i].top).sort((a, b) => ALL[a].top - ALL[b].top);
   const REST = idx.filter(i => !ALL[i].top).sort((a, b) => ALL[b].y - ALL[a].y);
   const MAIN = [...TOP, ...REST];
-  // opened, the list is one timeline: the top 3 move to their own years (each first in its year), so every year is named once
-  const TIMELINE = [...TOP, ...REST].sort((a, b) => ALL[b].y - ALL[a].y);
-  const shownOrder = () => collapsed ? MAIN : TIMELINE;
+  const shownOrder = () => MAIN;   // the top 3 stay first when the list opens; the rest follow, newest first
   const yearOf = d => (d.meta.match(/\d{4}(–\d{2})?/) || [""])[0];
   const SMALL = (window.CASES_SMALL_ORDER || []).map(id => ALL.findIndex(c => c.id === id)).filter(i => i >= 0);
   const hover = matchMedia("(hover: hover) and (pointer: fine)").matches;
@@ -26,16 +24,20 @@
   const pad = n => String(n).padStart(2, "0");
 
   /* the brand's own logo in white on its colour; the name in type when there is no logo */
+  /* Every logo gets the same visual weight, not the same frame: CSS sizes it by its proportions (--ar),
+     so a square mark isn't tiny next to a long wordmark. */
+  const arOf = src => (window.LOGO_AR || {})[(src || "").split("/").pop().replace(".svg", "")] || 2;
   const logo = (c, cls = "") => c.logo
-    ? `<img class="lg ${cls}" src="${c.logo}" alt="${c.name}" decoding="async">`
+    ? `<img class="lg ${cls}" src="${c.logo}" alt="${c.name}" decoding="async" style="--ar:${arOf(c.logo)}">`
     : `<span class="lg lg--type ${cls}">${c.name}</span>`;
   const tile = c => `<div class="brand" style="--c:${c.color}">${logo(c)}</div>`;
 
   /* ---------- slot reels: every digit spins and lands, the rest stays still ---------- */
   const TURNS = 2;
-  const reels = str => [...str].map(ch => /\d/.test(ch)
-    ? `<span class="reel" data-d="${ch}"><span class="reel__strip">${Array.from({ length: (TURNS + 1) * 10 }, (_, i) => `<span>${i % 10}</span>`).join("")}</span></span>`
-    : /[+%×]/.test(ch) ? `<em>${ch}</em>` : `<span class="reel__static">${ch}</span>`).join("");
+  // screen readers and search get the final figure as text; the rolling digits are hidden from them
+  const reels = str => `<span class="sr">${str}</span>` + [...str].map(ch => /\d/.test(ch)
+    ? `<span class="reel" aria-hidden="true" data-d="${ch}"><span class="reel__strip">${Array.from({ length: (TURNS + 1) * 10 }, (_, i) => `<span>${i % 10}</span>`).join("")}</span></span>`
+    : /[+%×]/.test(ch) ? `<em aria-hidden="true">${ch}</em>` : `<span class="reel__static" aria-hidden="true">${ch}</span>`).join("");
   function spin(root, baseDelay = 0) {
     root.querySelectorAll(".reel").forEach((r, i) => {
       const strip = r.firstElementChild, d = +r.dataset.d;
@@ -61,19 +63,19 @@
     const row = (ci, n, top) => {
       const c = ALL[ci], d = c[L];
       const yr = yearOf(d), firstOfYear = yr !== lastYear;
-      if (!collapsed) lastYear = yr;
+      if (!top) lastYear = yr;
       const r = top ? 0 : restN++;
       const key = d.key
         ? `<b>${d.key[0].replace(/([+%×])/g, "<em>$1</em>")}</b><small class="mono">${d.key[1]}</small>`
         : `<small class="mono crow__did">${d.did.slice(0, 2).join(" · ")}</small>`;
       const meta = d.meta.replace(/( · \d{4}(–\d{2})?)/, `<span class="crow__yr">$1</span>`);   // the year has its own column on desktop
       return `
-      <li class="crow${top ? ` crow--top${collapsed && n === TOP.length - 1 ? " crow--last" : ""}` : " crow--rest"}${!collapsed && firstOfYear ? " crow--year" : ""}" style="--i:${n};--r:${r}">
+      <li class="crow${top ? ` crow--top${collapsed && n === TOP.length - 1 ? " crow--last" : ""}` : " crow--rest"}${!top && firstOfYear ? " crow--year" : ""}" style="--i:${n};--r:${r}">
         <button class="crow__btn" type="button" data-i="${ci}" aria-label="${c.name}: ${t("cases.open") || "Open case"}">
-          <span class="crow__i mono">${collapsed || firstOfYear ? yr : ""}</span>
+          <span class="crow__i mono">${top || firstOfYear ? yr : ""}</span>
           <span class="crow__logo" style="--c:${c.color}" aria-hidden="true">${logo(c)}</span>
           <span class="crow__name">${c.name}</span>
-          <span class="crow__meta mono"><span class="crow__mt">${meta}</span>${c.logo ? `<img class="crow__lg" src="${c.logo}" alt="" decoding="async">` : `<span class="crow__lg crow__lg--type">${c.name}</span>`}</span>
+          <span class="crow__meta mono"><span class="crow__mt">${meta}</span>${c.logo ? `<img class="crow__lg" src="${c.logo}" alt="" decoding="async" style="${(() => { const a = arOf(c.logo), w = Math.min(160, 58 * a, Math.sqrt(3300 * a)); return `width:${w.toFixed(0)}px;height:${(w / a).toFixed(0)}px`; })()}">` : `<span class="crow__lg crow__lg--type">${c.name}</span>`}</span>
           <span class="crow__key">${key}</span>
           <span class="crow__arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span>
         </button>
@@ -85,7 +87,7 @@
     list.querySelectorAll(".crow--top .crow__btn").forEach(b => before[b.dataset.i] = b.getBoundingClientRect().top);
     list.innerHTML = collapsed
       ? TOP.map((ci, n) => row(ci, n, true)).join("") + `<li class="cmore">${btn}</li>`
-      : TIMELINE.map((ci, n) => row(ci, n, !!ALL[ci].top)).join("");
+      : MAIN.map((ci, n) => row(ci, n, !!ALL[ci].top)).join("");
     const moved = [];
     list.querySelectorAll(".crow--top .crow__btn").forEach(b => {
       const d = before[b.dataset.i] == null ? 0 : before[b.dataset.i] - b.getBoundingClientRect().top;
@@ -138,7 +140,7 @@
   const imgs = [...track.querySelectorAll("img")];
   Promise.all(imgs.map(im => (im.complete && im.naturalWidth ? Promise.resolve() : new Promise(r => { im.onload = im.onerror = r; })).then(() => {
     const ar = im.naturalWidth / im.naturalHeight || 3;
-    im.style.height = `calc(var(--lh) * ${Math.min(1.55, Math.max(0.72, Math.sqrt(2.6 / ar))).toFixed(2)})`;
+    im.style.height = `calc(var(--lh) * ${Math.min(1.85, Math.max(0.66, Math.sqrt(2.6 / ar))).toFixed(2)})`;
   }))).then(() => track.classList.add("is-ready"));
   // the line only moves while it is on screen
   if ("IntersectionObserver" in window) new IntersectionObserver(es => track.classList.toggle("is-vis", es[0].isIntersecting)).observe(track);

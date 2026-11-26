@@ -359,3 +359,6 @@ window.CASES_SHOTS = {
   fade: [["fade-1.webp", 554, 600]],
   mshrm: [["mshrm-1.webp", 740, 600]]
 };
+
+// logo proportions (width / height of each SVG), so every logo can be given the same visual weight
+window.LOGO_AR = {"anti":1.46,"appleroom":3.369,"beautybears":0.89,"bolgrad":6.619,"bonduelle":2.55,"chudo":1.696,"cukiernia":5.955,"engin":1.048,"europeanspa":1.386,"fade":2.748,"forumlviv":1.786,"herbalife":5.895,"inaya":5.854,"jaffa":1.945,"joinup":3.494,"kilinski":1.58,"lenovo":4.624,"lipton":1.005,"luxuryspa":0.579,"melancholy":4.407,"mshrm":1.29,"myasnalavka":0.665,"nashsik":0.841,"patricialedo":2.527,"petsocial":0.989,"proam":2.155,"reeva":1.956,"rerechi":5.504,"royalcanin":2.809,"stozhar":3.768,"suzuki":1.483,"syoss":2.132,"tattoo":1.639,"ultrashop":3.743,"vegamilk":1.524,"zolota":0.773};

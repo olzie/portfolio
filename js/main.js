@@ -22,34 +22,7 @@
   /* ---------- smooth scroll (wheel only; touch stays native) ---------- */
   let lenis = null;
   if (!reduce && window.Lenis) {
-    /* The first block can't be flown through. One wheel or trackpad gesture (a flick plus its
-       inertia) moves at most ~85% of a screen while inside the first block, and it stops at the
-       block's edge: going down it stops where the cat finishes its turn, going up from below it stops
-       there too. The next gesture carries on. A gesture ends after a short pause, or when the
-       fingers push again (the deltas grow instead of fading). */
-    const g = { last: 0, abs: 0, dir: 0, start: 0, capped: false };
-    const guard = e => {
-      if (!e.event || !e.event.type.includes("wheel") || !lenis || window.__heroEnd == null) return true;
-      const now = performance.now(), dy = e.deltaY, a = Math.abs(dy), dir = Math.sign(dy);
-      if (!dir) return true;
-      if (now - g.last > 140 || dir !== g.dir || (g.capped && a > g.abs * 1.4 + 6))
-        Object.assign(g, { dir, start: lenis.targetScroll, capped: false });
-      g.last = now; g.abs = a;
-      const lo = window.__heroTop || 0, hi = window.__heroEnd, budget = innerHeight * 0.85, s0 = g.start;
-      let limit = null;
-      if (dir > 0 && s0 < hi - 2) limit = Math.min(hi, Math.max(s0, lo) + budget);
-      else if (dir < 0 && s0 > hi + 2) limit = hi;
-      else if (dir < 0 && s0 > lo + 2) limit = Math.max(lo, s0 - budget);
-      if (limit === null) return true;
-      const t = lenis.targetScroll, room = limit - t;
-      if (dir > 0 ? dy > room : dy < room) {
-        g.capped = true;
-        if (Math.abs(room) < 0.5) return false;          // swallow the rest of this flick
-        e.deltaY = room;
-      }
-      return true;
-    };
-    lenis = new Lenis({ duration: 1.15, smoothWheel: true, wheelMultiplier: 0.9, virtualScroll: guard });
+    lenis = new Lenis({ duration: 1.15, smoothWheel: true, wheelMultiplier: 0.9 });
     const raf = t => { lenis.raf(t); requestAnimationFrame(raf); };
     requestAnimationFrame(raf);
     lenis.stop();
@@ -326,10 +299,10 @@
     const titleBottom = title.offsetTop + title.offsetHeight;
     const hudH = Math.max(...huds.map(h => h.offsetHeight), 40);
     const solesMax = bh - 138 - hudH - 26;            // above the note (CSS: .hud bottom 138), leaving room for the reflection
-    const earsMin = titleBottom - 8;
+    const earsMin = titleBottom + 18;                  // keep the ears clear of "SENIOR SMM SPECIALIST"
     const span = solesMax - earsMin;                    // ears-to-soles is 70% of the stage
     const size = clamp(span / 0.70, 300, 470);
-    const soles = solesMax - Math.max(0, span - 0.70 * size) / 2;   // tall screens: centre the cat in the gap
+    const soles = solesMax - Math.max(0, span - 0.70 * size) * 0.35;   // tall screens: the cat stays close to the note under it
     Object.assign(stage.style, {
       width: size + "px", height: size + "px",
       left: (390 - size) / 2 + "px", top: Math.round(soles - BASE * size) + "px"
@@ -343,6 +316,7 @@
   probe.style.cssText = "position:fixed;left:0;top:0;width:1px;height:100vh;height:100svh;visibility:hidden;pointer-events:none";
   body.appendChild(probe);
   const safeH = () => Math.min(probe.offsetHeight || innerHeight, pin.clientHeight);
+  let pullW = -1;
   function setScale() {
     const mob = isMobile(), H = safeH();
     const bw = mob ? 390 : 1440;
@@ -356,7 +330,8 @@
        plus the browser bars' height, since the scene fills 100lvh). Pull the next block up over
        that empty strip, so the gap to "Results" is about the same as between the later blocks. */
     const numsEl = document.getElementById("numbers"), ctaEl = board.querySelector(".cta");
-    if (numsEl) {
+    if (numsEl && pin.clientWidth !== pullW) {
+      pullW = pin.clientWidth;                          // browser bars sliding must not move the page under the finger
       numsEl.style.marginTop = "";
       if (mob && ctaEl) {
         const gap = pin.clientHeight - (ctaEl.getBoundingClientRect().bottom - pin.getBoundingClientRect().top);
@@ -415,7 +390,7 @@
     hero.classList.toggle("is-scrolled", p > 0.02);              // CSS hides the list and the scroll hint
     hero.classList.toggle("is-turning", p > 0.02 && p < 0.74);   // CSS dims the name while the cat turns
     huds.forEach((h, i) => h.classList.toggle("is-in", isMobile()
-      ? p >= hudAt[i] && p < (hudAt[i + 1] ?? HUD_OUT)
+      ? p >= (i ? hudAt[i] : -1) && p < (hudAt[i + 1] ?? HUD_OUT)
       : p >= hudAt[i] && p < HUD_OUT));
     remember(y);
   }
@@ -480,7 +455,10 @@
     turn.shown = Math.round(turn.cur);
     needDraw = true; drawCat(shownFrame());
     requestAnimationFrame(() => loader.classList.add("is-done"));         // CSS fades it out
-    loader.addEventListener("transitionend", () => { loader.remove(); if (lenis) lenis.start(); }, { once: true });
+    let done = false;
+    const go = () => { if (done) return; done = true; loader.remove(); if (lenis) lenis.start(); };
+    loader.addEventListener("transitionend", e => { if (e.target === loader) go(); });
+    setTimeout(go, 1600);                                // a tab in the background may never fire transitionend
   }
 
   setScale(); fitTitle(); fit();
