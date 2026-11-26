@@ -255,6 +255,10 @@ body::after{
   .cta__arrow{width:42px;height:42px;align-self:center}
 }
 
+/* short fade that hides menu jumps through the first block (main.js) */
+.veil{position:fixed;inset:0;z-index:44;background:var(--bg);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .26s ease,visibility 0s .26s}
+.veil.is-on{opacity:1;visibility:visible;transition:opacity .26s ease}
+
 /* ============ LIQUID GLASS ============ */
 .glass{
   isolation:isolate;
@@ -411,7 +415,10 @@ body::after{
 .crow.is-hot .crow__arrow,.crow__btn:focus-visible .crow__arrow{opacity:1;translate:0 0}
 
 /* glow in the hovered brand's colour behind the list (desktop) */
-.cglow{position:absolute;left:0;top:0;z-index:0;width:900px;height:900px;margin:-450px 0 0 -450px;border-radius:50%;pointer-events:none;
+/* the glow fades out towards the top and bottom of the block, so it never shows a hard edge against the block above */
+.cglow-wrap{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+  -webkit-mask-image:linear-gradient(transparent,#000 220px,#000 calc(100% - 160px),transparent);mask-image:linear-gradient(transparent,#000 220px,#000 calc(100% - 160px),transparent)}
+.cglow{position:absolute;left:0;top:0;width:620px;height:620px;margin:-310px 0 0 -310px;border-radius:50%;pointer-events:none;
   background:radial-gradient(closest-side,color-mix(in srgb,color-mix(in srgb,var(--gc,#1747ff) 85%,#fff) 65%,transparent),transparent 70%);filter:blur(30px);
   opacity:0;transition:opacity .6s;will-change:transform}
 .cglow.is-on{opacity:.6}

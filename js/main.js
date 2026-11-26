@@ -39,11 +39,28 @@
   };
   menuBtn.addEventListener("click", () => setMenu(!body.classList.contains("menu-open")));
   addEventListener("keydown", e => e.key === "Escape" && setMenu(false));
+  /* Menu links. A smooth scroll through the first block would spin the cat through its whole turn
+     in a second, so a jump that starts or ends inside the first block happens behind a short fade:
+     the screen dims, the page moves at once, the cat is set straight to its frame, the screen comes back. */
+  const veil = document.createElement("div");
+  veil.className = "veil"; veil.setAttribute("aria-hidden", "true");
+  body.appendChild(veil);
   $$("a[href^='#']").forEach(a => a.addEventListener("click", e => {
     const id = a.getAttribute("href");
     const el = id === "#top" ? 0 : $(id);
     if (el === null) return;
     e.preventDefault(); setMenu(false);
+    const from = lenis ? lenis.scroll : scrollY;
+    const to = el === 0 ? 0 : el.getBoundingClientRect().top + scrollY;
+    const heroEnd = (window.__heroEnd || 0);
+    if (window.__snapCat && (from < heroEnd || to < heroEnd) && Math.abs(to - from) > 40) {
+      veil.classList.add("is-on");
+      setTimeout(() => {
+        lenis ? lenis.scrollTo(el, { immediate: true, force: true }) : scrollTo(0, to);
+        requestAnimationFrame(() => { window.__snapCat(); requestAnimationFrame(() => veil.classList.remove("is-on")); });
+      }, 260);
+      return;
+    }
     lenis ? lenis.scrollTo(el) : (el === 0 ? scrollTo({ top: 0, behavior: "smooth" }) : el.scrollIntoView({ behavior: "smooth" }));
   }));
 
@@ -258,6 +275,8 @@
     else looping = false;
   }
   const kick = () => { if (!looping) { looping = true; requestAnimationFrame(tick); } };
+  // put the cat straight on the frame for the current scroll, with no turn in between (used by menu jumps)
+  window.__snapCat = () => { onScroll(); turn.cur = turn.target; turn.shown = Math.round(turn.cur); needDraw = true; drawCat(shownFrame()); };
   if (/[?&]debug/.test(location.search)) window.__cat = () => ({ cur: turn.cur, drawn, loaded: bmp.filter(Boolean).length });
 
   /* ---------- mouse parallax (CSS transitions ease it) ---------- */
@@ -339,6 +358,7 @@
   const measure = () => {
     heroTop = hero.offsetTop;
     heroLen = Math.max(1, hero.offsetHeight - innerHeight);
+    window.__heroEnd = heroTop + heroLen;               // the menu fades instead of scrolling through this range
     docLen = Math.max(1, document.documentElement.scrollHeight - innerHeight);
   };
   function onScroll() {
