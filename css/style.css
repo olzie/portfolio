@@ -264,8 +264,8 @@ body::after{
 .skills__pin{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;--hz:78%}
 .sk-studio{position:absolute;inset:0;background:#000}   /* opaque: Safari doesn't have to blend the stage with the page under it */
 /* the top of the stage is the cases block's colour, fading to black: an opaque layer over the beam and the shade, no masks */
-.sk-studio::after{content:"";position:absolute;left:0;right:0;top:0;height:42%;z-index:3;pointer-events:none;
-  background:linear-gradient(180deg,var(--bg) 0%,rgba(4,6,12,.85) 22%,rgba(4,6,12,.4) 55%,rgba(4,6,12,0) 100%)}
+.sk-studio::after{content:"";position:absolute;left:0;right:0;top:0;height:62%;z-index:3;pointer-events:none;
+  background:linear-gradient(180deg,rgba(4,6,12,1) 0%,rgba(4,6,12,0.985) 10%,rgba(4,6,12,0.94) 20%,rgba(4,6,12,0.86) 30%,rgba(4,6,12,0.75) 40%,rgba(4,6,12,0.62) 50%,rgba(4,6,12,0.48) 60%,rgba(4,6,12,0.34) 70%,rgba(4,6,12,0.2) 80%,rgba(4,6,12,0.08) 90%,rgba(4,6,12,0) 100%)}   /* eased: no visible crease where the cases block's flat colour starts to darken */
 .sk-beam{position:absolute;left:50%;top:0;width:min(1100px,120vw);height:104%;translate:-50% 0;pointer-events:none;
   background:radial-gradient(ellipse 26% 92% at 50% 0%,rgba(156,188,255,.22),rgba(58,102,255,.14) 30%,rgba(23,71,255,.05) 60%,transparent 78%)}
 /* the floor glow sits inside its box and fades out before any edge: no line where the floor starts */
