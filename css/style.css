@@ -431,13 +431,19 @@ body::after{
 /* ============ CASES OUTSIDE iGAMING ============ */
 .cases{position:relative;z-index:1;background:var(--bg);padding:clamp(40px,4.6vw,68px) 0 clamp(20px,2.4vw,36px);overflow:hidden;overflow:clip}
 .cases__in{max-width:1368px;margin:0 auto;padding:0 clamp(20px,3vw,36px)}
-.cases__head{display:grid;grid-template-columns:1fr auto;align-items:end;gap:16px 40px;margin-bottom:clamp(28px,3.4vw,52px)}
+.cases__head{position:relative;display:grid;grid-template-columns:1fr auto;align-items:stretch;gap:16px 40px;margin-bottom:clamp(28px,3.4vw,52px)}
+/* blue haze behind the heading, like the one under "Results" */
+.cases__head::before{content:"";position:absolute;left:-12%;top:-70%;width:min(1000px,80vw);height:240%;pointer-events:none;z-index:-1;
+  background:radial-gradient(ellipse 46% 38% at 34% 50%,rgba(58,102,255,.18),rgba(23,71,255,.06) 50%,rgba(23,71,255,.015) 68%,transparent 80%)}
 .cases__title{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(40px,5.6vw,84px);line-height:.92;letter-spacing:-.035em;text-transform:uppercase;color:var(--text)}
-.cases__count{display:flex;flex-direction:column;align-items:flex-end;padding-right:56px}   /* right edge lines up with the case figures (row padding + arrow column + gap) */
-.cases__big{font-family:var(--display);font-weight:800;font-size:clamp(52px,5.8vw,96px);line-height:.85;letter-spacing:-.05em;color:#e9edf6}
-.cases__lbl{margin-top:10px;color:var(--ice)}
-.cases__more{display:flex;align-items:baseline;gap:8px;margin:16px 0 8px;color:var(--ice)}
-.cases__more b{font-family:var(--display);font-weight:800;font-size:clamp(22px,2vw,30px);letter-spacing:-.04em;color:#e9edf6;line-height:1}
+.cases__count{display:flex;flex-direction:column;align-items:flex-end;padding-right:56px}
+.cases__count{--tf:clamp(40px,5.6vw,84px);padding-top:calc(var(--tf) * .04)}   /* --tf: the heading's font size */
+.cases__note{margin-top:auto!important;margin-bottom:0!important}   /* 25 lines up with the top of OUTSIDE, the years with the baseline of IGAMING */   /* right edge lines up with the case figures (row padding + arrow column + gap) */
+.cases__big{font-family:var(--display);font-weight:800;font-size:calc(var(--tf) * 1.04);line-height:.85;letter-spacing:-.05em;color:#e9edf6}
+.cases__row{display:flex;align-items:baseline;gap:10px}
+.cases__lbl{color:var(--ice)}
+.cases__more{display:flex;align-items:baseline;gap:8px;margin:calc(var(--tf) * .14) 0 calc(var(--tf) * .06);color:var(--ice)}
+.cases__more b{font-family:var(--display);font-weight:800;font-size:calc(var(--tf) * .34);letter-spacing:-.04em;color:#e9edf6;line-height:1}
 .cases__more em{font-style:normal;color:var(--blue-hi);margin-right:.08em}
 .cases__note{margin:0;color:var(--dim);text-align:right;white-space:nowrap}
 
@@ -691,8 +697,8 @@ body.cview-open{overflow:hidden}
   .crow__key small{font-size:11.5px;letter-spacing:.04em}
   .cases__head{grid-template-columns:1fr}
   .cases__note,.cases__count{text-align:left}
-  .cases__count{align-items:flex-start;padding-right:0}
-  .cases__big{font-size:52px}
+  .cases__count{align-items:flex-start;padding-right:0;--tf:50px}
+  .cases__note{margin-bottom:0!important}
   .crow__btn{grid-template-columns:44px minmax(0,1fr) auto;grid-template-areas:"lg name arrow" "lg meta meta" "lg key key";gap:2px 12px;padding:14px 2px}
   .crow__i{display:none}
   .crow__logo{grid-area:lg;align-self:start;position:relative;display:block;width:44px;height:44px;border-radius:10px;overflow:hidden;background:#10162b;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}   /* one colour for all, so the list stays calm */
