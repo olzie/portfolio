@@ -1,22 +1,26 @@
 /* Cases outside iGaming
-   - a list of cases; on desktop a preview card follows the cursor over it
-   - choosing a case opens it over the page; its numbers roll in like slot reels
-   Plain JS + CSS transitions. Text comes from window.CASES in the current language. */
+   - every main case is a row; on desktop a card with the brand's logo follows the cursor
+   - below, a running line: tenders first (all open one window), then small cases (each opens its own)
+   - a case opens over the page; its numbers roll in like slot reels
+   Plain JS + CSS transitions. Text comes from cases.js in the current language. */
 (() => {
   const $ = (s, r = document) => r.querySelector(s);
-  const list = $("#clist"), card = $("#ccard"), view = $("#cview");
+  const list = $("#clist"), card = $("#ccard"), view = $("#cview"), track = $("#alsoTrack");
   if (!list || !window.CASES) return;
-  const CASES = window.CASES;
+  const ALL = window.CASES, T = window.CASES_TENDERS;
+  const MAIN = ALL.map((c, i) => i).filter(i => !ALL[i].small);
+  const SMALL = (window.CASES_SMALL_ORDER || []).map(id => ALL.findIndex(c => c.id === id)).filter(i => i >= 0);
   const hover = matchMedia("(hover: hover) and (pointer: fine)").matches;
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const lang = () => (window.currentLang === "uk" ? "uk" : "en");
+  const t = k => window.I18N?.[lang()]?.[k] || "";
   const pad = n => String(n).padStart(2, "0");
 
-  /* ---------- the same wordmark style for every brand ---------- */
-  const wordmark = c => `<div class="wm" style="--c:${c.color}"><span class="wm__name">${c.name}</span></div>`;
-  const media = (c, i = 0, chip = true) => c.img && c.img[i]
-    ? `<img src="${c.img[i]}" alt="" loading="lazy" decoding="async">${chip ? `<span class="chip">${c.name}</span>` : ""}`
-    : wordmark(c);
+  /* the brand's own logo in white on its colour; the name in type when there is no logo */
+  const logo = (c, cls = "") => c.logo
+    ? `<img class="lg ${cls}" src="${c.logo}" alt="${c.name}" loading="lazy" decoding="async">`
+    : `<span class="lg lg--type ${cls}">${c.name}</span>`;
+  const tile = c => `<div class="brand" style="--c:${c.color}">${logo(c)}</div>`;
 
   /* ---------- slot reels: every digit spins and lands, the rest stays still ---------- */
   const TURNS = 2;
@@ -37,50 +41,70 @@
     });
   }
 
-  /* ---------- list ---------- */
-  function renderList() {
+  /* ---------- list + running line ---------- */
+  function render() {
     const L = lang();
-    list.innerHTML = CASES.map((c, i) => `
-      <li class="crow" style="--i:${i}">
-        <button class="crow__btn" type="button" data-i="${i}" aria-label="${c.name}: ${window.I18N?.[L]?.["cases.open"] || "Open case"}">
-          <span class="crow__i mono">${pad(i + 1)}</span>
+    list.innerHTML = MAIN.map((ci, n) => {
+      const c = ALL[ci], d = c[L];
+      const key = d.key
+        ? `<b>${d.key[0].replace(/([+%×])/g, "<em>$1</em>")}</b><small class="mono">${d.key[1]}</small>`
+        : `<small class="mono crow__did">${d.did.slice(0, 2).join(" · ")}</small>`;
+      return `
+      <li class="crow" style="--i:${n}">
+        <button class="crow__btn" type="button" data-i="${ci}" aria-label="${c.name}: ${t("cases.open") || "Open case"}">
+          <span class="crow__i mono">${pad(n + 1)}</span>
+          <span class="crow__logo" style="--c:${c.color}" aria-hidden="true">${logo(c)}</span>
           <span class="crow__name">${c.name}</span>
-          <span class="crow__meta mono">${c[L].meta}</span>
-          <span class="crow__key"><b>${c[L].key[0].replace(/([+%×])/g, "<em>$1</em>")}</b><small class="mono">${c[L].key[1]}</small></span>
+          <span class="crow__meta mono">${d.meta}</span>
+          <span class="crow__key">${key}</span>
           <span class="crow__arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span>
         </button>
-      </li>`).join("");
-    card.innerHTML = CASES.map((c, i) => `<div class="ccard__item" data-i="${i}">${media(c)}</div>`).join("");
-    const also = (window.CASES_ALSO || []).map(n => `<span>${n}</span><i aria-hidden="true"></i>`).join("");
-    $("#alsoTrack").innerHTML = also + also;          // twice, so the loop is seamless
+      </li>`;
+    }).join("");
+    card.innerHTML = MAIN.map(ci => `<div class="ccard__item" data-i="${ci}">${tile(ALL[ci])}</div>`).join("");
+
+    // running line: tenders (one window), then small cases (their own windows)
+    const byId = Object.fromEntries(T.items.map(x => [x.id, x]));
+    const items = [
+      ...T.line_ids.map(id => ({ kind: "t", id, name: byId[id].name, logo: byId[id].logo })),
+      ...SMALL.map(i => ({ kind: "c", id: i, name: ALL[i].name, logo: ALL[i].logo }))
+    ];
+    const one = (x, hidden) => `<button class="also__item${x.kind === "t" ? " is-tender" : ""}" type="button" data-k="${x.kind}" data-id="${x.id}"${hidden ? ' tabindex="-1" aria-hidden="true"' : ""} aria-label="${x.name}">${
+      x.logo ? `<img src="${x.logo}" alt="" loading="lazy" decoding="async">` : `<span>${x.name}</span>`}</button>`;
+    const sep = `<i aria-hidden="true"></i>`;
+    track.innerHTML = items.map(x => one(x) + sep).join("") + items.map(x => one(x, true) + sep).join("");   // twice, so the loop is seamless
+    // round logos get taller, long wordmarks shorter, so they all read the same size
+    track.querySelectorAll("img").forEach(im => {
+      const fit = () => { const ar = im.naturalWidth / im.naturalHeight || 3; im.style.height = `calc(var(--lh) * ${Math.min(1.55, Math.max(0.72, Math.sqrt(2.6 / ar))).toFixed(2)})`; };
+      im.complete && im.naturalWidth ? fit() : im.addEventListener("load", fit, { once: true });
+    });
   }
-  renderList();
-  window.addEventListener("langchange", () => { renderList(); if (open >= 0) fill(open, false); });
+  render();
+  window.addEventListener("langchange", () => { render(); if (cur) show(cur, false); });
 
   /* rows rise in when the list scrolls into view */
   const section = $("#cases");
   if ("IntersectionObserver" in window) {
-    const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { section.classList.add("is-in"); io.disconnect(); } }, { threshold: 0.12 });
+    const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { section.classList.add("is-in"); io.disconnect(); } }, { threshold: 0.08 });
     io.observe(section);
   } else section.classList.add("is-in");
 
-  /* ---------- preview card follows the cursor (desktop only) ---------- */
+  /* ---------- logo card follows the cursor (desktop only) ---------- */
   if (hover) {
     let tx = 0, ty = 0, x = 0, y = 0, vx = 0, active = -1, raf = 0, shown = false;
-    const W = () => card.offsetWidth, H = () => card.offsetHeight;
     const loop = () => {
       const px = x;
       x += (tx - x) * 0.14; y += (ty - y) * 0.14;
       vx += ((x - px) - vx) * 0.2;
       const rot = Math.max(-8, Math.min(8, vx * 0.5));
-      card.style.transform = `translate3d(${(x - W() / 2).toFixed(1)}px,${(y - H() / 2).toFixed(1)}px,0) rotate(${rot.toFixed(2)}deg)`;
+      card.style.transform = `translate3d(${(x - card.offsetWidth / 2).toFixed(1)}px,${(y - card.offsetHeight / 2).toFixed(1)}px,0) rotate(${rot.toFixed(2)}deg)`;
       raf = (shown || Math.abs(tx - x) > 0.5) ? requestAnimationFrame(loop) : 0;
     };
     const setActive = i => {
       if (i === active) return;
       active = i;
       card.querySelectorAll(".ccard__item").forEach(el => el.classList.toggle("is-on", +el.dataset.i === i));
-      list.querySelectorAll(".crow").forEach((el, k) => el.classList.toggle("is-hot", k === i));
+      list.querySelectorAll(".crow__btn").forEach(el => el.parentNode.classList.toggle("is-hot", +el.dataset.i === i));
     };
     list.addEventListener("pointermove", e => {
       tx = e.clientX; ty = e.clientY;
@@ -92,65 +116,86 @@
     list.addEventListener("pointerleave", () => {
       shown = false; card.classList.remove("is-on"); list.classList.remove("is-hovering"); setActive(-1);
     });
-    // scrolling under a still cursor: keep the card on it
     addEventListener("scroll", () => { if (shown && !raf) raf = requestAnimationFrame(loop); }, { passive: true });
   }
 
   /* ---------- case view ---------- */
-  let open = -1, lastFocus = null;
+  // cur = { kind: "c", i, group: [indices] } for a case, { kind: "t" } for the tenders window
+  let cur = null, lastFocus = null;
   const vMedia = $("#cviewMedia"), vMeta = $("#cviewMeta"), vName = $("#cviewName"), vLine = $("#cviewLine"),
-        vStats = $("#cviewStats"), vBody = $("#cviewBody"), vCount = $("#cviewCount");
-  function fill(i, animate = true) {
-    const c = CASES[i], L = lang();
-    view.style.setProperty("--c", c.color);
-    vMedia.innerHTML = (c.img ? c.img.map((_, k) => `<figure class="cview__fig">${media(c, k, false)}</figure>`).join("") : `<figure class="cview__fig">${wordmark(c)}</figure>`);
-    vMedia.dataset.n = c.img ? c.img.length : 1;
-    vMeta.textContent = c[L].meta;
-    vName.textContent = c.name;
-    vLine.textContent = c[L].line;
-    vBody.textContent = c[L].body;
-    vStats.innerHTML = c[L].stats.map(s => `<li><div class="cnum">${reels(s[0])}</div><p class="mono">${s[1]}</p></li>`).join("");
-    vCount.textContent = `${pad(i + 1)} / ${pad(CASES.length)}`;
+        vStats = $("#cviewStats"), vBody = $("#cviewBody"), vDid = $("#cviewDid"), vCount = $("#cviewCount"), vNav = $("#cviewNav");
+  function show(s, animate = true) {
+    const L = lang();
+    view.classList.toggle("is-tenders", s.kind === "t");
+    if (s.kind === "t") {
+      view.style.setProperty("--c", T.color);
+      vMedia.innerHTML = `<div class="cview__wall">${T.items.map(x => `<div class="cview__tile">${logo(x)}</div>`).join("")}</div>`;
+      vMeta.textContent = T[L].meta; vName.textContent = T[L].name; vLine.textContent = T[L].line;
+      vStats.innerHTML = ""; vStats.hidden = true; vDid.innerHTML = "";
+      vBody.innerHTML = `<ul class="tlist">${T.items.map(x => `<li><b>${x.name}</b><span>${x[L]}</span></li>`).join("")}</ul>`;
+      vNav.hidden = true;
+    } else {
+      const c = ALL[s.i], d = c[L], pos = s.group.indexOf(s.i);
+      view.style.setProperty("--c", c.color);
+      vMedia.innerHTML = `<figure class="cview__fig">${tile(c)}</figure>`;
+      vMeta.textContent = d.meta; vName.textContent = c.name; vLine.textContent = d.line;
+      vStats.style.setProperty("--n", Math.max(1, d.stats.length));
+      vStats.innerHTML = d.stats.map(x => `<li><div class="cnum">${reels(x[0])}</div><p class="mono">${x[1]}</p></li>`).join("");
+      vStats.hidden = !d.stats.length;
+      vBody.textContent = d.body;
+      vDid.innerHTML = `<span class="mono">${t("cases.did")}</span>` + d.did.map(x => `<i>${x}</i>`).join("");
+      vCount.textContent = `${pad(pos + 1)} / ${pad(s.group.length)}`;
+      vNav.hidden = s.group.length < 2;
+    }
     view.classList.remove("is-swap"); void view.offsetWidth; view.classList.add("is-swap");
-    if (animate) requestAnimationFrame(() => spin(vStats, 0.35));
-    else spin(vStats, 0);
+    $(".cview__text").scrollTop = 0;
+    if (s.kind === "c") { if (animate) requestAnimationFrame(() => spin(vStats, 0.35)); else spin(vStats, 0); }
   }
-  function openCase(i) {
+  function openView(s) {
     lastFocus = document.activeElement;
-    open = i; fill(i);
+    cur = s; show(s);
     view.setAttribute("aria-hidden", "false");
     view.classList.add("is-open");
     document.body.classList.add("cview-open");
     if (window.__lenis) window.__lenis.stop();
     setTimeout(() => $("#cviewClose").focus({ preventScroll: true }), 60);
   }
-  function closeCase() {
-    if (open < 0) return;
-    open = -1;
+  function closeView() {
+    if (!cur) return;
+    cur = null;
     view.classList.remove("is-open");
     view.setAttribute("aria-hidden", "true");
     document.body.classList.remove("cview-open");
     if (window.__lenis) window.__lenis.start();
     if (lastFocus) lastFocus.focus({ preventScroll: true });
   }
-  const go = d => { if (open >= 0) { open = (open + d + CASES.length) % CASES.length; fill(open); } };
-  list.addEventListener("click", e => { const b = e.target.closest(".crow__btn"); if (b) openCase(+b.dataset.i); });
-  $("#cviewClose").addEventListener("click", closeCase);
+  const go = d => {
+    if (!cur || cur.kind !== "c" || cur.group.length < 2) return;
+    const g = cur.group, k = (g.indexOf(cur.i) + d + g.length) % g.length;
+    cur = { kind: "c", i: g[k], group: g }; show(cur);
+  };
+  list.addEventListener("click", e => { const b = e.target.closest(".crow__btn"); if (b) openView({ kind: "c", i: +b.dataset.i, group: MAIN }); });
+  track.addEventListener("click", e => {
+    const b = e.target.closest(".also__item"); if (!b) return;
+    if (b.dataset.k === "t") openView({ kind: "t" });
+    else openView({ kind: "c", i: +b.dataset.id, group: SMALL });
+  });
+  $("#cviewClose").addEventListener("click", closeView);
   $("#cviewPrev").addEventListener("click", () => go(-1));
   $("#cviewNext").addEventListener("click", () => go(1));
-  view.addEventListener("click", e => { if (e.target === view) closeCase(); });
+  view.addEventListener("click", e => { if (e.target === view) closeView(); });
   addEventListener("keydown", e => {
-    if (open < 0) return;
-    if (e.key === "Escape") closeCase();
+    if (!cur) return;
+    if (e.key === "Escape") closeView();
     if (e.key === "ArrowRight") go(1);
     if (e.key === "ArrowLeft") go(-1);
   });
   // swipe left/right between cases on touch screens
-  let sx = null;
-  view.addEventListener("touchstart", e => { sx = e.touches[0].clientX; }, { passive: true });
+  let sx = null, sy = null;
+  view.addEventListener("touchstart", e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
   view.addEventListener("touchend", e => {
     if (sx === null) return;
-    const dx = e.changedTouches[0].clientX - sx; sx = null;
-    if (Math.abs(dx) > 60) go(dx < 0 ? 1 : -1);
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? 1 : -1);
   }, { passive: true });
 })();
