@@ -282,6 +282,8 @@ body::after{
 .sk-corner--br::before{left:16px;top:0;bottom:0;width:2px}
 .sk-corner--br::after{top:16px;left:0;right:0;height:2px}
 .sk-head{position:absolute;left:50%;top:clamp(76px,10vh,104px);translate:-50% 0;z-index:5;text-align:center;width:max-content;max-width:90vw}
+.sk-head::before{content:"";position:absolute;left:50%;top:44%;width:min(1100px,96vw);height:380%;translate:-50% -50%;pointer-events:none;z-index:-1;
+  background:radial-gradient(ellipse 42% 36% at 50% 50%,rgba(58,102,255,.20),rgba(23,71,255,.07) 50%,rgba(23,71,255,.018) 68%,transparent 80%)}   /* soft pool behind the heading, same recipe as Results and Cases */
 .sk-title{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(34px,4.6vw,72px);letter-spacing:-.04em;line-height:.9;text-transform:uppercase;color:#e9edf6}
 .sk-note{margin:12px 0 0;color:var(--dim)}
 .sk-stage{position:absolute;inset:0;z-index:4}
