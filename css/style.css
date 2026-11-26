@@ -275,8 +275,9 @@ body::after{
 .sk-vig{position:absolute;inset:0;z-index:2;pointer-events:none;
   background:radial-gradient(ellipse 80% 75% at 50% 50%,transparent 50%,rgba(0,0,0,.75) 100%),linear-gradient(180deg,transparent 80%,rgba(0,0,0,.6))}
 .sk-corner{position:absolute;z-index:6;width:34px;height:34px;pointer-events:none}
-.sk-corner--tl{left:clamp(16px,2.5vw,36px);top:clamp(80px,12vh,110px);border-left:2px solid var(--blue);border-top:2px solid var(--blue)}
-.sk-corner--br{right:clamp(16px,2.5vw,36px);bottom:clamp(20px,4vh,40px)}
+/* mirrored against the first block: the corner sits top right, the cross bottom left */
+.sk-corner--tl{right:clamp(16px,2.5vw,36px);top:clamp(80px,12vh,110px);border-right:2px solid var(--blue);border-top:2px solid var(--blue)}
+.sk-corner--br{left:clamp(16px,2.5vw,36px);bottom:clamp(20px,4vh,40px)}
 .sk-corner--br::before,.sk-corner--br::after{content:"";position:absolute;background:var(--blue)}
 .sk-corner--br::before{left:16px;top:0;bottom:0;width:2px}
 .sk-corner--br::after{top:16px;left:0;right:0;height:2px}
@@ -324,7 +325,7 @@ body::after{
 .sk-panel.is-on{cursor:default}
 .sk-panel:focus-visible .sk-face{outline:2px solid var(--blue-hi);outline-offset:4px}
 .sk-panel:not(.is-on):hover .sk-in{opacity:.6}
-.sk-prog{position:absolute;left:clamp(20px,4vw,56px);bottom:clamp(20px,5vh,44px);z-index:6;display:flex;gap:10px;align-items:center;color:var(--dim)}
+.sk-prog{position:absolute;right:clamp(20px,4vw,56px);bottom:clamp(20px,5vh,44px);z-index:6;display:flex;gap:10px;align-items:center;color:var(--dim)}
 .sk-prog b{color:#fff;font-weight:400}
 .sk-prog i{display:block;width:120px;height:2px;background:rgba(156,188,255,.15);overflow:hidden}
 .sk-prog s{display:block;height:100%;background:var(--blue);box-shadow:0 0 8px var(--blue);transform:scaleX(0);transform-origin:0 50%;text-decoration:none}
@@ -333,6 +334,7 @@ body::after{
   .sk-track,.sk-halo{--ph:min(420px,54vh)}
   .sk-head{top:96px}
   .sk-prog i{width:64px}
+  .sk-corner--tl{top:64px;width:26px;height:26px}   /* clear of the subtitle on narrow screens */
 }
 
 /* short fade that hides menu jumps through the first block (main.js) */
