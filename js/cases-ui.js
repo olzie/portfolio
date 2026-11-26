@@ -46,6 +46,9 @@
     });
   }
 
+  const PEEK = 3;           // rows of "everything else" visible while the list is folded
+  let collapsed = true;
+
   /* ---------- list + running line ---------- */
   function render() {
     const L = lang();
@@ -56,7 +59,7 @@
         : `<small class="mono crow__did">${d.did.slice(0, 2).join(" · ")}</small>`;
       const meta = top ? d.meta : d.meta.replace(/( · \d{4}(–\d{2})?)/, `<span class="crow__yr">$1</span>`);   // the year has its own column on desktop
       return `
-      <li class="crow${top ? " crow--top" : ""}" style="--i:${n}">
+      <li class="crow${top ? " crow--top" : ` crow--rest${n - TOP.length < PEEK ? " crow--peek" : ""}${n - TOP.length === PEEK - 1 ? " crow--fade" : ""}`}" style="--i:${n};--r:${n - TOP.length}">
         <button class="crow__btn" type="button" data-i="${ci}" aria-label="${c.name}: ${t("cases.open") || "Open case"}">
           <span class="crow__i mono">${top ? pad(n + 1) : yearOf(d)}</span>
           <span class="crow__logo" style="--c:${c.color}" aria-hidden="true">${logo(c)}</span>
@@ -70,9 +73,10 @@
     list.innerHTML =
       `<li class="clabel mono" aria-hidden="true">${t("cases.top")}</li>` +
       TOP.map((ci, n) => row(ci, n, true)).join("") +
-      `<li class="clabel clabel--rest mono" aria-hidden="true">${t("cases.rest")}</li>` +
+      `<li class="clabel clabel--rest mono" aria-hidden="true"><span>${t("cases.rest")}</span><span class="yrail__y">${[0, 1, 2, 3].map(() => `<span class="yreel"><span>${[...Array(10).keys()].map(d => `<i>${d}</i>`).join("")}</span></span>`).join("")}</span></li>` +
       REST.map((ci, n) => row(ci, n + TOP.length, false)).join("") +
-      `<li class="yrail" aria-hidden="true"><div class="yrail__y">${[0, 1, 2, 3].map(() => `<span class="yreel"><span>${[...Array(10).keys()].map(d => `<i>${d}</i>`).join("")}</span></span>`).join("")}</div></li>`;
+      `<li class="cmore"><button class="cmore__btn mono" type="button" aria-expanded="${!collapsed}">${collapsed ? t("cases.more").replace("{n}", REST.length) : t("cases.less")}<span aria-hidden="true">${collapsed ? "↓" : "↑"}</span></button></li>`;
+    list.classList.toggle("is-collapsed", collapsed);
     setupYear();
     card.innerHTML = MAIN.map(ci => `<div class="ccard__item" data-i="${ci}">${tile(ALL[ci])}</div>`).join("");
 
@@ -92,14 +96,23 @@
       im.complete && im.naturalWidth ? fit() : im.addEventListener("load", fit, { once: true });
     });
   }
-  /* the year next to "everything else" sticks while you scroll and rolls to the year of the row in the middle of the screen */
+  /* the rest of the list starts folded: three rows and a button that opens all of them */
+  list.addEventListener("click", e => {
+    if (!e.target.closest(".cmore__btn")) return;
+    collapsed = !collapsed;
+    const lbl = list.querySelector(".clabel--rest");
+    render();
+    if (!collapsed) list.classList.add("is-opening");
+    else if (lbl && window.__lenis) window.__lenis.scrollTo(lbl, { offset: -120 });
+    else if (lbl) lbl.scrollIntoView({ block: "start" });
+  });
+
+  /* the "everything else" bar sticks under the header while you scroll; its year rolls to the year of the rows passing under it */
   let yio = null;
   function setupYear() {
-    const rail = list.querySelector(".yrail"), lbl = list.querySelector(".clabel--rest");
-    if (!rail || !lbl) return;
-    const place = () => { rail.style.top = lbl.offsetTop + lbl.offsetHeight + "px"; };
-    place(); addEventListener("resize", place);
-    const strips = [...rail.querySelectorAll(".yreel > span")];
+    const lbl = list.querySelector(".clabel--rest");
+    if (!lbl) return;
+    const strips = [...lbl.querySelectorAll(".yreel > span")];
     let shownY = "";
     const setY = y => {
       if (y === shownY) return; shownY = y;
@@ -107,7 +120,7 @@
     };
     setY(String(Math.floor(ALL[REST[0]].y)));
     if (yio) yio.disconnect();
-    yio = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) setY(e.target.dataset.y); }), { rootMargin: "-46% 0px -52% 0px" });
+    yio = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) setY(e.target.dataset.y); }), { rootMargin: "-22% 0px -76% 0px" });
     list.querySelectorAll(".crow:not(.crow--top)").forEach(li => {
       li.dataset.y = String(Math.floor(ALL[+li.querySelector(".crow__btn").dataset.i].y));
       yio.observe(li);
@@ -140,25 +153,36 @@
       card.querySelectorAll(".ccard__item").forEach(el => el.classList.toggle("is-on", +el.dataset.i === i));
       list.querySelectorAll(".crow__btn").forEach(el => el.parentNode.classList.toggle("is-hot", +el.dataset.i === i));
     };
+    const show = i => {
+      if (!shown) { x = tx; y = ty; shown = true; card.classList.add("is-on"); list.classList.add("is-hovering"); }
+      setActive(i);
+      if (!raf) raf = requestAnimationFrame(loop);
+    };
+    const hide = () => {
+      if (!shown) return;
+      shown = false; card.classList.remove("is-on"); list.classList.remove("is-hovering"); setActive(-1);
+    };
+    // the card shows only while the cursor is on a row: labels and gaps between rows hide it
     list.addEventListener("pointermove", e => {
       tx = e.clientX; ty = e.clientY;
-      if (!shown) { x = tx; y = ty; shown = true; card.classList.add("is-on"); list.classList.add("is-hovering"); }
+      if (scrolling) return;
       const btn = e.target.closest(".crow__btn");
-      if (btn) setActive(+btn.dataset.i);
-      if (!raf) raf = requestAnimationFrame(loop);
+      btn ? show(+btn.dataset.i) : hide();
     });
-    const hide = () => { shown = false; card.classList.remove("is-on"); list.classList.remove("is-hovering"); setActive(-1); };
     list.addEventListener("pointerleave", hide);
-    // scrolling moves the list under a still cursor and no pointer event fires: check what is under the cursor now
-    let chk = 0;
+    // keep the cursor position current everywhere, so the check after scrolling uses where the cursor really is
+    addEventListener("pointermove", e => { if (!list.contains(e.target)) { tx = e.clientX; ty = e.clientY; } }, { passive: true });
+    document.addEventListener("pointerleave", () => { tx = ty = -1; hide(); });
+    // while the page scrolls the card steps aside; when scrolling stops it comes back if a row is under the cursor
+    let scrolling = false, idle = 0;
     addEventListener("scroll", () => {
-      if (!shown || chk) return;
-      chk = requestAnimationFrame(() => {
-        chk = 0;
-        const el = document.elementFromPoint(tx, ty), btn = el && el.closest(".crow__btn");
-        if (!btn || !list.contains(btn)) hide();
-        else { setActive(+btn.dataset.i); if (!raf) raf = requestAnimationFrame(loop); }
-      });
+      scrolling = true; hide();
+      clearTimeout(idle);
+      idle = setTimeout(() => {
+        scrolling = false;
+        const el = tx >= 0 && document.elementFromPoint(tx, ty), btn = el && el.closest(".crow__btn");
+        if (btn && list.contains(btn)) show(+btn.dataset.i);
+      }, 140);
     }, { passive: true });
   }
 
