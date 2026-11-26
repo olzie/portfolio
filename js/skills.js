@@ -8,7 +8,7 @@
 (() => {
   const section = document.getElementById("skills");
   if (!section) return;
-  const track = section.querySelector(".sk-track"), num = section.querySelector("#skNum"), bar = section.querySelector("#skBar");
+  const track = section.querySelector(".sk-track"), halo = section.querySelector(".sk-halo"), num = section.querySelector("#skNum"), bar = section.querySelector("#skBar");
   const lang = () => (window.currentLang === "uk" ? "uk" : "en");
   const SK = {
     en: [
@@ -91,6 +91,8 @@
           num.textContent = pad(c + 1);
         }
         set(bar, "transform", `scaleX(${(cam / (N - 1)).toFixed(3)})`);
+        // the halo is full when a panel sits under the spotlight and dims while they slide past
+        set(halo, "opacity", clamp(1 - Math.abs(cam - Math.round(cam)) * 2.4, 0, 1).toFixed(2));
       }
     }
     requestAnimationFrame(frame);
