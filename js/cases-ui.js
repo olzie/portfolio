@@ -72,7 +72,7 @@
         </button>
       </li>`;
     };
-    const btn = `<li class="cmore"><button class="cmore__btn mono" type="button" aria-expanded="${!collapsed}">${collapsed ? t("cases.more").replace("{n}", REST.length) : t("cases.less")}<span aria-hidden="true">${collapsed ? "↓" : "↑"}</span></button></li>`;
+    const btn = `<li class="cmore"><button class="cmore__btn glass mono" type="button" aria-expanded="${!collapsed}">${collapsed ? t("cases.more").replace("{n}", REST.length) : t("cases.less")}<span aria-hidden="true">${collapsed ? "↓" : "↑"}</span></button></li>`;
     list.innerHTML = TOP.map((ci, n) => row(ci, n, true)).join("") +
       (collapsed ? "" : REST.map((ci, n) => row(ci, n + TOP.length, false)).join("")) + btn;
     list.classList.toggle("is-collapsed", collapsed);
@@ -94,6 +94,14 @@
       im.complete && im.naturalWidth ? fit() : im.addEventListener("load", fit, { once: true });
     });
   }
+  /* the button is drawn here, after main.js set up the glass highlight: follow the cursor for it too */
+  if (hover) list.addEventListener("pointermove", e => {
+    const b = e.target.closest(".cmore__btn"); if (!b) return;
+    const r = b.getBoundingClientRect();
+    b.style.setProperty("--gl-x", e.clientX - r.left + "px");
+    b.style.setProperty("--gl-y", e.clientY - r.top + "px");
+  });
+
   /* everything after the top 3 opens with the button under them */
   list.addEventListener("click", e => {
     if (!e.target.closest(".cmore__btn")) return;

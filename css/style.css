@@ -374,10 +374,11 @@ body::after{
 .crow:first-child{border-top:1px solid var(--line)}
 .clist.is-opening .crow--rest{animation:rise .7s var(--ease) both;animation-delay:calc(min(var(--r),12) * .04s)}
 .cmore{display:flex;justify-content:center;padding-top:clamp(18px,2vw,28px)}
-.cmore__btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:12px;padding:16px 26px;border-radius:999px;border:1px solid var(--line);color:var(--text);
-  transition:border-color .3s,background .3s}
+.cmore__btn{all:unset;box-sizing:border-box;position:relative;cursor:pointer;display:inline-flex;align-items:center;gap:12px;padding:17px 28px;border-radius:999px;color:var(--text);
+  transition:scale .4s var(--ease)}
 .cmore__btn span{color:var(--blue-hi);font-size:14px;transition:translate .3s}
-.cmore__btn:hover,.cmore__btn:focus-visible{border-color:var(--blue-hi);background:rgba(23,71,255,.12)}
+.cmore__btn:hover{scale:1.03}
+.cmore__btn:focus-visible{outline:2px solid var(--blue-hi);outline-offset:4px}
 .cmore__btn:hover span{translate:0 2px}
 .crow__i{color:var(--ice)}
 /* folded list: the last of the top 3 fades towards the button */
@@ -390,13 +391,13 @@ body::after{
 .crow.is-hot .crow__arrow,.crow__btn:focus-visible .crow__arrow{opacity:1;translate:0 0}
 
 /* preview card that follows the cursor */
-.ccard{position:fixed;left:0;top:0;z-index:30;width:260px;height:176px;pointer-events:none;border-radius:16px;overflow:hidden;
+.ccard{position:fixed;left:0;top:0;z-index:30;width:190px;height:128px;pointer-events:none;border-radius:14px;overflow:hidden;
   opacity:0;scale:.6;transition:opacity .35s,scale .5s var(--ease);will-change:transform;box-shadow:0 30px 80px rgba(0,0,0,.55)}
 .ccard.is-on{opacity:1;scale:1}
 .ccard__item{position:absolute;inset:0;clip-path:inset(100% 0 0 0);transition:clip-path .6s var(--ease)}
 .ccard__item.is-on{clip-path:inset(0 0 0 0);z-index:1}
-.ccard .lg{width:40%;height:26%}
-.ccard .lg--type{width:70%;height:40%;font-size:clamp(15px,1.3vw,20px)}
+.ccard .lg{width:46%;height:30%}
+.ccard .lg--type{width:76%;height:44%;font-size:14px}
 /* every brand the same way: its own logo in white on its colour */
 .brand{position:absolute;inset:0;display:grid;place-items:center;
   background:radial-gradient(120% 100% at 28% 18%,color-mix(in srgb,var(--c) 82%,#fff),var(--c) 52%,color-mix(in srgb,var(--c) 62%,#000) 100%)}
