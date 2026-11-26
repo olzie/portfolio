@@ -23,7 +23,7 @@
 
   /* the brand's own logo in white on its colour; the name in type when there is no logo */
   const logo = (c, cls = "") => c.logo
-    ? `<img class="lg ${cls}" src="${c.logo}" alt="${c.name}" loading="lazy" decoding="async">`
+    ? `<img class="lg ${cls}" src="${c.logo}" alt="${c.name}" decoding="async">`
     : `<span class="lg lg--type ${cls}">${c.name}</span>`;
   const tile = c => `<div class="brand" style="--c:${c.color}">${logo(c)}</div>`;
 
@@ -140,6 +140,7 @@
     view.classList.toggle("is-tenders", s.kind === "t");
     if (s.kind === "t") {
       view.style.setProperty("--c", T.color);
+      vMedia.classList.remove("has-shots");
       vMedia.innerHTML = `<div class="cview__wall">${T.items.map(x => `<div class="cview__tile">${logo(x)}</div>`).join("")}</div>`;
       vMeta.textContent = T[L].meta; vName.textContent = T[L].name; vLine.textContent = T[L].line;
       vStats.innerHTML = ""; vStats.hidden = true; vDid.innerHTML = "";
@@ -148,7 +149,11 @@
     } else {
       const c = ALL[s.i], d = c[L], pos = s.group.indexOf(s.i);
       view.style.setProperty("--c", c.color);
-      vMedia.innerHTML = `<figure class="cview__fig">${tile(c)}</figure>`;
+      const shots = (window.CASES_SHOTS || {})[c.id] || [];
+      vMedia.classList.toggle("has-shots", shots.length > 0);
+      vMedia.innerHTML = `<figure class="cview__fig">${tile(c)}</figure>` + (shots.length
+        ? `<div class="cview__shots">${shots.map((x, k) => `<button class="shot" type="button" style="--r:${x[1] / x[2]};--k:${k}" data-src="assets/cases/shots/${x[0]}" aria-label="${c.name}, ${t("cases.example")} ${k + 1}"><img src="assets/cases/shots/${x[0]}" width="${x[1]}" height="${x[2]}" alt="" loading="lazy" decoding="async"></button>`).join("")}</div>`
+        : "");
       vMeta.textContent = d.meta; vName.textContent = c.name; vLine.textContent = d.line;
       vStats.style.setProperty("--n", Math.max(1, d.stats.length));
       vStats.innerHTML = d.stats.map(x => `<li><div class="cnum">${reels(x[0])}</div><p class="mono">${x[1]}</p></li>`).join("");
@@ -177,6 +182,7 @@
   }
   function closeView() {
     if (!cur) return;
+    lbClose();
     cur = null;
     view.classList.remove("is-open");
     view.setAttribute("aria-hidden", "true");
@@ -195,12 +201,22 @@
     if (b.dataset.k === "t") openView({ kind: "t" });
     else openView({ kind: "c", i: +b.dataset.id, group: SMALL });
   });
+  /* a work example opens big over the case; click or Esc closes it */
+  const lb = document.createElement("div");
+  lb.className = "lightbox"; lb.setAttribute("aria-hidden", "true");
+  lb.innerHTML = `<img alt="">`;
+  view.appendChild(lb);
+  const lbOpen = src => { lb.firstElementChild.src = src; lb.classList.add("is-on"); lb.setAttribute("aria-hidden", "false"); };
+  const lbClose = () => { lb.classList.remove("is-on"); lb.setAttribute("aria-hidden", "true"); };
+  vMedia.addEventListener("click", e => { const b = e.target.closest(".shot"); if (b) lbOpen(b.dataset.src); });
+  lb.addEventListener("click", lbClose);
   $("#cviewClose").addEventListener("click", closeView);
   $("#cviewPrev").addEventListener("click", () => go(-1));
   $("#cviewNext").addEventListener("click", () => go(1));
   view.addEventListener("click", e => { if (e.target === view) closeView(); });
   addEventListener("keydown", e => {
     if (!cur) return;
+    if (lb.classList.contains("is-on")) { if (e.key === "Escape") lbClose(); return; }
     if (e.key === "Escape") closeView();
     if (e.key === "ArrowRight") go(1);
     if (e.key === "ArrowLeft") go(-1);
