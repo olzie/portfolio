@@ -133,7 +133,7 @@
   /* "Show less" sits at the very end of the open list. The list folds and the page is shifted in the same frame so the
      button stays exactly where the finger/cursor is (it becomes "Show all"): nothing glides, nothing jumps, the visitor
      isn't thrown back to the start of the block. */
-  let openedAt = null;
+  let openedAt = null, folding = false;
   section.addEventListener("click", e => {
     const btnEl = e.target.closest(".cmore__btn");
     if (!btnEl) return;
@@ -143,20 +143,38 @@
       list.classList.add("is-opening"); section.classList.add("is-opening");
       return;
     }
-    /* The usual "show less" pattern (eBay's pulldown list, the standard scrollIntoView fix): restore the initial state and
-       return the reader to the start of the block — here to exactly where it sat when "Show all" was pressed.
-       Order matters on iOS: Safari can paint a DOM change one frame before a scroll change made in the same task (that was
-       the black flash). The return point lies above everything that gets removed, so we scroll first — the open list
-       starts with the same three rows as the folded one — and fold on the next painted frame. */
+    /* The usual "show less" pattern (eBay's pulldown list, the scrollIntoView fix): restore the folded list and bring the
+       reader back to the start of the block — here to exactly where it sat when "Show all" was pressed. Smooth version:
+       the page scrolls back smoothly (list still open: it starts with the same three rows as the folded one), then the
+       list closes like an accordion — its height animates down, so what follows slides up instead of being swapped. */
+    if (folding) return;
+    folding = true;
     const target = window.scrollY + section.getBoundingClientRect().top - (openedAt ?? 80);
     openedAt = null;
-    if (window.__lenis) window.__lenis.scrollTo(target, { immediate: true, force: true }); else window.scrollTo(0, target);
-    requestAnimationFrame(() => requestAnimationFrame(() => {
+    let done = false;
+    const close = () => {
+      if (done) return; done = true;
+      const h0 = list.offsetHeight;
       list.classList.remove("is-opening"); section.classList.remove("is-opening");
       collapsed = true; render(true);
-      if (window.__lenis) window.__lenis.resize();
+      const h1 = list.offsetHeight;
       const nb = list.querySelector(".cmore__btn"); if (nb) nb.focus({ preventScroll: true });   // focus stays on the toggle
-    }));
+      if (h0 > h1 + 2) {
+        list.style.height = h0 + "px"; list.style.overflow = "hidden";
+        void list.offsetHeight;
+        list.style.transition = "height .45s cubic-bezier(.22,.61,.36,1)";
+        list.style.height = h1 + "px";
+        const end = () => { list.style.height = list.style.overflow = list.style.transition = ""; folding = false; if (window.__lenis) window.__lenis.resize(); };
+        list.addEventListener("transitionend", end, { once: true });
+        setTimeout(end, 700);
+      } else { folding = false; if (window.__lenis) window.__lenis.resize(); }
+    };
+    const far = Math.abs(window.scrollY - target);
+    if (far > 4) {
+      if (window.__lenis) window.__lenis.scrollTo(target, { duration: .9, force: true, onComplete: close });
+      else window.scrollTo({ top: target, behavior: "smooth" });
+      setTimeout(close, 1200);                                        // never left half-way if the scroll is interrupted
+    } else close();
   });
 
   /* running line: tenders (one window), then small cases (their own windows). Built once: names don't change with the language */
