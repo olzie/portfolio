@@ -364,21 +364,23 @@
     /* the hand-over between the picture and the live window: the live window is fully shown underneath (it is opaque) and only
        the picture fades on top of it, so nothing behind ever shows through and small differences read as a quick dissolve:
        opening ends with the picture dissolving off the window, closing starts with the picture dissolving onto it */
-    const opening = from > to, FADE = opening ? .2 : .18;
+    const opening = from > to, FADE = opening ? .2 : .07;
     const showWin = on => { win.style.visibility = on ? "visible" : ""; win.style.opacity = on ? "1" : ""; };
     const at = k => {
       if (opening) {
         draw(lerp(from, to, Math.min(1, k / (1 - FADE))));
         const f = clamp01((k - (1 - FADE)) / FADE); showWin(f > 0); canvas.style.opacity = (1 - f).toFixed(3);
-      } else {
-        const f = clamp01(k / FADE); showWin(f < 1); canvas.style.opacity = f.toFixed(3);
-        draw(lerp(from, to, clamp01((k - FADE) / (1 - FADE))));
+      } else {                                                       // closing: the bend starts at once (no held frame), the
+        const f = clamp01(k / FADE); showWin(f < 1); canvas.style.opacity = f.toFixed(3);   // dissolve onto the window is very short
+        draw(lerp(from, to, k));
       }
     };
     at(0);
-    const t0 = performance.now();
-    genie = { canvas, raf: 0 };
-    const step = now => {
+    let t0 = 0, warm = 0;                                           // the clock starts after one warm-up frame: the first frame
+    genie = { canvas, raf: 0 };                                     // carries the restyle of the whole block and can be slow, and
+    const step = now => {                                           // the bend must not skip ahead because of it
+      if (warm < 1) { warm++; genie.raf = requestAnimationFrame(step); return; }
+      if (!t0) t0 = now;
       const k = Math.min(1, (now - t0) / ms);
       at(k);
       if (k < 1) genie.raf = requestAnimationFrame(step);
@@ -390,7 +392,7 @@
      whenever the window's content settles (new message, answer, scroll, resize, language), a fresh picture is taken in idle time */
   let pic = null, picT = 0;
   const idle = fn => ("requestIdleCallback" in window ? requestIdleCallback(fn, { timeout: 500 }) : setTimeout(fn, 60));
-  const refreshPic = (delay = 300) => {
+  const refreshPic = (delay = 150) => {
     pic = null; clearTimeout(picT);
     picT = setTimeout(() => idle(() => {
       if (genie) return refreshPic(200);
@@ -465,7 +467,7 @@
       const r = win.getBoundingClientRect();
       sec.classList.add("is-closing"); sec.classList.remove("is-chat");                // the dock and the heading come back while it pours in
       withTimeout(freshPic(), 600)
-        .then(c => playGenie(c, 0, 1, 760, () => sec.classList.remove("is-closing")))
+        .then(c => playGenie(c, 0, 1, 720, () => sec.classList.remove("is-closing")))
         .catch(() => sec.classList.remove("is-closing"));
     }
     if (viaKey === true && opener) opener.focus({ preventScroll: true });   // keyboard users get focus back on the icon; a mouse close leaves no tooltip hanging
