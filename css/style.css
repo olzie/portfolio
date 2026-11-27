@@ -1004,11 +1004,20 @@ body.cvv-open{overflow:hidden}
 .cvv__paper{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;border-radius:18px;display:flex;flex-direction:column;gap:12px;outline:none;
   scrollbar-width:thin;scrollbar-color:rgba(156,188,255,.35) transparent}
 .cvv__page{display:block;width:100%;height:auto;border-radius:16px;background:#f7f8fc}   /* the paper colour shows while a page loads */
+.cvv__sheet{position:relative;flex:none}
+.cvv__hot{position:absolute;display:block;border-radius:4px}   /* the contacts on page 1 are links, as in the PDF */
+.cvv__hot:focus-visible{outline:2px solid var(--blue-hi);outline-offset:2px}
+@media (hover:hover) and (pointer:fine){.cvv__hot:hover{background:rgba(23,71,255,.08)}}
+.cvv__lang{display:flex;flex:none;padding:3px;border-radius:999px;background:rgba(6,9,18,.5);border:1px solid rgba(255,255,255,.14)}
+.cvv__lb{all:unset;box-sizing:border-box;cursor:pointer;min-width:40px;height:36px;padding:0 10px;border-radius:999px;display:grid;place-items:center;font-size:11px;letter-spacing:.06em;color:var(--dim);transition:color .3s,background .3s}
+.cvv__lb[aria-pressed="true"]{color:#fff;background:linear-gradient(180deg,rgba(80,118,255,.55),rgba(23,71,255,.75))}
+.cvv__lb:focus-visible{outline:2px solid var(--blue-hi);outline-offset:2px}
 @media (max-width:640px){
   .cvv{padding:8px}
   .cvv__win{height:100%;border-radius:24px;padding:10px}
   .cvv__bar{flex-wrap:wrap;padding:4px 2px 0 10px}
   .cvv__dl{order:3;flex:1 1 100%}
+  .cvv__meta{display:none}   /* the title, the EN/UA switch and the close button share one line */
   .cvv__paper{border-radius:14px;gap:8px}
   .cvv__page{border-radius:12px}
 }

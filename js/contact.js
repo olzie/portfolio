@@ -172,13 +172,29 @@
     let cvBack = null;
     /* the pages are fetched and decoded in idle time once the visitor is near this block, so the first open doesn't
        decode two big images in the middle of its animation (that was the stutter on the first launch) */
-    const cvLoad = () => cvv.querySelectorAll("img[data-src]").forEach(im => {
-      im.src = im.dataset.src; im.removeAttribute("data-src");
-      if (im.decode) im.decode().catch(() => {});
-    });
+    /* EN / UA: the window opens in the site's language; the switch inside swaps the pages and the PDF. The other
+       language's pages are decoded first and only then swapped in, so the paper never goes blank */
+    const dl = document.getElementById("cvvDl"), pages = [...cvv.querySelectorAll(".cvv__page")], lbs = [...cvv.querySelectorAll("[data-cvlang]")];
+    const PDF = { en: "Olha_Akimova_CV.pdf", ua: "Olha_Akimova_CV_UA.pdf" };
+    let cvLang = null, cvPicked = false;
+    const siteCv = () => (window.currentLang === "uk" ? "ua" : "en");
+    const setCv = lang => {
+      cvLang = lang;
+      lbs.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.cvlang === lang)));
+      dl.href = "assets/cv/" + PDF[lang]; dl.download = PDF[lang];
+      pages.forEach(im => {
+        const url = im.dataset[lang === "ua" ? "srcUa" : "srcEn"];
+        if (im.getAttribute("src") === url) return;
+        if (!im.getAttribute("src")) { im.src = url; if (im.decode) im.decode().catch(() => {}); return; }
+        const pre = new Image(); pre.src = url;
+        (pre.decode ? pre.decode() : Promise.resolve()).catch(() => {}).then(() => { if (cvLang === lang) im.src = url; });
+      });
+    };
+    const cvLoad = () => { if (!cvLang) setCv(siteCv()); };
+    lbs.forEach(b => b.addEventListener("click", () => { cvPicked = true; setCv(b.dataset.cvlang); }));
     new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { o.disconnect(); idle(cvLoad); } }, { rootMargin: "800px" }).observe(sec);
     const cvOpen = from => {
-      cvLoad();                                                      // in case the visitor got here faster than idle time
+      if (!cvPicked) setCv(siteCv()); else cvLoad();                 // the site's language, unless the visitor chose one in the window
       cvBack = from || document.activeElement;
       paper.scrollTop = 0;
       cvv.classList.add("is-open"); cvv.setAttribute("aria-hidden", "false");

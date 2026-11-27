@@ -1,0 +1,54 @@
+@font-face{font-family:"Unbounded";font-weight:800;src:url(../fonts/unbounded-latin-800-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:"Unbounded";font-weight:800;src:url(../fonts/unbounded-cyrillic-800-normal.woff2) format("woff2");unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:"Unbounded";font-weight:400;src:url(../fonts/unbounded-latin-400-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:"Unbounded";font-weight:400;src:url(../fonts/unbounded-cyrillic-400-normal.woff2) format("woff2");unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@page{size:A4;margin:0}
+:root{--blue:#1747ff;--ink:#0b1020;--text:#2a3350;--mute:#6b7390;--line:#d9def0;--paper:#f7f8fc}
+*{box-sizing:border-box}
+html,body{margin:0;background:#dfe3ee}
+body{font-family:"Inter",system-ui,sans-serif;color:var(--text);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{width:210mm;height:297mm;background:var(--paper);padding:15mm 15mm 13mm;display:flex;flex-direction:column;overflow:hidden;position:relative;break-after:page}
+.page:last-child{break-after:auto}
+@media screen{.page{margin:0 auto 12px}}
+/* header: the name in the site's display type, a blue rule under it */
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:10mm;padding-bottom:5mm;border-bottom:2px solid var(--blue)}
+.name{font-family:"Unbounded";font-weight:800;font-size:27pt;line-height:.92;letter-spacing:-.045em;color:var(--ink);text-transform:uppercase;margin:0}
+.role{font-family:"Unbounded";font-weight:400;font-size:8.2pt;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin-top:3mm}
+.contacts{display:grid;grid-template-columns:auto auto;gap:1.2mm 6mm;font-size:8pt;line-height:1.35;text-align:right;justify-content:end}
+.contacts a{color:var(--ink);text-decoration:none}
+.contacts span{color:var(--mute)}
+.head--small{padding-bottom:3.5mm}
+.head--small .name{font-size:15pt}
+.head--small .role{margin-top:1.6mm;font-size:7pt}
+/* body: a sidebar and the main column */
+.cols{flex:1;display:grid;grid-template-columns:52mm minmax(0,1fr);gap:9mm;padding-top:6mm;min-height:0}
+.side,.main{display:flex;flex-direction:column;gap:5.4mm;min-width:0}
+h2{font-family:"Unbounded";font-weight:800;font-size:7.4pt;letter-spacing:.12em;text-transform:uppercase;color:var(--blue);margin:0 0 2.4mm}
+p{margin:0}
+.lead{font-size:8.6pt;line-height:1.55;color:var(--text)}
+.item{font-size:7.9pt;line-height:1.42;margin-bottom:2.2mm}
+.item b{display:block;color:var(--ink);font-weight:600}
+.item span{color:var(--mute)}
+.list{margin:0;padding:0;list-style:none;font-size:7.9pt;line-height:1.42;color:var(--text)}
+.list li{padding:1.1mm 0;border-bottom:1px solid var(--line)}
+.list li:first-child{padding-top:0}
+.list b{color:var(--ink);font-weight:600}
+.job{display:flex;flex-direction:column;gap:1.6mm}
+.job + .job{margin-top:4.2mm}
+.job__t{display:flex;justify-content:space-between;align-items:baseline;gap:4mm}
+.job__t b{font-family:"Unbounded";font-weight:800;font-size:9pt;letter-spacing:-.02em;color:var(--ink)}
+.job__m{font-size:7.6pt;color:var(--mute)}
+.job__d{font-size:7.6pt;color:var(--mute);white-space:nowrap}
+.job ul{margin:.8mm 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:1.3mm}
+.job li{position:relative;padding-left:4mm;font-size:8pt;line-height:1.46;color:var(--text)}
+.job li::before{content:"";position:absolute;left:0;top:.62em;width:1.8mm;height:1.5px;background:var(--blue)}
+.early{display:flex;flex-direction:column;gap:2.6mm}
+.early .row{font-size:7.9pt;line-height:1.42}
+.early .row div{display:flex;justify-content:space-between;gap:4mm}
+.early .row b{color:var(--ink);font-weight:600}
+.early .row em{font-style:normal;color:var(--mute)}
+.early .row p{color:var(--text);margin-top:.5mm}
+.foot{display:flex;justify-content:space-between;padding-top:3mm;border-top:1px solid var(--line);font-family:"Unbounded";font-size:6pt;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+/* page 1: two rows across both columns, so "Professional courses" starts on the same line as "Work experience" */
+.cols--p1{grid-template-rows:auto minmax(0,1fr);row-gap:5.4mm}
+.cols--p1 > *{min-width:0}
