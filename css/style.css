@@ -626,7 +626,8 @@ body.cview-open{overflow:hidden}
 /* work examples as stories: bars on top, one slide at a time */
 .cview__media.has-shots{min-width:0}
 .st{position:relative;height:100%;min-height:0;border-radius:0;overflow:hidden;background:#070a14;opacity:0;translate:0 26px}
-.cview.is-open.is-swap .st{animation:rise .8s var(--ease) both;animation-delay:.25s}
+.cview.is-open.is-swap .st{animation:rise .6s var(--ease) both}
+.cview.is-first .st{animation-delay:.14s}
 .st__bars{position:absolute;left:14px;right:14px;top:14px;z-index:4;display:flex;gap:5px}
 .st__bars i{flex:1;height:3px;border-radius:3px;background:rgba(255,255,255,.28);overflow:hidden}
 .st__bars i::after{content:"";display:block;height:100%;background:#fff;transform:scaleX(0);transform-origin:0 50%}
@@ -697,13 +698,22 @@ body.cview-open{overflow:hidden}
 .cview__fig,.cview__meta,.cview__name,.cview__line,.cview__stats,.cview__body,.cview__did{opacity:0;translate:0 26px}
 .cview.is-open.is-swap .cview__fig,.cview.is-open.is-swap .cview__meta,.cview.is-open.is-swap .cview__name,.cview.is-open.is-swap .cview__line,
 .cview.is-open.is-swap .cview__stats,.cview.is-open.is-swap .cview__body,.cview.is-open.is-swap .cview__did,.cview.is-open.is-swap .cview__wall{animation:rise .8s var(--ease) both}
-.cview.is-open .cview__fig,.cview.is-open .cview__wall{animation-delay:.25s!important}
-.cview.is-open .cview__meta{animation-delay:.3s!important}
-.cview.is-open .cview__name{animation-delay:.36s!important}
-.cview.is-open .cview__line{animation-delay:.42s!important}
-.cview.is-open .cview__stats{animation-delay:.48s!important}
-.cview.is-open .cview__body{animation-delay:.56s!important}
-.cview.is-open .cview__did{animation-delay:.62s!important}
+/* the content rises in a short stagger (40 ms steps). On the first open it waits for the panel's fast start (.46 s sheet) to be
+   mostly done; on Previous / Next the panel is already there, so it starts at once */
+.cview.is-open.is-swap .cview__fig,.cview.is-open.is-swap .cview__meta,.cview.is-open.is-swap .cview__name,.cview.is-open.is-swap .cview__line,
+.cview.is-open.is-swap .cview__stats,.cview.is-open.is-swap .cview__body,.cview.is-open.is-swap .cview__did,.cview.is-open.is-swap .cview__wall{animation-duration:.6s}
+.cview.is-open .cview__fig,.cview.is-open .cview__wall,.cview.is-open .cview__meta{animation-delay:0s!important}
+.cview.is-open .cview__name{animation-delay:.04s!important}
+.cview.is-open .cview__line{animation-delay:.08s!important}
+.cview.is-open .cview__stats{animation-delay:.12s!important}
+.cview.is-open .cview__body{animation-delay:.16s!important}
+.cview.is-open .cview__did{animation-delay:.2s!important}
+.cview.is-first .cview__fig,.cview.is-first .cview__wall,.cview.is-first .cview__meta{animation-delay:.14s!important}
+.cview.is-first .cview__name{animation-delay:.18s!important}
+.cview.is-first .cview__line{animation-delay:.22s!important}
+.cview.is-first .cview__stats{animation-delay:.26s!important}
+.cview.is-first .cview__body{animation-delay:.3s!important}
+.cview.is-first .cview__did{animation-delay:.34s!important}
 @keyframes rise{from{opacity:0;translate:0 26px}to{opacity:1;translate:0 0}}
 
 /* slot reels */

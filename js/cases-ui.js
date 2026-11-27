@@ -407,11 +407,13 @@
     $(".cview__text").scrollTop = 0;
     if (s.kind === "c") { if (animate) requestAnimationFrame(() => spin(vStats, 0.35)); else spin(vStats, 0); }
   }
+  let firstT = 0;
   function openView(s) {
     lastFocus = document.activeElement;
     cur = s; show(s);
     view.setAttribute("aria-hidden", "false");
-    view.classList.add("is-open");
+    view.classList.add("is-open", "is-first");                    // is-first: the content waits a beat for the panel (css)
+    clearTimeout(firstT); firstT = setTimeout(() => view.classList.remove("is-first"), 1000);   // after every first-open animation has finished
     document.body.classList.add("cview-open");
     clearTimeout(settleT); settleT = setTimeout(() => cur && document.body.classList.add("cview-settled"), 520);   // just after the .46s opening
     if (window.__lenis) window.__lenis.stop();
