@@ -143,38 +143,49 @@
       list.classList.add("is-opening"); section.classList.add("is-opening");
       return;
     }
-    /* The usual "show less" pattern (eBay's pulldown list, the scrollIntoView fix): restore the folded list and bring the
-       reader back to the start of the block — here to exactly where it sat when "Show all" was pressed. Smooth version:
-       the page scrolls back smoothly (list still open: it starts with the same three rows as the folded one), then the
-       list closes like an accordion — its height animates down, so what follows slides up instead of being swapped. */
+    /* One motion, the way collapsible components on SaaS pages close (Radix/shadcn Collapsible: the content's height animates
+       from its measured value down to the closed one) combined with the "collapse and scroll back to the start of the
+       section" pattern — but both at once, on one clock and one easing: the list closes while the page travels back to where
+       the block sat when "Show all" was pressed. No glide-then-close, no jump at the end of the motion. */
     if (folding) return;
     folding = true;
-    const target = window.scrollY + section.getBoundingClientRect().top - (openedAt ?? 80);
+    const y0 = window.scrollY, target = y0 + section.getBoundingClientRect().top - (openedAt ?? 80);
     openedAt = null;
-    let done = false;
-    const close = () => {
-      if (done) return; done = true;
-      const h0 = list.offsetHeight;
+    // the folded height, measured on a hidden copy of the list cut down to what the folded state shows (3 rows + the button)
+    const h0 = list.offsetHeight;
+    const probe = list.cloneNode(true);
+    [...probe.children].slice(TOP.length).forEach(li => li.remove());
+    if (probe.children[TOP.length - 1]) probe.children[TOP.length - 1].classList.add("crow--last");
+    probe.insertAdjacentHTML("beforeend", `<li class="cmore"><button class="cmore__btn glass mono" type="button">${t("cases.more").replace("{n}", REST.length)}<span>↓</span></button></li>`);
+    probe.classList.add("is-collapsed"); probe.removeAttribute("id");
+    probe.style.cssText = `position:absolute;left:0;top:0;width:${list.offsetWidth}px;visibility:hidden;pointer-events:none`;
+    list.parentNode.appendChild(probe);
+    const h1 = probe.offsetHeight; probe.remove();
+    // what goes away with the open list closes on the same clock: the running line and the "Show less" slot under it
+    const extra = [$(".also"), document.getElementById("cmoreEnd")].filter(el => el && el.offsetHeight).map(el => [el, el.offsetHeight]);
+    const ms = Math.min(1100, 600 + Math.abs(y0 - target) / 5);
+    const ease = t => t < .5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+    list.style.height = h0 + "px"; list.style.overflow = "hidden";
+    extra.forEach(([el, h]) => { el.style.height = h + "px"; el.style.overflow = "hidden"; el.style.marginTop = getComputedStyle(el).marginTop; el.style.boxSizing = "border-box"; });
+    const m0 = extra.map(([el]) => parseFloat(el.style.marginTop) || 0);
+    const setY = y => window.__lenis ? window.__lenis.scrollTo(y, { immediate: true, force: true }) : window.scrollTo(0, y);
+    const t0 = performance.now();
+    const step = now => {
+      const k = Math.min(1, (now - t0) / ms), e = ease(k);
+      list.style.height = (h0 + (h1 - h0) * e).toFixed(1) + "px";
+      extra.forEach(([el, h], i) => { el.style.height = (h * (1 - e)).toFixed(1) + "px"; el.style.marginTop = (m0[i] * (1 - e)).toFixed(1) + "px"; el.style.paddingTop = el.style.paddingBottom = e > 0 ? "0" : ""; });
+      setY(y0 + (target - y0) * e);
+      if (k < 1) return requestAnimationFrame(step);
       list.classList.remove("is-opening"); section.classList.remove("is-opening");
       collapsed = true; render(true);
-      const h1 = list.offsetHeight;
-      const nb = list.querySelector(".cmore__btn"); if (nb) nb.focus({ preventScroll: true });   // focus stays on the toggle
-      if (h0 > h1 + 2) {
-        list.style.height = h0 + "px"; list.style.overflow = "hidden";
-        void list.offsetHeight;
-        list.style.transition = "height .45s cubic-bezier(.22,.61,.36,1)";
-        list.style.height = h1 + "px";
-        const end = () => { list.style.height = list.style.overflow = list.style.transition = ""; folding = false; if (window.__lenis) window.__lenis.resize(); };
-        list.addEventListener("transitionend", end, { once: true });
-        setTimeout(end, 700);
-      } else { folding = false; if (window.__lenis) window.__lenis.resize(); }
+      list.style.height = list.style.overflow = "";
+      extra.forEach(([el]) => { el.style.height = el.style.overflow = el.style.marginTop = el.style.boxSizing = el.style.paddingTop = el.style.paddingBottom = ""; });
+      if (window.__lenis) window.__lenis.resize();
+      setY(target);
+      const nb = list.querySelector(".cmore__btn"); if (nb) nb.focus({ preventScroll: true });   // focus stays on the toggle (eBay pattern)
+      folding = false;
     };
-    const far = Math.abs(window.scrollY - target);
-    if (far > 4) {
-      if (window.__lenis) window.__lenis.scrollTo(target, { duration: .9, force: true, onComplete: close });
-      else window.scrollTo({ top: target, behavior: "smooth" });
-      setTimeout(close, 1200);                                        // never left half-way if the scroll is interrupted
-    } else close();
+    requestAnimationFrame(step);
   });
 
   /* running line: tenders (one window), then small cases (their own windows). Built once: names don't change with the language */
