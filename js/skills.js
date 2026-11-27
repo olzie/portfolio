@@ -59,7 +59,7 @@
     const top = section.getBoundingClientRect().top + scrollY, len = section.offsetHeight - pinH();
     const y = top + len * (i / (N - 1));
     gliding = true;
-    if (window.__lenis) window.__lenis.scrollTo(y, { duration: dur, onComplete: () => { gliding = false; } }); else { scrollTo({ top: y, behavior: "smooth" }); setTimeout(() => { gliding = false; }, dur * 1000); }
+    if (window.__lenis) window.__lenis.scrollTo(y, { duration: dur, easing: t => 1 - Math.pow(1 - t, 3), onComplete: () => { gliding = false; } }); else { scrollTo({ top: y, behavior: "smooth" }); setTimeout(() => { gliding = false; }, dur * 1000); }
   };
   track.addEventListener("click", e => { const p = e.target.closest(".sk-panel"); if (p) go(+p.dataset.i); });
   /* when scrolling stops inside the block, one card settles under the light — the next one in the direction the visitor
@@ -78,7 +78,7 @@
       i = Math.round(p);
     } else i = dir > 0 ? (f > .05 ? Math.ceil(p) : Math.floor(p)) : dir < 0 ? (f < .95 ? Math.floor(p) : Math.ceil(p)) : Math.round(p);
     if (Math.abs(p - i) * len / (N - 1) < 6) return;                // already there
-    go(i, .7);
+    go(i, .85);
   };
   const touch = matchMedia("(pointer:coarse)").matches;
   const onScroll = () => { if (fromY === null) { fromY = scrollY; fromPinned = pinned(); } clearTimeout(snapT); snapT = setTimeout(snap, touch ? 240 : 160); };
@@ -96,13 +96,17 @@
   if (hover) section.addEventListener("pointermove", e => { mx = e.clientX / innerWidth - .5; });
   section.addEventListener("pointerleave", () => { mx = 0; });
 
-  function frame() {
+  let tPrev = 0, wasT = 0;
+  function frame(now) {
+    // the same easing at 60 and 120 Hz: the follow speed is per second, not per frame (0.14 per frame ran twice as fast,
+    // and twice as twitchy, on ProMotion iPhones and 120 Hz monitors)
+    const dt = Math.min(.05, tPrev ? (now - tPrev) / 1000 : 1 / 60); tPrev = now;
     if (near()) {
       const goal = progress() * (N - 1);
-      cam += (goal - cam) * .14; if (Math.abs(goal - cam) < .0005) cam = goal;
+      cam += (goal - cam) * (1 - Math.exp(-dt * 7.5)); if (Math.abs(goal - cam) < .0005) cam = goal;
       cam = clamp(cam, goal - .35, goal + .35);   // never more than a third of a card behind the scroll: a fast flick used to leave the cards
                                                   // catching up after the stage had already started to scroll away (card 05 on the way into Contact)
-      sx += (mx - sx) * .08; if (Math.abs(mx - sx) < .0005) sx = mx;
+      sx += (mx - sx) * (1 - Math.exp(-dt * 5)); if (Math.abs(mx - sx) < .0005) sx = mx;
       const key = cam.toFixed(4) + "|" + sx.toFixed(4) + "|" + innerWidth;
       if (key !== last) {                           // nothing moved: write nothing
         last = key;
@@ -123,10 +127,12 @@
           set(el, "opacity", op.toFixed(2));
           set(el, "visibility", op < .03 ? "hidden" : "visible");   // panels too far to see are not drawn at all
           set(el, "zIndex", String(100 - rank.indexOf(i)));
+          const nb = ad < 1.6; if (el._nb !== nb) { el._nb = nb; el.classList.toggle("is-nb", nb); }   // the next panel to light up has its fade layers ready before the switch
         });
         if (c !== cur) {
-          cur = c;
-          panels.forEach((el, i) => el.classList.toggle("is-on", i === c));
+          const prev = cur; cur = c;
+          panels.forEach((el, i) => { el.classList.toggle("is-on", i === c); el.classList.toggle("was-on", i === prev); });
+          clearTimeout(wasT); wasT = setTimeout(() => panels.forEach(el => el.classList.remove("was-on")), 650);   // its fade is over: drop the layers
           num.textContent = pad(c + 1);
         }
         set(bar, "transform", `scaleX(${(cam / (N - 1)).toFixed(3)})`);
@@ -134,7 +140,7 @@
         set(halo, "opacity", clamp(1 - Math.abs(cam - Math.round(cam)) * 2.4, 0, 1).toFixed(2));
       }
     }
-    raf = running ? requestAnimationFrame(frame) : 0;
+    raf = running ? requestAnimationFrame(frame) : (tPrev = 0, 0);
   }
   /* the loop runs only while the block is within a screen of the viewport */
   let raf = 0, running = true;
@@ -143,7 +149,7 @@
     new IntersectionObserver(es => {
       running = es[0].isIntersecting;
       section.classList.toggle("is-near", running);              // the panels get their GPU layers only around the block (css)
-      if (running && !raf) raf = requestAnimationFrame(frame);
+      if (running && !raf) { tPrev = 0; raf = requestAnimationFrame(frame); }
     }, { rootMargin: "100% 0px" }).observe(section);
   }
   else section.classList.add("is-near");
