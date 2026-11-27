@@ -100,6 +100,8 @@
     if (near()) {
       const goal = progress() * (N - 1);
       cam += (goal - cam) * .14; if (Math.abs(goal - cam) < .0005) cam = goal;
+      cam = clamp(cam, goal - .35, goal + .35);   // never more than a third of a card behind the scroll: a fast flick used to leave the cards
+                                                  // catching up after the stage had already started to scroll away (card 05 on the way into Contact)
       sx += (mx - sx) * .08; if (Math.abs(mx - sx) < .0005) sx = mx;
       const key = cam.toFixed(4) + "|" + sx.toFixed(4) + "|" + innerWidth;
       if (key !== last) {                           // nothing moved: write nothing
