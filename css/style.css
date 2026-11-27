@@ -794,6 +794,14 @@ body.cview-open{overflow:hidden}
 .ct-corner--br::before,.ct-corner--br::after{content:"";position:absolute;background:var(--blue)}
 .ct-corner--br::before{left:16px;top:0;bottom:0;width:2px}
 .ct-corner--br::after{top:16px;left:0;right:0;height:2px}
+/* the cross marks are a hashtag now: a plus next to big numbers read as "plus", an asterisk would read as a footnote;
+   # belongs to social media, so it says what this portfolio is about. Same 2px blue strokes as the corner brackets. */
+.corner--br::before,.corner--br::after,.sk-corner--br::before,.sk-corner--br::after,.ct-corner--br::before,.ct-corner--br::after{
+  inset:5px;width:auto;height:auto;background:none}
+.corner--br::before,.sk-corner--br::before,.ct-corner--br::before{
+  background:linear-gradient(var(--blue),var(--blue)) 7px 0/2px 100% no-repeat,linear-gradient(var(--blue),var(--blue)) 15px 0/2px 100% no-repeat;transform:skewX(-14deg)}
+.corner--br::after,.sk-corner--br::after,.ct-corner--br::after{
+  background:linear-gradient(var(--blue),var(--blue)) 0 7px/100% 2px no-repeat,linear-gradient(var(--blue),var(--blue)) 0 15px/100% 2px no-repeat}
 
 .ct-in{position:relative;z-index:5;width:min(1240px,calc(100% - 32px));margin:0 auto;display:flex;flex-direction:column;align-items:center;text-align:center}
 .ct-in::before{content:"";position:absolute;left:50%;top:calc(var(--tfs,14vw) * .42);width:min(1300px,110vw);height:calc(var(--tfs,14vw) * 2.6);translate:-50% -50%;z-index:-1;pointer-events:none;
