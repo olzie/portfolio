@@ -293,7 +293,7 @@ body::after{
 /* each panel gets the perspective on its own (no shared 3D space): the browser doesn't sort them in depth every frame;
    the stacking order comes from z-index (js/skills.js) */
 .sk-track{position:absolute;left:50%;top:calc(var(--hz) - var(--ph));width:0;height:var(--ph);perspective:1300px;perspective-origin:50% 17%;--ph:min(460px,52vh);--pw:min(320px,70vw)}
-.sk-panel{position:absolute;left:0;top:0;width:var(--pw);height:var(--ph);margin-left:calc(var(--pw) / -2);will-change:transform,opacity;contain:layout style}
+.sk-panel{position:absolute;left:0;top:0;width:var(--pw);height:var(--ph);margin-left:calc(var(--pw) / -2);contain:layout style}
 /* glass without backdrop blur: only black is behind, and blur would be recomputed every frame the panels move */
 .sk-face{position:absolute;inset:0;border-radius:28px;isolation:isolate;
   background:linear-gradient(135deg,rgba(255,255,255,.13) 0%,rgba(255,255,255,.04) 45%,rgba(120,150,255,.07) 100%),#080b17;   /* opaque glass: the panels behind don't show through */
@@ -789,6 +789,14 @@ body.cview-open{overflow:hidden}
   background:linear-gradient(180deg,#f4f6fb 0%,#e9edf6 45%,#8fa6e6 100%);-webkit-background-clip:text;background-clip:text}
 .ct-lead{margin:clamp(28px,4.4vh,48px) 0 0;color:var(--ice);max-width:560px}
 .ct-status{display:inline-flex;align-items:center;gap:9px;margin-top:clamp(18px,2.6vh,26px);padding:7px 12px 7px 10px;border-radius:999px;color:#fff;background:rgba(61,220,132,.08);border:1px solid rgba(61,220,132,.3)}
+/* GPU layers and endless animations only while their block is within a screen of the viewport (js toggles .is-near):
+   ~30 always-on layers made every scroll frame on the page re-build the layer tree */
+.contact.is-near .ct-app,.contact.is-near .ct-bar{will-change:transform}
+.contact.is-near .ct-face,.contact.is-near .ct-sep{will-change:transform}
+.contact.is-near .ct-tip{will-change:transform,opacity}
+.skills.is-near .sk-panel{will-change:transform,opacity}
+.contact:not(.is-near) .ct-status::before{animation:none}
+.hero.is-scrolled .hero__scroll i::after{animation:none}
 .ct-status::before{content:"";width:7px;height:7px;border-radius:50%;background:#3ddc84;box-shadow:0 0 10px #3ddc84;animation:ctPulse 2s infinite;will-change:opacity}
 @keyframes ctPulse{50%{opacity:.45}}   /* opacity on its own layer, not box-shadow: a box-shadow pulse repainted the whole contact block (giant heading included) 60 times a second, even while scrolling Skills */
 .ct-title,.ct-lead,.ct-status{transition:opacity .45s var(--ease)}
@@ -797,16 +805,16 @@ body.cview-open{overflow:hidden}
 .ct-dock{position:relative;display:flex;align-items:flex-end;gap:10px;height:94px;margin-top:clamp(110px,17vh,190px);padding:10px 14px;isolation:isolate}
 /* the glass bar is a separate layer: it widens with the swelling icons (only its own box changes, nothing else re-lays out),
    and it has no backdrop blur, so nothing behind it has to be re-blurred on every frame */
-.ct-bar{position:absolute;top:0;bottom:0;left:0;right:0;z-index:-1;border-radius:30px;pointer-events:none;transform-origin:0 50%;will-change:transform;
+.ct-bar{position:absolute;top:0;bottom:0;left:0;right:0;z-index:-1;border-radius:30px;pointer-events:none;transform-origin:0 50%;
   background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.05)),rgba(10,14,32,.62);border:1px solid rgba(255,255,255,.18);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
 /* the big soft shadows sit on a layer that never changes size, so they are painted once, not on every frame of the swell */
 .ct-dock::after{content:"";position:absolute;inset:0;z-index:-2;border-radius:30px;pointer-events:none;box-shadow:0 30px 80px -30px rgba(0,0,0,.9),0 20px 90px -40px rgba(23,71,255,.8)}
 .ct-sep{width:1px;align-self:stretch;margin:6px 2px;background:rgba(255,255,255,.18)}
-.ct-app{position:relative;display:block;flex:none;width:72px;height:72px;outline:none;will-change:transform}   /* size never changes: the swell is a transform (see contact.js) */
-.ct-tip{will-change:transform,opacity}
+.ct-app{position:relative;display:block;flex:none;width:72px;height:72px;outline:none}   /* size never changes: the swell is a transform (see contact.js) */
+.ct-tip{}
 /* the face is its own size container, so the calendar's MIN / 20 and the CV letters grow with the icon — no jumps mid-animation */
-.ct-face{position:absolute;left:-27.5%;bottom:0;width:155%;height:155%;container-type:size;transform-origin:50% 100%;scale:.6452;will-change:transform,scale;border-radius:24%;display:grid;place-items:center;color:#fff;
+.ct-face{position:absolute;left:-27.5%;bottom:0;width:155%;height:155%;container-type:size;transform-origin:50% 100%;transform:scale(.6452);border-radius:24%;display:grid;place-items:center;color:#fff;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -6px 14px rgba(0,0,0,.18),0 10px 20px -8px rgba(0,0,0,.7);transition:box-shadow .4s}
 .ct-ico{width:46%;height:46%;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .ct-f-cal{background:linear-gradient(180deg,#fff,#dfe6f7);color:#0b1020;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding-top:3%}

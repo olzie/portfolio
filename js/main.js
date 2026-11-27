@@ -284,9 +284,17 @@
 
   /* ---------- mouse parallax (CSS transitions ease it) ---------- */
   if (hover) {
+    /* set on the hero only (the beam and the cat are its children), only while the scene is on screen, at most once a frame:
+       on :root the variable was inherited by every element, so each mouse move re-styled the entire page (the dock hover too) */
+    let pxRaf = 0, pxX = 0, pxLast = "";
     addEventListener("pointermove", e => {
-      if (body.classList.contains("is-loading")) return;
-      root.style.setProperty("--px", (e.clientX / innerWidth - 0.5).toFixed(3));
+      if (body.classList.contains("is-loading") || (window.__heroEnd && scrollY > window.__heroEnd + innerHeight)) return;
+      pxX = e.clientX;
+      if (!pxRaf) pxRaf = requestAnimationFrame(() => {
+        pxRaf = 0;
+        const v = (pxX / innerWidth - 0.5).toFixed(2);
+        if (v !== pxLast) { pxLast = v; hero.style.setProperty("--px", v); }
+      });
     }, { passive: true });
   }
 
@@ -418,7 +426,8 @@
         const t0 = performance.now() + delay;
         const step = now => {
           const k = clamp((now - t0) / dur, 0, 1), e = 1 - Math.pow(2, -10 * k);   // fast start, soft landing
-          el.textContent = Math.round(to * (k === 1 ? 1 : e));
+          const v = String(Math.round(to * (k === 1 ? 1 : e)));
+          if (el.textContent !== v) el.textContent = v;                 // only when the figure changes: each write re-lays out and repaints the cell
           if (k < 1) requestAnimationFrame(step);
         };
         requestAnimationFrame(step);

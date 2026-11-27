@@ -12,6 +12,8 @@
   const fine = matchMedia("(hover:hover) and (pointer:fine)");
   const wide = matchMedia("(min-width:901px)");
   const TG = "https://t.me/itsolz";
+  if ("IntersectionObserver" in window) new IntersectionObserver(es => sec.classList.toggle("is-near", es[0].isIntersecting), { rootMargin: "100% 0px" }).observe(sec);
+  else sec.classList.add("is-near");
   /* when the page last moved: heavy one-off work (the window picture, the intro sweep) waits until it has been still */
   let lastMove = 0;
   addEventListener("scroll", () => { lastMove = performance.now(); }, { passive: true });
@@ -85,7 +87,7 @@
       if (n.classList.contains("ct-app")) {
         // the icon grows by exactly the room the field opens across its slot, so neighbours can never overlap
         cur[k] = sp === null ? 1 : 1 + (G(c + half - sp) - G(c - half - sp)) / size;
-        faces[k].style.scale = (cur[k] / 1.55).toFixed(4);          // faces are drawn 1.55× and scaled down at rest
+        faces[k].style.transform = `scale(${(cur[k] / 1.55).toFixed(4)})`;   // faces are drawn 1.55× and scaled down at rest; a transform (not the `scale` property) keeps the layer's raster, so the face isn't repainted every frame
         if (tips[k]) tips[k].style.transform = `translateY(${(-size * (cur[k] - 1)).toFixed(2)}px)`;
         k++;
       }

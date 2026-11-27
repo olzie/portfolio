@@ -142,8 +142,10 @@
   if ("IntersectionObserver" in window) {
     new IntersectionObserver(es => {
       running = es[0].isIntersecting;
+      section.classList.toggle("is-near", running);              // the panels get their GPU layers only around the block (css)
       if (running && !raf) raf = requestAnimationFrame(frame);
     }, { rootMargin: "100% 0px" }).observe(section);
   }
+  else section.classList.add("is-near");
   raf = requestAnimationFrame(frame);
 })();
