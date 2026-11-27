@@ -51,9 +51,11 @@
 
   /* click a neighbouring panel to bring it under the spotlight: the block is scroll-driven,
      so this scrolls the page to the spot where that panel is the lit one */
+  const pinEl = section.querySelector(".skills__pin");
+  const pinH = () => (pinEl ? pinEl.offsetHeight : innerHeight);   // the stage is the large viewport tall on phones, not innerHeight
   const go = i => {
     i = clamp(i, 0, N - 1);
-    const top = section.getBoundingClientRect().top + scrollY, len = section.offsetHeight - innerHeight;
+    const top = section.getBoundingClientRect().top + scrollY, len = section.offsetHeight - pinH();
     const y = top + len * (i / (N - 1));
     if (window.__lenis) window.__lenis.scrollTo(y, { duration: 1.1 }); else scrollTo({ top: y, behavior: "smooth" });
   };
@@ -61,8 +63,8 @@
   /* when scrolling stops inside the block, glide to the nearest card, so one card always stands centred under the light */
   let snapT = 0;
   const snap = () => {
-    const r = section.getBoundingClientRect(), len = r.height - innerHeight;
-    if (r.top > -4 || r.bottom < innerHeight + 4) return;          // not pinned: leaving or entering the block, don't hold the visitor
+    const r = section.getBoundingClientRect(), len = r.height - pinH();
+    if (r.top > -4 || r.bottom < pinH() + 4) return;          // not pinned: leaving or entering the block, don't hold the visitor
     const p = clamp(-r.top / len, 0, 1) * (N - 1), i = Math.round(p);
     if (Math.abs(p - i) * len / (N - 1) < 6) return;                // already there
     go(i);
@@ -71,7 +73,7 @@
   if (window.__lenis) window.__lenis.on("scroll", onScroll); else addEventListener("scroll", onScroll, { passive: true });
   track.addEventListener("keydown", e => { const p = e.target.closest(".sk-panel"); if (p && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); go(+p.dataset.i); } });
   const set = (el, k, v) => { const c = el._s || (el._s = {}); if (c[k] !== v) { c[k] = v; el.style[k] = v; } };
-  const progress = () => { const r = section.getBoundingClientRect(); return clamp(-r.top / (r.height - innerHeight), 0, 1); };
+  const progress = () => { const r = section.getBoundingClientRect(); return clamp(-r.top / (r.height - pinH()), 0, 1); };
   const near = () => { const r = section.getBoundingClientRect(); return r.bottom > -100 && r.top < innerHeight + 100; };
   const hover = matchMedia("(hover:hover)").matches;
   if (hover) section.addEventListener("pointermove", e => { mx = e.clientX / innerWidth - .5; });
