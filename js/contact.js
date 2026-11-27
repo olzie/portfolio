@@ -114,6 +114,7 @@
   document.addEventListener("pointermove", e => { if (pointerX !== null && !sweeping && !dock.contains(e.target)) unstick(); }, { passive: true });
   apps.forEach(a => a.addEventListener("click", () => { if (a.target === "_blank") setTimeout(unstick, 250); }));
   apps.forEach(a => a.addEventListener("click", () => { a.classList.remove("is-bounce"); void a.offsetWidth; a.classList.add("is-bounce", "is-ran"); }));
+  faces.forEach((f, i) => f.addEventListener("animationend", () => apps[i].classList.remove("is-bounce")));
 
   /* ---------- intro sweep: once, the first time the dock is in view ---------- */
   const center = a => { if (!rest0) measure(); return dock.getBoundingClientRect().left + rest0[apps.indexOf(a)]; };
@@ -278,14 +279,25 @@
     }
     const place = p => {                                            // p: 0 = window open, 1 = inside the icon
       const a = inOut(clamp01(p / .5)), b = inOut(clamp01((p - .28) / .72)), tail = b * b * b;
-      slices.forEach(({ el, v0, v1, h }) => {
-        const y0 = lerp(T + v0 * H, ib - ih + v0 * ih, b), y1 = lerp(T + v1 * H, ib - ih + v1 * ih, b), yc = (y0 + y1) / 2;
-        const q = smooth(clamp01((yc - T) / (ib - T))) * a;          // how far down the funnel this band sits
-        const width = lerp(lerp(W, iw, q), iw, tail), x = lerp(lerp(cx, ix, q), ix, tail);
-        // each band is drawn 1.5 screen px taller than its share, so neighbours always overlap — no gaps when bands get squeezed
-        const sy = Math.max(.002, (y1 - y0 + 1.5) / h), dy = yc - (T + (v0 + v1) / 2 * H);
-        el.style.transform = `translate3d(${(x - cx).toFixed(2)}px,${dy.toFixed(2)}px,0) scale(${(width / W).toFixed(4)},${sy.toFixed(4)})`;
-        el.style.opacity = p > .92 ? ((1 - p) / .08).toFixed(3) : "1";
+      // the outline is computed at every band boundary, so neighbouring bands share their edge exactly
+      const edge = v => {
+        const y = lerp(T + v * H, ib - ih + v * ih, b);
+        const q = smooth(clamp01((y - T) / (ib - T))) * a;          // how far down the funnel this boundary sits
+        return { y, w: lerp(lerp(W, iw, q), iw, tail), x: lerp(lerp(cx, ix, q), ix, tail) };
+      };
+      const fade = p > .92 ? ((1 - p) / .08).toFixed(3) : "1";
+      slices.forEach(s => {
+        const e0 = edge(s.v0), e1 = edge(s.v1);
+        const xm = (e0.x + e1.x) / 2, wm = Math.max(e0.w, e1.w, 1), sx = wm / W;
+        const sy = Math.max(.002, (e1.y - e0.y + 1.5) / s.h);       // 1.5 screen px of overlap: squeezed bands never open gaps
+        const dy = (e0.y + e1.y) / 2 - (T + (s.v0 + s.v1) / 2 * H);
+        s.el.style.transform = `translate3d(${(xm - cx).toFixed(2)}px,${dy.toFixed(2)}px,0) scale(${sx.toFixed(4)},${sy.toFixed(4)})`;
+        /* each band is cut into a trapezoid (its top as wide as the band above, its bottom as wide as the band below), so the
+           sides form one smooth curve instead of a staircase of rectangles */
+        const L = X => ((X - xm) / sx + W / 2).toFixed(1) + "px";
+        const poly = `polygon(${L(e0.x - e0.w / 2)} 0,${L(e0.x + e0.w / 2)} 0,${L(e1.x + e1.w / 2)} 100%,${L(e1.x - e1.w / 2)} 100%)`;
+        s.el.style.clipPath = poly; s.el.style.webkitClipPath = poly;
+        s.el.style.opacity = fade;
       });
     };
     place(from);
