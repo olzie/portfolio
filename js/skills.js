@@ -53,31 +53,45 @@
      so this scrolls the page to the spot where that panel is the lit one */
   const pinEl = section.querySelector(".skills__pin");
   const pinH = () => (pinEl ? pinEl.offsetHeight : innerHeight);   // the stage is the large viewport tall on phones, not innerHeight
+  let gliding = false;
   const go = (i, dur = 1.1) => {
     i = clamp(i, 0, N - 1);
     const top = section.getBoundingClientRect().top + scrollY, len = section.offsetHeight - pinH();
     const y = top + len * (i / (N - 1));
-    if (window.__lenis) window.__lenis.scrollTo(y, { duration: dur }); else scrollTo({ top: y, behavior: "smooth" });
+    gliding = true;
+    if (window.__lenis) window.__lenis.scrollTo(y, { duration: dur, onComplete: () => { gliding = false; } }); else { scrollTo({ top: y, behavior: "smooth" }); setTimeout(() => { gliding = false; }, dur * 1000); }
   };
   track.addEventListener("click", e => { const p = e.target.closest(".sk-panel"); if (p) go(+p.dataset.i); });
   /* when scrolling stops inside the block, one card settles under the light — the next one in the direction the visitor
      was scrolling, not the nearest. Snapping to the nearest pulled a slow scroller back to the same card again and again
      (and held them on the last one), so the block felt like a wall at the end of the site. */
-  let snapT = 0, fromY = null;
+  let snapT = 0, fromY = null, fromPinned = false;
+  const pinned = () => { const r = section.getBoundingClientRect(); return r.top <= -4 && r.bottom >= pinH() + 4; };
   const snap = () => {
-    const dir = Math.sign(scrollY - fromY); fromY = null;
+    const dir = Math.sign(scrollY - fromY), entered = !fromPinned; fromY = null;
     const r = section.getBoundingClientRect(), len = r.height - pinH();
-    if (r.top > -4 || r.bottom < pinH() + 4) return;          // not pinned: leaving or entering the block, don't hold the visitor
+    if (!pinned()) return;                                        // leaving or not in the block: don't hold the visitor
     const p = clamp(-r.top / len, 0, 1) * (N - 1), f = p - Math.floor(p);
-    const i = dir > 0 ? (f > .06 ? Math.ceil(p) : Math.floor(p)) : dir < 0 ? (f < .94 ? Math.floor(p) : Math.ceil(p)) : Math.round(p);
+    let i;
+    if (entered) {                                                // a swipe that just arrived from above or below: let it land where it
+      if (Math.min(f, 1 - f) < .2) return;                        // stopped, only straighten a card that is clearly half-way
+      i = Math.round(p);
+    } else i = dir > 0 ? (f > .05 ? Math.ceil(p) : Math.floor(p)) : dir < 0 ? (f < .95 ? Math.floor(p) : Math.ceil(p)) : Math.round(p);
     if (Math.abs(p - i) * len / (N - 1) < 6) return;                // already there
     go(i, .7);
   };
-  const onScroll = () => { if (fromY === null) fromY = scrollY; clearTimeout(snapT); snapT = setTimeout(snap, 160); };
+  const touch = matchMedia("(pointer:coarse)").matches;
+  const onScroll = () => { if (fromY === null) { fromY = scrollY; fromPinned = pinned(); } clearTimeout(snapT); snapT = setTimeout(snap, touch ? 240 : 160); };
+  if (window.__lenis) window.__lenis.on("scroll", onScroll); else addEventListener("scroll", onScroll, { passive: true });
+  // a finger on the screen always wins: a glide in progress stops at once instead of fighting the swipe
+  addEventListener("touchstart", () => {
+    clearTimeout(snapT); fromY = null;
+    if (gliding && window.__lenis) { gliding = false; window.__lenis.scrollTo(scrollY, { immediate: true, force: true }); }
+  }, { passive: true });
   track.addEventListener("keydown", e => { const p = e.target.closest(".sk-panel"); if (p && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); go(+p.dataset.i); } });
   const set = (el, k, v) => { const c = el._s || (el._s = {}); if (c[k] !== v) { c[k] = v; el.style[k] = v; } };
   const progress = () => { const r = section.getBoundingClientRect(); return clamp(-r.top / (r.height - pinH()), 0, 1); };
-  const near = () => { const r = section.getBoundingClientRect(); return r.bottom > -100 && r.top < innerHeight + 100; };
+  const near = () => { const r = section.getBoundingClientRect(); return r.bottom > -innerHeight && r.top < innerHeight * 2; };   // starts a screen early: the panels' first paint happens before they arrive, not mid-swipe
   const hover = matchMedia("(hover:hover)").matches;
   if (hover) section.addEventListener("pointermove", e => { mx = e.clientX / innerWidth - .5; });
   section.addEventListener("pointerleave", () => { mx = 0; });
