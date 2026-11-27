@@ -166,20 +166,24 @@
     const ms = reduce ? 1 : Math.min(1100, 600 + Math.abs(y0 - target) / 5);   // reduced motion: straight to the folded state
     const ease = t => t < .5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
     list.style.height = h0 + "px"; list.style.overflow = "hidden";
-    extra.forEach(([el, h]) => { el.style.height = h + "px"; el.style.overflow = "hidden"; el.style.marginTop = getComputedStyle(el).marginTop; el.style.boxSizing = "border-box"; });
+    extra.forEach(([el, h]) => { el.style.height = h + "px"; el.style.overflow = "hidden"; el.style.marginTop = getComputedStyle(el).marginTop; el.style.boxSizing = "border-box"; el.style.pointerEvents = "none"; });
+    if (document.activeElement && extra.some(([el]) => el.contains(document.activeElement))) document.activeElement.blur();   // no pressed / focus look riding down
     const m0 = extra.map(([el]) => parseFloat(el.style.marginTop) || 0);
     const setY = y => window.__lenis ? window.__lenis.scrollTo(y, { immediate: true, force: true }) : window.scrollTo(0, y);
     const t0 = performance.now();
     const step = now => {
       const k = Math.min(1, (now - t0) / ms), e = ease(k);
       list.style.height = (h0 + (h1 - h0) * e).toFixed(1) + "px";
-      extra.forEach(([el, h], i) => { el.style.height = (h * (1 - e)).toFixed(1) + "px"; el.style.marginTop = (m0[i] * (1 - e)).toFixed(1) + "px"; el.style.paddingTop = el.style.paddingBottom = e > 0 ? "0" : ""; });
+      // the running line and the "Show less" slot fade out in the first part of the motion while they close, so the button is
+      // never seen cut in half by its shrinking slot
+      const fade = Math.max(0, 1 - k / .3).toFixed(3);
+      extra.forEach(([el, h], i) => { el.style.height = (h * (1 - e)).toFixed(1) + "px"; el.style.marginTop = (m0[i] * (1 - e)).toFixed(1) + "px"; el.style.paddingTop = el.style.paddingBottom = e > 0 ? "0" : ""; el.style.opacity = fade; });
       setY(y0 + (target - y0) * e);
       if (k < 1) return requestAnimationFrame(step);
       list.classList.remove("is-opening"); section.classList.remove("is-opening");
       collapsed = true; render(true);
       list.style.height = list.style.overflow = "";
-      extra.forEach(([el]) => { el.style.height = el.style.overflow = el.style.marginTop = el.style.boxSizing = el.style.paddingTop = el.style.paddingBottom = ""; });
+      extra.forEach(([el]) => { el.style.height = el.style.overflow = el.style.marginTop = el.style.boxSizing = el.style.paddingTop = el.style.paddingBottom = el.style.opacity = el.style.pointerEvents = ""; });
       if (window.__lenis) window.__lenis.resize();
       setY(target);
       const nb = list.querySelector(".cmore__btn"); if (nb) nb.focus({ preventScroll: true });   // focus stays on the toggle (eBay pattern)
