@@ -315,26 +315,33 @@
   }
   function playGenie(pic, from, to, ms, done) {
     stopGenie();
-    const r = win.getBoundingClientRect(), ic = chatIcon.querySelector(".ct-face").getBoundingClientRect();
+    const r = winBox(), ic = chatIcon.querySelector(".ct-face").getBoundingClientRect();
     const H = r.height, W = r.width, T = r.top, cx = r.left + W / 2;
     const ix = ic.left + ic.width / 2, iw = ic.width, ih = ic.height, ib = ic.bottom;
-    const dpr = Math.min(2, devicePixelRatio || 1), vw = innerWidth, vh = innerHeight;
+    const phone = !fine.matches;
+    // the canvas covers only the window + the path down to the icon (not the whole screen): far fewer pixels to clear and fill
+    const bx = Math.floor(Math.min(r.left, ic.left) - 2), by = Math.floor(T - 2);
+    const bw = Math.ceil(Math.max(r.right, ic.right) + 2) - bx, bh = Math.ceil(ib + 2) - by;
+    const dpr = Math.min(phone ? 1.5 : 2, devicePixelRatio || 1);
     const canvas = document.createElement("canvas");
-    canvas.className = "ct-genie"; canvas.width = Math.round(vw * dpr); canvas.height = Math.round(vh * dpr);
+    canvas.className = "ct-genie";
+    canvas.width = Math.round(bw * dpr); canvas.height = Math.round(bh * dpr);
+    canvas.style.cssText = `left:${bx}px;top:${by}px;width:${bw}px;height:${bh}px`;
     sec.appendChild(canvas);
-    const ctx = canvas.getContext("2d"); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+    const ctx = canvas.getContext("2d", { alpha: true }); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = phone ? "low" : "high";
     sec.classList.add("is-genie");
-    const ROW = 2, rows = Math.ceil(H / ROW), srcRow = pic.height / rows;
+    const ROW = phone ? 3 : 2, rows = Math.ceil(H / ROW), srcRow = pic.height / rows;
     const draw = p => {                                              // p: 0 = window open, 1 = inside the icon
       const a = inOut(clamp01(p / .5)), b = inOut(clamp01((p - .28) / .72)), tail = b * b * b;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, vw, vh);
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.setTransform(dpr, 0, 0, dpr, -bx * dpr, -by * dpr);
       ctx.globalAlpha = p > .92 ? (1 - p) / .08 : 1;
+      const yTop = lerp(T, ib - ih, b), span = lerp(H, ih, b) / rows;  // rows are evenly spaced at every moment
       for (let n = 0; n < rows; n++) {
-        const v0 = n / rows, v1 = (n + 1) / rows;
-        const y0 = lerp(T + v0 * H, ib - ih + v0 * ih, b), y1 = lerp(T + v1 * H, ib - ih + v1 * ih, b), yc = (y0 + y1) / 2;
+        const y0 = yTop + n * span, yc = y0 + span / 2;
         const q = smooth(clamp01((yc - T) / (ib - T))) * a;
         const w = lerp(lerp(W, iw, q), iw, tail), x = lerp(lerp(cx, ix, q), ix, tail);
-        ctx.drawImage(pic, 0, n * srcRow, pic.width, srcRow, x - w / 2, y0, w, Math.max(.5, y1 - y0) + .6);
+        ctx.drawImage(pic, 0, n * srcRow, pic.width, srcRow, x - w / 2, y0, w, span + .7);
       }
     };
     draw(from);
@@ -348,6 +355,34 @@
     };
     genie.raf = requestAnimationFrame(step);
   }
+  /* the picture is prepared ahead of time, so a click starts the animation at once instead of waiting for the capture:
+     whenever the window's content settles (new message, answer, scroll, resize, language), a fresh picture is taken in idle time */
+  let pic = null, picT = 0;
+  const idle = fn => ("requestIdleCallback" in window ? requestIdleCallback(fn, { timeout: 500 }) : setTimeout(fn, 60));
+  const refreshPic = (delay = 300) => {
+    pic = null; clearTimeout(picT);
+    picT = setTimeout(() => idle(() => {
+      if (genie) return refreshPic(200);
+      const r = winBox();
+      if (r.width < 50 || r.height < 50) return;
+      snapshot(r).then(c => { if (!pic) pic = { c, w: Math.round(r.width), h: Math.round(r.height) }; }).catch(() => {});
+    }), delay);
+  };
+  const freshPic = () => {
+    const r = winBox();
+    return pic && Math.abs(pic.w - r.width) < 2 && Math.abs(pic.h - r.height) < 2 ? Promise.resolve(pic.c) : snapshot(r);
+  };
+  new MutationObserver(() => refreshPic()).observe(win, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["aria-pressed", "class", "disabled"] });
+  $("#ctLog").addEventListener("scroll", () => refreshPic(), { passive: true });
+  addEventListener("resize", () => refreshPic(400));
+  addEventListener("langchange", () => refreshPic(400));
+  // first picture: as soon as the block is near, with the window laid out where it will open
+  new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { o.disconnect(); setTimeout(() => { placeWin(); refreshPic(0); }, 300); } }, { rootMargin: "300px" }).observe(sec);
+  const winBox = () => {
+    const W = win.offsetWidth, H = win.offsetHeight, top = parseFloat(getComputedStyle(win).top) || 0;
+    const left = win.getBoundingClientRect().left + win.getBoundingClientRect().width / 2 - W / 2;   // the centre doesn't move with scale
+    return { left, top, width: W, height: H, right: left + W, bottom: top + H };
+  };
   const withTimeout = (pr, ms) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej(new Error("slow")), ms))]);
   const bounceIcon = () => { chatIcon.classList.remove("is-bounce"); void chatIcon.offsetWidth; chatIcon.classList.add("is-bounce", "is-ran"); };
 
@@ -365,16 +400,17 @@
   const reallyOpen = from => {
     placeWin();
     stopGenie();
+    const picP = reduced() ? null : withTimeout(freshPic(), 600);   // grab the ready picture before the chat starts writing into the window
     sec.classList.remove("is-closing"); sec.classList.add("is-chat");
     if (!started) { started = true; flow().catch(() => {}); }
-    if (!reduced()) {
-      bounceIcon(); sec.classList.add("is-genie");                  // laid out but hidden while its picture is taken
-      withTimeout(snapshot(win.getBoundingClientRect()), 600)
-        .then(pic => { if (sec.classList.contains("is-chat")) playGenie(pic, 1, 0, 680); else sec.classList.remove("is-genie"); })
-        .catch(() => sec.classList.remove("is-genie"));
+    if (picP) {
+      bounceIcon(); sec.classList.add("is-genie");                  // laid out but hidden until its picture has poured out of the icon
+      picP.then(c => { if (sec.classList.contains("is-chat")) playGenie(c, 1, 0, 800); else sec.classList.remove("is-genie"); })
+          .catch(() => sec.classList.remove("is-genie"));
     }
     setTimeout(() => xBtn.focus({ preventScroll: true }), 300);
   };
+
   const open = from => {
     opener = from; rest(); sweeping = false; apps.forEach(x => x.classList.remove("is-tip", "is-lit"));   // a sweep cut short by the chat leaves no tooltip behind
     // not enough room above the dock (the block is scrolled high up)? glide to the end of the page first, then open
@@ -391,8 +427,8 @@
       stopGenie();
       const r = win.getBoundingClientRect();
       sec.classList.add("is-closing"); sec.classList.remove("is-chat");                // the dock and the heading come back while it pours in
-      withTimeout(snapshot(r), 600)
-        .then(pic => playGenie(pic, 0, 1, 600, () => sec.classList.remove("is-closing")))
+      withTimeout(freshPic(), 600)
+        .then(c => playGenie(c, 0, 1, 650, () => sec.classList.remove("is-closing")))
         .catch(() => sec.classList.remove("is-closing"));
     }
     if (viaKey === true && opener) opener.focus({ preventScroll: true });   // keyboard users get focus back on the icon; a mouse close leaves no tooltip hanging

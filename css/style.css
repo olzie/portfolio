@@ -830,9 +830,10 @@ body.cview-open{overflow:hidden}
 .contact.is-closing .ct-win{scale:1;opacity:1;visibility:visible;pointer-events:none;transition:none}   /* stays put while its picture is taken */
 .contact.is-genie .ct-win{visibility:hidden;transition:none}
 /* genie: the window's picture, bent row by row on a canvas by contact.js */
-.ct-genie{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:11;pointer-events:none}
+.ct-genie{position:fixed;z-index:11;pointer-events:none}
 .contact.is-genie .ct-app,.contact.is-genie .ct-sep,.contact.is-genie .ct-bar,.contact.is-genie .ct-dock::after{opacity:1}
 .contact.is-chat .ct-title,.contact.is-chat .ct-lead,.contact.is-chat .ct-status{opacity:.08;filter:blur(8px)}
+@media (hover:none),(pointer:coarse){.contact.is-chat .ct-title,.contact.is-chat .ct-lead,.contact.is-chat .ct-status{filter:none;opacity:.06}}
 .contact.is-chat .ct-tip{opacity:0!important}
 .contact.is-chat .ct-in{z-index:8}
 .contact.is-chat .ct-corner,.contact.is-chat .ct-foot{opacity:.15;transition:opacity .4s}   /* above the footer and the corner mark, so nothing shows through the window */
