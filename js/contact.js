@@ -259,25 +259,30 @@
     toData("assets/dollars.svg")
   ]).then(a => { wallData = a.pop(); fontCSS = a.join(""); }));
   const defaults = {};
+  /* defaults are measured inside a shadow root: the site's own rules (like *{box-sizing:border-box}) don't reach in there,
+     exactly as they don't reach the picture, so "default" means what the picture would get by itself */
   const sandbox = document.createElement("div");
   sandbox.style.cssText = "all:initial;position:absolute;left:-9999px;top:0;visibility:hidden";
+  const shadow = sandbox.attachShadow ? sandbox.attachShadow({ mode: "open" }) : sandbox;
   function defaultStyle(tag) {
     if (!defaults[tag]) {
       if (!sandbox.isConnected) document.body.appendChild(sandbox);
-      const el = document.createElement(tag); sandbox.appendChild(el);
+      const el = document.createElement(tag); shadow.appendChild(el);
       const cs = getComputedStyle(el), d = {};
       for (let i = 0; i < cs.length; i++) d[cs[i]] = cs.getPropertyValue(cs[i]);
       defaults[tag] = d; el.remove();
     }
     return defaults[tag];
   }
-  function inline(src, dst, root) {
+  /* a property can be left out only if it is the tag's default AND the same as the parent's value: otherwise an inherited
+     property (line-height, font, colour…) would silently take the parent's value in the picture and the layout would drift */
+  function inline(src, dst, root, pcs) {
     if (src.nodeType !== 1) return;
     const cs = getComputedStyle(src), d = defaultStyle(src.tagName.toLowerCase());
     let txt = "";
     for (let i = 0; i < cs.length; i++) {
       const prop = cs[i]; let v = cs.getPropertyValue(prop);
-      if (!root && v === d[prop]) continue;
+      if (!root && v === d[prop] && v === pcs.getPropertyValue(prop)) continue;
       if (prop.startsWith("transition") || prop.startsWith("animation") || prop === "will-change" || prop === "visibility") continue;   // the window may be hidden while its picture is taken
       if (v.includes("dollars.svg")) v = v.replace(/url\([^)]*dollars\.svg[^)]*\)/g, `url("${wallData}")`);
       txt += `${prop}:${v};`;
@@ -285,7 +290,18 @@
     if (root) txt += "position:relative;left:0;top:0;margin:0;transform:none;translate:none;scale:none;opacity:1;visibility:visible;";
     dst.setAttribute("style", txt);
     dst.removeAttribute("class"); dst.removeAttribute("id");
-    for (let k = 0; k < src.children.length; k++) inline(src.children[k], dst.children[k], false);
+    for (let k = 0; k < src.children.length; k++) inline(src.children[k], dst.children[k], false, cs);
+    // ::before / ::after (the online dot on the avatar, the bubble tails…) become real spans in the picture
+    for (const pse of ["::before", "::after"]) {
+      const ps = getComputedStyle(src, pse), c = ps.getPropertyValue("content");
+      if (!c || c === "none" || c === "normal") continue;
+      const sp = document.createElementNS("http://www.w3.org/1999/xhtml", "span");
+      let t = "";
+      for (let i = 0; i < ps.length; i++) { const prop = ps[i]; if (prop === "content" || prop.startsWith("transition") || prop.startsWith("animation")) continue; t += `${prop}:${ps.getPropertyValue(prop)};`; }
+      sp.setAttribute("style", t);
+      const m = c.match(/^"(.*)"$/); if (m) sp.textContent = m[1];
+      pse === "::before" ? dst.insertBefore(sp, dst.firstChild) : dst.appendChild(sp);
+    }
   }
   async function snapshot(r) {
     await loadAssets();
@@ -345,17 +361,17 @@
         ctx.drawImage(pic, 0, n * srcRow, pic.width, srcRow, x - w / 2, y0, w, span + .7);
       }
     };
-    /* the hand-over between the picture and the live window is a short cross-fade with both perfectly flat and in the same
-       place, so small differences between them (text rendering, a pixel of position) never read as a jump:
-       opening ends with the picture fading into the window, closing starts with the window fading into the picture */
-    const opening = from > to, FADE = .2;
-    const fadeWin = o => { win.style.visibility = o > 0 ? "visible" : ""; win.style.opacity = o > 0 ? o.toFixed(3) : ""; };
+    /* the hand-over between the picture and the live window: the live window is fully shown underneath (it is opaque) and only
+       the picture fades on top of it, so nothing behind ever shows through and small differences read as a quick dissolve:
+       opening ends with the picture dissolving off the window, closing starts with the picture dissolving onto it */
+    const opening = from > to, FADE = opening ? .16 : .18;
+    const showWin = on => { win.style.visibility = on ? "visible" : ""; win.style.opacity = on ? "1" : ""; };
     const at = k => {
       if (opening) {
-        const m = Math.min(1, k / (1 - FADE)); draw(lerp(from, to, m));
-        const f = clamp01((k - (1 - FADE)) / FADE); fadeWin(f); canvas.style.opacity = (1 - f).toFixed(3);
+        draw(lerp(from, to, Math.min(1, k / (1 - FADE))));
+        const f = clamp01((k - (1 - FADE)) / FADE); showWin(f > 0); canvas.style.opacity = (1 - f).toFixed(3);
       } else {
-        const f = clamp01(k / FADE); fadeWin(1 - f); canvas.style.opacity = f.toFixed(3);
+        const f = clamp01(k / FADE); showWin(f < 1); canvas.style.opacity = f.toFixed(3);
         draw(lerp(from, to, clamp01((k - FADE) / (1 - FADE))));
       }
     };
@@ -366,7 +382,7 @@
       const k = Math.min(1, (now - t0) / ms);
       at(k);
       if (k < 1) genie.raf = requestAnimationFrame(step);
-      else { fadeWin(0); win.style.opacity = ""; stopGenie(); done && done(); }
+      else { stopGenie(); done && done(); }
     };
     genie.raf = requestAnimationFrame(step);
   }
@@ -393,10 +409,9 @@
   addEventListener("langchange", () => refreshPic(400));
   // first picture: as soon as the block is near, with the window laid out where it will open
   new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { o.disconnect(); setTimeout(() => { placeWin(); refreshPic(0); }, 300); } }, { rootMargin: "300px" }).observe(sec);
-  const winBox = () => {
-    const W = win.offsetWidth, H = win.offsetHeight, top = parseFloat(getComputedStyle(win).top) || 0;
-    const left = win.getBoundingClientRect().left + win.getBoundingClientRect().width / 2 - W / 2;   // the centre doesn't move with scale
-    return { left, top, width: W, height: H, right: left + W, bottom: top + H };
+  const winBox = () => {                                         // the window has no transform: its box is exactly where it shows
+    const b = win.getBoundingClientRect();
+    return { left: b.left, top: b.top, width: b.width, height: b.height, right: b.right, bottom: b.bottom };
   };
   const withTimeout = (pr, ms) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej(new Error("slow")), ms))]);
   const bounceIcon = () => { chatIcon.classList.remove("is-bounce"); void chatIcon.offsetWidth; chatIcon.classList.add("is-bounce", "is-ran"); };
@@ -406,9 +421,15 @@
   const HEADER = 80, GAP = 16, WANT = 660, MIN = 380;
   const placeWin = () => {
     const top = dock.getBoundingClientRect().top, room = top - GAP - HEADER;
-    const h = Math.min(WANT, room);
-    win.style.setProperty("--winh", h + "px");
-    win.style.setProperty("--wintop", (top - GAP - h) + "px");
+    if (room >= MIN) {
+      const h = Math.min(WANT, room);
+      win.style.setProperty("--winh", h + "px");
+      win.style.setProperty("--wintop", (top - GAP - h) + "px");
+    } else {                                                        // small phone: the chat may cover the (dimmed) dock rather than be cramped
+      const h = Math.min(MIN, innerHeight - HEADER - GAP);
+      win.style.setProperty("--winh", h + "px");
+      win.style.setProperty("--wintop", HEADER + "px");
+    }
     return room;
   };
   addEventListener("resize", () => { if (sec.classList.contains("is-chat")) placeWin(); });
@@ -417,12 +438,13 @@
     stopGenie();
     const picP = reduced() ? null : withTimeout(freshPic(), 600);   // grab the ready picture before the chat starts writing into the window
     sec.classList.remove("is-closing"); sec.classList.add("is-chat");
-    if (!started) { started = true; flow().catch(() => {}); }
+    // the chat starts writing only once the window is open, so the picture that pours out is exactly what the window then shows
+    const begin = () => { if (!started && sec.classList.contains("is-chat")) { started = true; flow().catch(() => {}); } };
     if (picP) {
       bounceIcon(); sec.classList.add("is-genie");                  // laid out but hidden until its picture has poured out of the icon
-      picP.then(c => { if (sec.classList.contains("is-chat")) playGenie(c, 1, 0, 920); else sec.classList.remove("is-genie"); })
-          .catch(() => sec.classList.remove("is-genie"));
-    }
+      picP.then(c => { if (sec.classList.contains("is-chat")) playGenie(c, 1, 0, 920, begin); else sec.classList.remove("is-genie"); })
+          .catch(() => { sec.classList.remove("is-genie"); begin(); });
+    } else begin();
     setTimeout(() => xBtn.focus({ preventScroll: true }), 300);
   };
 
