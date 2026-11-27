@@ -58,6 +58,17 @@
     if (window.__lenis) window.__lenis.scrollTo(y, { duration: 1.1 }); else scrollTo({ top: y, behavior: "smooth" });
   };
   track.addEventListener("click", e => { const p = e.target.closest(".sk-panel"); if (p) go(+p.dataset.i); });
+  /* when scrolling stops inside the block, glide to the nearest card, so one card always stands centred under the light */
+  let snapT = 0;
+  const snap = () => {
+    const r = section.getBoundingClientRect(), len = r.height - innerHeight;
+    if (r.top > -4 || r.bottom < innerHeight + 4) return;          // not pinned: leaving or entering the block, don't hold the visitor
+    const p = clamp(-r.top / len, 0, 1) * (N - 1), i = Math.round(p);
+    if (Math.abs(p - i) * len / (N - 1) < 6) return;                // already there
+    go(i);
+  };
+  const onScroll = () => { clearTimeout(snapT); snapT = setTimeout(snap, 180); };
+  if (window.__lenis) window.__lenis.on("scroll", onScroll); else addEventListener("scroll", onScroll, { passive: true });
   track.addEventListener("keydown", e => { const p = e.target.closest(".sk-panel"); if (p && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); go(+p.dataset.i); } });
   const set = (el, k, v) => { const c = el._s || (el._s = {}); if (c[k] !== v) { c[k] = v; el.style[k] = v; } };
   const progress = () => { const r = section.getBoundingClientRect(); return clamp(-r.top / (r.height - innerHeight), 0, 1); };

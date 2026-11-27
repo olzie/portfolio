@@ -238,87 +238,149 @@
   }
   hint.addEventListener("click", e => { if (e.target.closest("[data-again]")) flow().catch(() => {}); });
 
-  /* genie, the macOS way: the window itself bends. It is cut into horizontal slices (live clones of the window, each clipped
-     to its band); every frame each slice is moved and squeezed on its own, so the sides curve, the bottom funnels into the
-     Chat icon first and the rest pours in after it — the content is carried along, not just clipped. Opening plays it backwards
-     (out of the icon, after the icon's launch bounce). Only transforms change during the animation. */
+  /* genie, the macOS way: the window itself bends, smoothly.
+     A picture of the window is taken (its DOM, with computed styles inlined, rendered through an SVG <foreignObject>),
+     then drawn on a canvas one 2px row at a time: every row gets its own width and position along a smooth funnel,
+     so the outline is one continuous curve and the content bends with it. The bottom funnels into the Chat icon first,
+     the rest pours in after it; opening plays it backwards after the icon's launch bounce. No DOM moves during the animation. */
   const win = $("#ctWin"), chatIcon = $("[data-openchat]");
-  const SLICES = 20;
   let genie = null;
   const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
   const lerp = (a, b, t) => a + (b - a) * t, clamp01 = t => Math.min(1, Math.max(0, t));
   const smooth = t => t * t * (3 - 2 * t), inOut = t => t < .5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+
+  // --- the picture of the window ---
+  let fontCSS = null, wallData = null, assetsP = null;
+  const toData = url => fetch(url).then(r => r.blob()).then(b => new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(b); }));
+  const RANGES = { latin: "U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215", cyrillic: "U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116" };
+  const loadAssets = () => assetsP || (assetsP = Promise.all([
+    ...[["latin", 800], ["cyrillic", 800], ["latin", 400], ["cyrillic", 400]].map(([sub, w]) =>
+      toData(`assets/fonts/unbounded-${sub}-${w}-normal.woff2`).then(d => `@font-face{font-family:"Unbounded";font-weight:${w};src:url(${d}) format("woff2");unicode-range:${RANGES[sub]}}`)),
+    toData("assets/dollars.svg")
+  ]).then(a => { wallData = a.pop(); fontCSS = a.join(""); }));
+  const defaults = {};
+  const sandbox = document.createElement("div");
+  sandbox.style.cssText = "all:initial;position:absolute;left:-9999px;top:0;visibility:hidden";
+  function defaultStyle(tag) {
+    if (!defaults[tag]) {
+      if (!sandbox.isConnected) document.body.appendChild(sandbox);
+      const el = document.createElement(tag); sandbox.appendChild(el);
+      const cs = getComputedStyle(el), d = {};
+      for (let i = 0; i < cs.length; i++) d[cs[i]] = cs.getPropertyValue(cs[i]);
+      defaults[tag] = d; el.remove();
+    }
+    return defaults[tag];
+  }
+  function inline(src, dst, root) {
+    if (src.nodeType !== 1) return;
+    const cs = getComputedStyle(src), d = defaultStyle(src.tagName.toLowerCase());
+    let txt = "";
+    for (let i = 0; i < cs.length; i++) {
+      const prop = cs[i]; let v = cs.getPropertyValue(prop);
+      if (!root && v === d[prop]) continue;
+      if (prop.startsWith("transition") || prop.startsWith("animation") || prop === "will-change" || prop === "visibility") continue;   // the window may be hidden while its picture is taken
+      if (v.includes("dollars.svg")) v = v.replace(/url\([^)]*dollars\.svg[^)]*\)/g, `url("${wallData}")`);
+      txt += `${prop}:${v};`;
+    }
+    if (root) txt += "position:relative;left:0;top:0;margin:0;transform:none;translate:none;scale:none;opacity:1;visibility:visible;";
+    dst.setAttribute("style", txt);
+    dst.removeAttribute("class"); dst.removeAttribute("id");
+    for (let k = 0; k < src.children.length; k++) inline(src.children[k], dst.children[k], false);
+  }
+  async function snapshot(r) {
+    await loadAssets();
+    const c = win.cloneNode(true);
+    inline(win, c, true);
+    // the conversation keeps its scroll position
+    const logSrc = $("#ctLog"), logDst = c.children[[...win.children].indexOf(logSrc)];
+    if (logSrc && logDst) { logDst.style.overflow = "hidden"; [...logDst.children].forEach(ch => { ch.style.position = "relative"; ch.style.top = `${-logSrc.scrollTop}px`; }); }
+    const xml = new XMLSerializer().serializeToString(c);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${r.width}" height="${r.height}"><style>${fontCSS}</style><foreignObject x="0" y="0" width="100%" height="100%">${xml}</foreignObject></svg>`;
+    const img = new Image();
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    await new Promise((res, rej) => { if (img.complete && img.naturalWidth) res(); else { img.onload = res; img.onerror = rej; } });   // Safari: decode() is unreliable for SVG
+    const dpr = Math.min(2, devicePixelRatio || 1), cv = document.createElement("canvas");
+    cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+    cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+    return cv;
+  }
+  if ("requestIdleCallback" in window) requestIdleCallback(() => loadAssets().catch(() => {}));   // fonts ready before the first click
+  else setTimeout(() => loadAssets().catch(() => {}), 2500);
+
+  // --- the bend ---
   function stopGenie() {
     if (!genie) return;
-    cancelAnimationFrame(genie.raf); genie.slices.forEach(s => s.el.remove()); genie = null;
+    cancelAnimationFrame(genie.raf); genie.canvas.remove(); genie = null;
     sec.classList.remove("is-genie");
   }
-  function runGenie(from, to, ms, done) {
+  function playGenie(pic, from, to, ms, done) {
     stopGenie();
-    sec.classList.add("is-genie");                                  // real window hidden, dock kept bright while it plays
     const r = win.getBoundingClientRect(), ic = chatIcon.querySelector(".ct-face").getBoundingClientRect();
-    const logTop = $("#ctLog").scrollTop, H = r.height, W = r.width, T = r.top, cx = r.left + W / 2;
+    const H = r.height, W = r.width, T = r.top, cx = r.left + W / 2;
     const ix = ic.left + ic.width / 2, iw = ic.width, ih = ic.height, ib = ic.bottom;
-    const slices = [];
-    /* each slice is a band-sized box (so it costs only its own strip, not a whole window layer) holding a clone of the window
-       shifted up to show just that band */
-    for (let n = 0; n < SLICES; n++) {
-      const v0 = n / SLICES, v1 = (n + 1) / SLICES, top = Math.round(v0 * H), h = Math.round(v1 * H) - top;
-      const el = document.createElement("div");
-      el.className = "ct-slice"; el.setAttribute("aria-hidden", "true");
-      el.style.cssText = `left:${r.left}px;top:${(T + top).toFixed(1)}px;width:${W}px;height:${h.toFixed(1)}px`;
-      const c = win.cloneNode(true);
-      c.removeAttribute("id"); c.querySelectorAll("[id]").forEach(x => x.removeAttribute("id"));
-      c.classList.add("ct-slice__win");
-      c.style.top = `${(-top).toFixed(1)}px`;
-      el.appendChild(c); sec.appendChild(el);
-      // clones must not create scrollers of their own (each would be a full-size layer — the Safari lag)
-      c.querySelectorAll(".ct-log,.ct-field").forEach(x => { x.style.overflow = "hidden"; });
-      const lg = c.querySelector(".ct-log"); if (lg) lg.scrollTop = logTop;
-      slices.push({ el, v0: top / H, v1: (top + h) / H, h });
-    }
-    const place = p => {                                            // p: 0 = window open, 1 = inside the icon
+    const dpr = Math.min(2, devicePixelRatio || 1), vw = innerWidth, vh = innerHeight;
+    const canvas = document.createElement("canvas");
+    canvas.className = "ct-genie"; canvas.width = Math.round(vw * dpr); canvas.height = Math.round(vh * dpr);
+    sec.appendChild(canvas);
+    const ctx = canvas.getContext("2d"); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+    sec.classList.add("is-genie");
+    const ROW = 2, rows = Math.ceil(H / ROW), srcRow = pic.height / rows;
+    const draw = p => {                                              // p: 0 = window open, 1 = inside the icon
       const a = inOut(clamp01(p / .5)), b = inOut(clamp01((p - .28) / .72)), tail = b * b * b;
-      // the outline is computed at every band boundary, so neighbouring bands share their edge exactly
-      const edge = v => {
-        const y = lerp(T + v * H, ib - ih + v * ih, b);
-        const q = smooth(clamp01((y - T) / (ib - T))) * a;          // how far down the funnel this boundary sits
-        return { y, w: lerp(lerp(W, iw, q), iw, tail), x: lerp(lerp(cx, ix, q), ix, tail) };
-      };
-      const fade = p > .92 ? ((1 - p) / .08).toFixed(3) : "1";
-      slices.forEach(s => {
-        const e0 = edge(s.v0), e1 = edge(s.v1);
-        const xm = (e0.x + e1.x) / 2, wm = Math.max(e0.w, e1.w, 1), sx = wm / W;
-        const sy = Math.max(.002, (e1.y - e0.y + 1.5) / s.h);       // 1.5 screen px of overlap: squeezed bands never open gaps
-        const dy = (e0.y + e1.y) / 2 - (T + (s.v0 + s.v1) / 2 * H);
-        s.el.style.transform = `translate3d(${(xm - cx).toFixed(2)}px,${dy.toFixed(2)}px,0) scale(${sx.toFixed(4)},${sy.toFixed(4)})`;
-        /* each band is cut into a trapezoid (its top as wide as the band above, its bottom as wide as the band below), so the
-           sides form one smooth curve instead of a staircase of rectangles */
-        const L = X => ((X - xm) / sx + W / 2).toFixed(1) + "px";
-        const poly = `polygon(${L(e0.x - e0.w / 2)} 0,${L(e0.x + e0.w / 2)} 0,${L(e1.x + e1.w / 2)} 100%,${L(e1.x - e1.w / 2)} 100%)`;
-        s.el.style.clipPath = poly; s.el.style.webkitClipPath = poly;
-        s.el.style.opacity = fade;
-      });
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, vw, vh);
+      ctx.globalAlpha = p > .92 ? (1 - p) / .08 : 1;
+      for (let n = 0; n < rows; n++) {
+        const v0 = n / rows, v1 = (n + 1) / rows;
+        const y0 = lerp(T + v0 * H, ib - ih + v0 * ih, b), y1 = lerp(T + v1 * H, ib - ih + v1 * ih, b), yc = (y0 + y1) / 2;
+        const q = smooth(clamp01((yc - T) / (ib - T))) * a;
+        const w = lerp(lerp(W, iw, q), iw, tail), x = lerp(lerp(cx, ix, q), ix, tail);
+        ctx.drawImage(pic, 0, n * srcRow, pic.width, srcRow, x - w / 2, y0, w, Math.max(.5, y1 - y0) + .6);
+      }
     };
-    place(from);
+    draw(from);
     const t0 = performance.now();
-    genie = { slices, raf: 0 };
+    genie = { canvas, raf: 0 };
     const step = now => {
       const k = Math.min(1, (now - t0) / ms);
-      place(lerp(from, to, k));
+      draw(lerp(from, to, k));
       if (k < 1) genie.raf = requestAnimationFrame(step);
       else { stopGenie(); done && done(); }
     };
     genie.raf = requestAnimationFrame(step);
   }
+  const withTimeout = (pr, ms) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej(new Error("slow")), ms))]);
   const bounceIcon = () => { chatIcon.classList.remove("is-bounce"); void chatIcon.offsetWidth; chatIcon.classList.add("is-bounce", "is-ran"); };
 
-  const open = from => {
-    opener = from; rest(); sweeping = false; apps.forEach(x => x.classList.remove("is-tip", "is-lit"));   // a sweep cut short by the chat leaves no tooltip behind
+  /* the window stands above the dock, like a Mac app window over its Dock: its bottom sits just over the icons,
+     its height is whatever fits between the site header and the dock (up to 660px) */
+  const HEADER = 80, GAP = 16, WANT = 660, MIN = 380;
+  const placeWin = () => {
+    const top = dock.getBoundingClientRect().top, room = top - GAP - HEADER;
+    const h = Math.min(WANT, room);
+    win.style.setProperty("--winh", h + "px");
+    win.style.setProperty("--wintop", (top - GAP - h) + "px");
+    return room;
+  };
+  addEventListener("resize", () => { if (sec.classList.contains("is-chat")) placeWin(); });
+  const reallyOpen = from => {
+    placeWin();
+    stopGenie();
     sec.classList.remove("is-closing"); sec.classList.add("is-chat");
     if (!started) { started = true; flow().catch(() => {}); }
-    if (!reduced()) { bounceIcon(); runGenie(1, 0, 640); }
+    if (!reduced()) {
+      bounceIcon(); sec.classList.add("is-genie");                  // laid out but hidden while its picture is taken
+      withTimeout(snapshot(win.getBoundingClientRect()), 600)
+        .then(pic => { if (sec.classList.contains("is-chat")) playGenie(pic, 1, 0, 680); else sec.classList.remove("is-genie"); })
+        .catch(() => sec.classList.remove("is-genie"));
+    }
     setTimeout(() => xBtn.focus({ preventScroll: true }), 300);
+  };
+  const open = from => {
+    opener = from; rest(); sweeping = false; apps.forEach(x => x.classList.remove("is-tip", "is-lit"));   // a sweep cut short by the chat leaves no tooltip behind
+    // not enough room above the dock (the block is scrolled high up)? glide to the end of the page first, then open
+    if (dock.getBoundingClientRect().top - GAP - HEADER < MIN && window.__lenis) {
+      window.__lenis.scrollTo(document.documentElement.scrollHeight, { duration: .6, onComplete: () => reallyOpen(from) });
+    } else reallyOpen(from);
   };
   // the window is fixed on screen: if the visitor scrolls away from the contact block, it closes
   new IntersectionObserver(es => { if (!es[0].isIntersecting && sec.classList.contains("is-chat")) close(); }, { threshold: .15 }).observe(sec);
@@ -326,8 +388,12 @@
     if (!sec.classList.contains("is-chat")) return;
     if (reduced()) { stopGenie(); sec.classList.remove("is-chat"); }
     else {
-      runGenie(0, 1, 600, () => sec.classList.remove("is-closing"));
+      stopGenie();
+      const r = win.getBoundingClientRect();
       sec.classList.add("is-closing"); sec.classList.remove("is-chat");                // the dock and the heading come back while it pours in
+      withTimeout(snapshot(r), 600)
+        .then(pic => playGenie(pic, 0, 1, 600, () => sec.classList.remove("is-closing")))
+        .catch(() => sec.classList.remove("is-closing"));
     }
     if (viaKey === true && opener) opener.focus({ preventScroll: true });   // keyboard users get focus back on the icon; a mouse close leaves no tooltip hanging
   };
