@@ -347,8 +347,8 @@
       if (mob && ctaEl) {
         const gap = pin.clientHeight - (ctaEl.getBoundingClientRect().bottom - pin.getBoundingClientRect().top);
         if (gap > 40) {
-          numsEl.style.marginTop = -Math.round(gap - 24) + "px";
-          pin.style.setProperty("--cut", Math.round(gap - 24) + "px");   // the scene's fade to black ends where "Results" now starts, not under it
+          numsEl.style.marginTop = -Math.round(gap - 16) + "px";
+          pin.style.setProperty("--cut", Math.round(gap - 16) + "px");   // the scene's fade to black ends where "Results" now starts, not under it
         }
       }
     }

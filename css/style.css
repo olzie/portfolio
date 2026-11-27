@@ -432,6 +432,7 @@ body::after{
   .cell:nth-child(2n){border-left:1px solid var(--line)}
 }
 @media (max-width:640px){
+  .nums{padding-top:28px}   /* phones: Results starts right under the hero's button (the gap was ~135px) */
   .nums__head{grid-template-columns:1fr}
   .nums__note{text-align:left}
   .nums__hero{flex-direction:column;align-items:flex-start;gap:14px}
