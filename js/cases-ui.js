@@ -133,7 +133,7 @@
   /* "Show less" sits at the very end of the open list. The list folds and the page is shifted in the same frame so the
      button stays exactly where the finger/cursor is (it becomes "Show all"): nothing glides, nothing jumps, the visitor
      isn't thrown back to the start of the block. */
-  let openedAt = null;
+  let openedAt = null, folding = false;
   section.addEventListener("click", e => {
     const btnEl = e.target.closest(".cmore__btn");
     if (!btnEl) return;
@@ -143,29 +143,29 @@
       list.classList.add("is-opening"); section.classList.add("is-opening");
       return;
     }
-    /* folding brings the page back to exactly where it was when "Show all" was pressed (the block at the same place on screen),
-       so closing the list undoes opening it */
+    /* folding brings the page back to where it was when "Show all" was pressed (the block at the same place on screen), smoothly:
+       the page glides up first, while the list is still open, and the list folds once it has arrived — the part that goes
+       away is then below the screen, so nothing jumps, and a short fade covers the rows changing in view */
+    if (folding) return;
+    folding = true;
+    const target = window.scrollY + section.getBoundingClientRect().top - (openedAt ?? 80);
+    openedAt = null;
+    let done = false;
     const fold = () => {
-      const before = btnEl.getBoundingClientRect().top;
-      list.classList.remove("is-opening"); section.classList.remove("is-opening");
-      collapsed = true; render(true);
-      let y;
-      if (openedAt !== null) y = window.scrollY + section.getBoundingClientRect().top - openedAt;
-      else { const nb = list.querySelector(".cmore__btn"); y = nb ? window.scrollY + nb.getBoundingClientRect().top - before : window.scrollY; }
-      openedAt = null;
-      if (window.__lenis) { window.__lenis.resize(); window.__lenis.scrollTo(y, { immediate: true, force: true }); }
-      else window.scrollTo(0, y);
-    };
-    /* iOS Safari paints the shortened page one frame before it applies the scroll correction, which flashed a black frame
-       (the Skills stage at the old position). On touch screens the fold happens under a very quick veil */
-    const veil = document.querySelector(".veil");
-    if (veil && matchMedia("(pointer:coarse)").matches) {
-      veil.classList.add("is-quick", "is-on");
+      if (done) return; done = true;
+      list.classList.add("is-folding");
       setTimeout(() => {
-        fold();
-        requestAnimationFrame(() => requestAnimationFrame(() => { veil.classList.remove("is-on"); setTimeout(() => veil.classList.remove("is-quick"), 300); }));
-      }, 110);
-    } else fold();
+        list.classList.remove("is-opening"); section.classList.remove("is-opening");
+        collapsed = true; render(true);
+        if (window.__lenis) window.__lenis.resize();
+        requestAnimationFrame(() => { list.classList.remove("is-folding"); folding = false; });
+      }, 170);
+    };
+    const far = Math.abs(window.scrollY - target);
+    if (far > 4 && window.__lenis) {
+      window.__lenis.scrollTo(target, { duration: Math.min(1.6, .7 + far / 4000), force: true, onComplete: fold });
+      setTimeout(fold, 2000);                                         // never left half-way if the glide is interrupted
+    } else { if (far > 4) window.scrollTo({ top: target, behavior: "smooth" }); setTimeout(fold, far > 4 ? 700 : 0); }
   });
 
   /* running line: tenders (one window), then small cases (their own windows). Built once: names don't change with the language */
