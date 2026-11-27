@@ -342,10 +342,10 @@ body::after{
   .skills__pin{--ph:var(--skph);--hz:calc(230px + var(--ph))}   /* cards start right under the subtitle */
   /* the stage is the large viewport tall, but only its top (heading, cards, counter) is used: the contact block slides
      up over the empty floor under the counter, so there's no long black gap between the two blocks */
-  .skills + .contact{margin-top:min(0px,calc(330px + var(--skph) - 100lvh))}
+  .skills + .contact{margin-top:min(0px,calc(350px + var(--skph) - 100lvh))}   /* edge at hz + 120px: the floor under the counter is already black there */
   /* the contact block covers the stage's floor here: a short fade above its edge, so the reflection doesn't end on a line */
   .contact::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:36px;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,0),#000)}
-  .skills__pin::after{top:calc(var(--hz) + 60px);bottom:0;height:auto;background:linear-gradient(180deg,rgba(0,0,0,0),#000 44px)}   /* the reflection is gone before the contact block's edge (hz + 100px) */
+  .skills__pin::after{top:calc(var(--hz) + 60px);bottom:0;height:auto;background:linear-gradient(180deg,rgba(0,0,0,0),#000 40px)}   /* black by hz + 100px, before the contact block's edge (hz + 120px) */
   .sk-track,.sk-halo{--ph:inherit}
   .sk-prog{bottom:auto;top:calc(var(--hz) + 44px)}
   .sk-corner--br{bottom:auto;top:calc(var(--hz) + 34px)}
