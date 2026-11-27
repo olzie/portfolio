@@ -844,7 +844,7 @@ body.cview-open{overflow:hidden}
 .contact.is-closing .ct-win{opacity:1;visibility:visible;pointer-events:none;transition:none}   /* stays put while its picture is taken */
 .contact.is-genie .ct-win{visibility:hidden;transition:none}
 /* genie: the window's picture, bent row by row on a canvas by contact.js */
-.ct-genie{position:fixed;z-index:11;pointer-events:none}
+.ct-genie{position:fixed;z-index:0;pointer-events:none}   /* first child of the dock: painted before (under) the icons, above the glass bar */
 .contact.is-genie .ct-app,.contact.is-genie .ct-sep,.contact.is-genie .ct-bar,.contact.is-genie .ct-dock::after{opacity:1}
 .contact.is-chat .ct-title,.contact.is-chat .ct-lead,.contact.is-chat .ct-status{opacity:.08}   /* no blur: animating a blur on the giant heading made the genie stutter */
 @media (hover:none),(pointer:coarse){.contact.is-chat .ct-title,.contact.is-chat .ct-lead,.contact.is-chat .ct-status{opacity:.06}}

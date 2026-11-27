@@ -344,7 +344,7 @@
     canvas.className = "ct-genie";
     canvas.width = Math.round(bw * dpr); canvas.height = Math.round(bh * dpr);
     canvas.style.cssText = `left:${bx}px;top:${by}px;width:${bw}px;height:${bh}px`;
-    sec.appendChild(canvas);
+    dock.insertBefore(canvas, dock.firstChild);                   // inside the dock, under the icons: the window pours INTO the Chat icon and vanishes behind it, as on a Mac
     const ctx = canvas.getContext("2d", { alpha: true }); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = phone ? "low" : "high";
     sec.classList.add("is-genie");
     const ROW = phone ? 3 : 2, rows = Math.ceil(H / ROW), srcRow = pic.height / rows;
