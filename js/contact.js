@@ -261,6 +261,7 @@
   const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
   const lerp = (a, b, t) => a + (b - a) * t, clamp01 = t => Math.min(1, Math.max(0, t));
   const smooth = t => t * t * (3 - 2 * t), inOut = t => t < .5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+  const smoother = t => t * t * t * (t * (t * 6 - 15) + 10);         // gentler start and end than a cubic: no visible kick when the bend starts or settles
 
   // --- the picture of the window ---
   let fontCSS = null, wallData = null, assetsP = null;
@@ -360,9 +361,9 @@
     dock.insertBefore(canvas, dock.firstChild);                   // inside the dock, under the icons: the window pours INTO the Chat icon and vanishes behind it, as on a Mac
     const ctx = canvas.getContext("2d", { alpha: true }); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = phone ? "low" : "high";
     sec.classList.add("is-genie");
-    const ROW = phone ? 3 : 2, rows = Math.ceil(H / ROW), srcRow = pic.height / rows;
+    const ROW = 2, rows = Math.ceil(H / ROW), srcRow = pic.height / rows;   // 2px rows everywhere: on phones 3px rows showed as fine steps on the edges
     const draw = p => {                                              // p: 0 = window open, 1 = inside the icon
-      const a = inOut(clamp01(p / .5)), b = inOut(clamp01((p - .28) / .72)), tail = b * b * b;
+      const a = smoother(clamp01(p / .55)), b = smoother(clamp01((p - .22) / .78)), tail = b * b * b;   // the pinch and the slide overlap more: one continuous motion
       ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.setTransform(dpr, 0, 0, dpr, -bx * dpr, -by * dpr);
       ctx.globalAlpha = 1 - smooth(clamp01((p - .6) / .34));      // near the icon it melts away (the eye kept catching the last bit)
@@ -377,7 +378,7 @@
     /* the hand-over between the picture and the live window: the live window is fully shown underneath (it is opaque) and only
        the picture fades on top of it, so nothing behind ever shows through and small differences read as a quick dissolve:
        opening ends with the picture dissolving off the window, closing starts with the picture dissolving onto it */
-    const opening = from > to, FADE = opening ? .2 : .07;
+    const opening = from > to, FADE = opening ? .1 : .07;   // the window takes over right as the bend settles, not after a held frame
     const showWin = on => { win.style.visibility = on ? "visible" : ""; win.style.opacity = on ? "1" : ""; };
     const at = k => {
       if (opening) {
@@ -458,7 +459,7 @@
     const begin = () => { if (!started && sec.classList.contains("is-chat")) { started = true; flow().catch(() => {}); } };
     if (picP) {
       bounceIcon(); sec.classList.add("is-genie");                  // laid out but hidden until its picture has poured out of the icon
-      picP.then(c => { if (sec.classList.contains("is-chat")) playGenie(c, 1, 0, 640, begin); else sec.classList.remove("is-genie"); })
+      picP.then(c => { if (sec.classList.contains("is-chat")) playGenie(c, 1, 0, 680, begin); else sec.classList.remove("is-genie"); })
           .catch(() => { sec.classList.remove("is-genie"); begin(); });
     } else begin();
     setTimeout(() => xBtn.focus({ preventScroll: true }), 300);
@@ -481,7 +482,7 @@
       const r = win.getBoundingClientRect();
       sec.classList.add("is-closing"); sec.classList.remove("is-chat");                // the dock and the heading come back while it pours in
       withTimeout(freshPic(), 600)
-        .then(c => playGenie(c, 0, 1, 720, () => sec.classList.remove("is-closing")))
+        .then(c => playGenie(c, 0, 1, 760, () => sec.classList.remove("is-closing")))
         .catch(() => sec.classList.remove("is-closing"));
     }
     if (viaKey === true && opener) opener.focus({ preventScroll: true });   // keyboard users get focus back on the icon; a mouse close leaves no tooltip hanging
