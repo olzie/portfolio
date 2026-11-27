@@ -117,7 +117,7 @@ window.I18N = {
     "cases.prev": "Назад",
     "cases.next": "Далі",
     "cases.open": "Відкрити кейс",
-    "contact.title": "Поговорімо",
+    "contact.title": "Познайомимось?",
     "contact.lead": "Шукаєте SMM-спеціаліста? Забронюйте дзвінок або візьміть CV. Є проєкт? Відкрийте чат.",
     "contact.status": "Відкрита до ролей Senior SMM",
     "contact.min": "ХВ",
