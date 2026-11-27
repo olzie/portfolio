@@ -260,7 +260,7 @@ body::after{
 }
 
 /* ---------- skills: glass panels on the studio stage (js/skills.js) ---------- */
-.skills{position:relative;z-index:1;height:540vh;background:var(--bg);margin-top:clamp(-90px,-6vw,-40px)}
+.skills{position:relative;z-index:1;height:400vh;background:var(--bg);margin-top:clamp(-90px,-6vw,-40px)}
 .cases:not(.is-collapsed) + .skills{margin-top:0}   /* list open: the stage must not cover "Show less" under the running line */   /* the empty top of the stage slides under the cases block's end */
 .skills__pin{position:sticky;top:0;height:100vh;height:100lvh;overflow:hidden;--hz:78%}   /* the large viewport: when Safari's bars collapse the stage still fills the screen, no empty strip under it */
 .sk-studio{position:absolute;inset:0;background:#000}   /* opaque: Safari doesn't have to blend the stage with the page under it */
@@ -332,7 +332,7 @@ body::after{
 .sk-prog i{display:block;width:120px;height:2px;background:rgba(156,188,255,.15);overflow:hidden}
 .sk-prog s{display:block;height:100%;background:var(--blue);box-shadow:0 0 8px var(--blue);transform:scaleX(0);transform-origin:0 50%;text-decoration:none}
 @media (max-width:760px){
-  .skills{height:500vh}
+  .skills{height:380vh}
   .skills__pin{--hz:85%}                                  /* the cards stand lower, clear of the bigger heading and its subtitle */
   .sk-track,.sk-halo{--ph:min(400px,51vh)}
   .sk-head{top:84px}

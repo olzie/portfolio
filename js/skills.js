@@ -53,24 +53,27 @@
      so this scrolls the page to the spot where that panel is the lit one */
   const pinEl = section.querySelector(".skills__pin");
   const pinH = () => (pinEl ? pinEl.offsetHeight : innerHeight);   // the stage is the large viewport tall on phones, not innerHeight
-  const go = i => {
+  const go = (i, dur = 1.1) => {
     i = clamp(i, 0, N - 1);
     const top = section.getBoundingClientRect().top + scrollY, len = section.offsetHeight - pinH();
     const y = top + len * (i / (N - 1));
-    if (window.__lenis) window.__lenis.scrollTo(y, { duration: 1.1 }); else scrollTo({ top: y, behavior: "smooth" });
+    if (window.__lenis) window.__lenis.scrollTo(y, { duration: dur }); else scrollTo({ top: y, behavior: "smooth" });
   };
   track.addEventListener("click", e => { const p = e.target.closest(".sk-panel"); if (p) go(+p.dataset.i); });
-  /* when scrolling stops inside the block, glide to the nearest card, so one card always stands centred under the light */
-  let snapT = 0;
+  /* when scrolling stops inside the block, one card settles under the light — the next one in the direction the visitor
+     was scrolling, not the nearest. Snapping to the nearest pulled a slow scroller back to the same card again and again
+     (and held them on the last one), so the block felt like a wall at the end of the site. */
+  let snapT = 0, fromY = null;
   const snap = () => {
+    const dir = Math.sign(scrollY - fromY); fromY = null;
     const r = section.getBoundingClientRect(), len = r.height - pinH();
     if (r.top > -4 || r.bottom < pinH() + 4) return;          // not pinned: leaving or entering the block, don't hold the visitor
-    const p = clamp(-r.top / len, 0, 1) * (N - 1), i = Math.round(p);
+    const p = clamp(-r.top / len, 0, 1) * (N - 1), f = p - Math.floor(p);
+    const i = dir > 0 ? (f > .06 ? Math.ceil(p) : Math.floor(p)) : dir < 0 ? (f < .94 ? Math.floor(p) : Math.ceil(p)) : Math.round(p);
     if (Math.abs(p - i) * len / (N - 1) < 6) return;                // already there
-    go(i);
+    go(i, .7);
   };
-  const onScroll = () => { clearTimeout(snapT); snapT = setTimeout(snap, 180); };
-  if (window.__lenis) window.__lenis.on("scroll", onScroll); else addEventListener("scroll", onScroll, { passive: true });
+  const onScroll = () => { if (fromY === null) fromY = scrollY; clearTimeout(snapT); snapT = setTimeout(snap, 160); };
   track.addEventListener("keydown", e => { const p = e.target.closest(".sk-panel"); if (p && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); go(+p.dataset.i); } });
   const set = (el, k, v) => { const c = el._s || (el._s = {}); if (c[k] !== v) { c[k] = v; el.style[k] = v; } };
   const progress = () => { const r = section.getBoundingClientRect(); return clamp(-r.top / (r.height - pinH()), 0, 1); };

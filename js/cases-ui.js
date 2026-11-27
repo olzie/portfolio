@@ -130,15 +130,32 @@
   });
 
   /* everything after the top 3 opens with the button under them */
+  /* "Show less" sits at the very end of the open list. Folding first and scrolling after made everything below jump
+     (Skills shot up under the cursor, then the page slid back). Now the page glides up to the top of the list while
+     it is still open, and only then the list folds — below the fold, where nothing visible moves. */
+  let folding = false;
   section.addEventListener("click", e => {
-    if (!e.target.closest(".cmore__btn")) return;
-    collapsed = !collapsed;
-    render();
-    if (!collapsed) { list.classList.add("is-opening"); section.classList.add("is-opening"); }
-    else {
-      const last = list.querySelectorAll(".crow--top")[TOP.length - 1];
-      if (window.__lenis) window.__lenis.scrollTo(last, { offset: -160 }); else last.scrollIntoView({ block: "center" });
+    if (!e.target.closest(".cmore__btn") || folding) return;
+    if (collapsed) {
+      collapsed = false; render();
+      list.classList.add("is-opening"); section.classList.add("is-opening");
+      return;
     }
+    folding = true;
+    let done = false;
+    const fold = () => {
+      if (done) return; done = true;
+      list.classList.remove("is-opening"); section.classList.remove("is-opening");
+      collapsed = true; render();
+      if (window.__lenis) window.__lenis.resize();
+      folding = false;
+    };
+    const y = list.getBoundingClientRect().top + window.scrollY - Math.min(innerHeight * .35, 300);   // the heading and the folded list end up in view
+    if (window.__lenis && Math.abs(window.scrollY - y) > 4) {
+      const far = Math.abs(window.scrollY - y);
+      window.__lenis.scrollTo(y, { duration: Math.min(1.4, .6 + far / 4000), force: true, onComplete: fold });
+      setTimeout(fold, 1800);                                       // never left half-way if the glide gets interrupted
+    } else fold();
   });
 
   /* running line: tenders (one window), then small cases (their own windows). Built once: names don't change with the language */
