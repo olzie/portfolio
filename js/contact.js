@@ -73,11 +73,11 @@
     const aT = pointerX === null ? 0 : 1;
     amp += (aT - amp) * .2;
     if (Math.abs(aT - amp) > .002) moving = true; else amp = aT;
-    /* The swell is a smooth "magnification field" along the dock: scale(t) = 1 + amp·0.55·(1 − |t − sp|/R)^1.6.
+    /* The swell is a smooth "magnification field" along the dock: scale(t) = 1 + amp·0.4·(1 − |t − sp|/R)^1.6.
        Every point of the dock is moved by the integral of that extra scale from the pointer to the point (G below), the same
        idea as the macOS dock: the point under the cursor stays put, sizes and gaps grow together, nothing overlaps, and as the
        pointer travels each icon only ever slides one way — no back-and-forth twitching. */
-    const Rr = R(), Gk = amp * .55 * Rr / 2.6;
+    const Rr = R(), Gk = amp * .4 * Rr / 2.6;   // peak swell ≈1.4× (was 1.55×)
     const G = u => { if (sp === null) return 0; const a = Math.min(1, Math.abs(u) / Rr); return Math.sign(u) * Gk * (1 - (1 - a) ** 2.6); };
     const half = (rest0[1] - rest0[0]) / 2;                          // half of one icon's slot (icon + gap)
     let k = 0;
@@ -461,7 +461,7 @@
     const begin = () => { if (!started && sec.classList.contains("is-chat")) { started = true; flow().catch(() => {}); } };
     if (picP) {
       bounceIcon(); sec.classList.add("is-genie");                  // laid out but hidden until its picture has poured out of the icon
-      picP.then(c => { if (sec.classList.contains("is-chat")) playGenie(c, 1, 0, 680, begin); else sec.classList.remove("is-genie"); })
+      picP.then(c => { if (sec.classList.contains("is-chat")) playGenie(c, 1, 0, 480, begin); else sec.classList.remove("is-genie"); })
           .catch(() => { sec.classList.remove("is-genie"); begin(); });
     } else begin();
     setTimeout(() => xBtn.focus({ preventScroll: true }), 300);
@@ -484,7 +484,7 @@
       const r = win.getBoundingClientRect();
       sec.classList.add("is-closing"); sec.classList.remove("is-chat");                // the dock and the heading come back while it pours in
       withTimeout(freshPic(), 600)
-        .then(c => playGenie(c, 0, 1, 760, () => sec.classList.remove("is-closing")))
+        .then(c => playGenie(c, 0, 1, 520, () => sec.classList.remove("is-closing")))
         .catch(() => sec.classList.remove("is-closing"));
     }
     if (viaKey === true && opener) opener.focus({ preventScroll: true });   // keyboard users get focus back on the icon; a mouse close leaves no tooltip hanging

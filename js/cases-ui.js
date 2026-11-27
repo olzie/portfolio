@@ -163,7 +163,7 @@
     const h1 = probe.offsetHeight; probe.remove();
     // what goes away with the open list closes on the same clock: the running line and the "Show less" slot under it
     const extra = [$(".also"), document.getElementById("cmoreEnd")].filter(el => el && el.offsetHeight).map(el => [el, el.offsetHeight]);
-    const ms = Math.min(1100, 600 + Math.abs(y0 - target) / 5);
+    const ms = reduce ? 1 : Math.min(1100, 600 + Math.abs(y0 - target) / 5);   // reduced motion: straight to the folded state
     const ease = t => t < .5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
     list.style.height = h0 + "px"; list.style.overflow = "hidden";
     extra.forEach(([el, h]) => { el.style.height = h + "px"; el.style.overflow = "hidden"; el.style.marginTop = getComputedStyle(el).marginTop; el.style.boxSizing = "border-box"; });
@@ -413,7 +413,7 @@
     view.setAttribute("aria-hidden", "false");
     view.classList.add("is-open");
     document.body.classList.add("cview-open");
-    clearTimeout(settleT); settleT = setTimeout(() => cur && document.body.classList.add("cview-settled"), 900);
+    clearTimeout(settleT); settleT = setTimeout(() => cur && document.body.classList.add("cview-settled"), 520);   // just after the .46s opening
     if (window.__lenis) window.__lenis.stop();
     setTimeout(() => $("#cviewClose").focus({ preventScroll: true }), 60);
   }

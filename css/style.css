@@ -20,7 +20,11 @@
   --body:"Unbounded",system-ui,sans-serif;
   --pad:clamp(16px,2.4vw,36px);
   --header-h:72px;
-  --ease:cubic-bezier(.22,1,.36,1);
+  --ease:cubic-bezier(.22,1,.36,1);            /* strong ease-out: things entering, settling, responding */
+  --ease-out:var(--ease);
+  --ease-in-out:cubic-bezier(.77,0,.175,1);    /* strong ease-in-out: things moving across the screen */
+  --ease-drawer:cubic-bezier(.32,.72,0,1);     /* iOS-like sheet: the case view */
+  --ease-soft:cubic-bezier(.45,0,.55,1);       /* gentle in-out: the hero's slow colour changes */
 }
 
 *,*::before,*::after{box-sizing:border-box}
@@ -64,12 +68,12 @@ body::after{
 .header__right{display:flex;align-items:center;gap:10px;margin-left:auto}
 
 .pill{position:relative;display:inline-flex;align-items:center;gap:10px;height:42px;padding:0 6px 0 18px;border-radius:999px;
-  font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+  font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;transition:scale .16s var(--ease-out)}
 .pill__icon{position:relative;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;transition:transform .4s var(--ease);
   background:radial-gradient(120% 120% at 30% 20%,#5f86ff 0%,var(--blue) 45%,#0d2fd1 100%);
   box-shadow:inset 0 1px 1px rgba(255,255,255,.7),inset 0 -2px 4px rgba(0,0,40,.35),0 0 16px rgba(23,71,255,.6)}
 .pill__icon svg{width:14px;height:14px}
-.pill--cta:hover .pill__icon svg{animation:ring .7s ease-in-out}
+@media (hover:hover) and (pointer:fine){.pill--cta:hover .pill__icon svg{animation:ring .7s ease-in-out}}
 @keyframes ring{0%,100%{rotate:0deg}15%{rotate:-16deg}30%{rotate:14deg}45%{rotate:-10deg}60%{rotate:6deg}75%{rotate:-2deg}}
 .pill--menu{padding:0 16px 0 18px}
 .burger{display:flex;flex-direction:column;gap:5px;width:16px}
@@ -82,32 +86,32 @@ body::after{
 .lang__btn.is-active{color:#fff}
 /* the glass droplet that slides (and stretches) between languages */
 .lang__pill{position:absolute;z-index:1;top:4px;bottom:4px;left:4px;width:42px;border-radius:999px;transform-origin:center;
-  translate:var(--x,0px) 0;transition:translate .45s cubic-bezier(.65,0,.35,1);
+  translate:var(--x,0px) 0;transition:translate .45s var(--ease-in-out);
   background:linear-gradient(180deg,rgba(80,118,255,.55),rgba(23,71,255,.75));
   box-shadow:inset 0 1px 1px rgba(255,255,255,.75),inset 0 -2px 6px rgba(0,0,60,.35),inset 0 0 10px rgba(156,188,255,.35),0 4px 18px rgba(23,71,255,.55)}
 
 /* ============ MENU OVERLAY ============ */
-.lang.is-moving .lang__pill{animation:squish .6s cubic-bezier(.3,0,.2,1)}
+.lang.is-moving .lang__pill{animation:squish .6s var(--ease-in-out)}
 @keyframes squish{0%{scale:1 1}30%{scale:1.3 .9}65%{scale:.96 1.04}100%{scale:1 1}}
 
 .menu{position:fixed;inset:0;z-index:45;background:linear-gradient(160deg,rgba(30,48,110,.38),rgba(4,6,12,.72) 60%);
   backdrop-filter:blur(28px) saturate(170%);-webkit-backdrop-filter:blur(28px) saturate(170%);
   display:flex;flex-direction:column;justify-content:center;padding:calc(var(--header-h) + 20px) var(--pad) var(--pad);
-  clip-path:inset(0 0 100% 0);transition:clip-path .7s var(--ease);visibility:hidden}
+  clip-path:inset(0 0 100% 0);transition:clip-path .45s var(--ease);visibility:hidden}
 .menu-open .menu{clip-path:inset(0 0 0 0);visibility:visible}
 .menu__grid{position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:80px 80px;opacity:.25;mask-image:radial-gradient(circle at 50% 50%,#000,transparent 70%)}
 .menu__list{position:relative;list-style:none;margin:0;padding:0}
 .menu__list li{border-top:1px solid var(--line);overflow:hidden}
 .menu__list li:last-child{border-bottom:1px solid var(--line)}
-.menu__list a{display:flex;align-items:baseline;gap:24px;padding:14px 0;transform:translateY(110%);transition:transform .7s var(--ease),color .3s}
+.menu__list a{display:flex;align-items:baseline;gap:24px;padding:14px 0;transform:translateY(110%);transition:transform .45s var(--ease),color .3s}
 .menu-open .menu__list a{transform:none}
-.menu-open .menu__list li:nth-child(2) a{transition-delay:.05s}
-.menu-open .menu__list li:nth-child(3) a{transition-delay:.1s}
-.menu-open .menu__list li:nth-child(4) a{transition-delay:.15s}
-.menu-open .menu__list li:nth-child(5) a{transition-delay:.2s}
+.menu-open .menu__list li:nth-child(2) a{transition-delay:.04s}
+.menu-open .menu__list li:nth-child(3) a{transition-delay:.08s}
+.menu-open .menu__list li:nth-child(4) a{transition-delay:.12s}
+.menu-open .menu__list li:nth-child(5) a{transition-delay:.16s}
 .menu__list span{color:var(--blue-hi);min-width:60px}
 .menu__list b{font-family:var(--display);font-weight:800;font-size:clamp(34px,6.5vw,88px);text-transform:uppercase;line-height:1}
-.menu__list a:hover{color:var(--blue-hi)}
+@media (hover:hover) and (pointer:fine){.menu__list a:hover{color:var(--blue-hi)}}
 
 /* ============ HERO ============ */
 .hero{position:relative;height:320vh}
@@ -162,15 +166,15 @@ body::after{
 
 /* name: one line above the cat, only the ear tips reach into it (JS fits --fs) */
 .hero__title{position:absolute;left:0;right:0;top:92px;margin:0 auto;width:max-content;z-index:2;
-  transition:color .9s cubic-bezier(.45,0,.55,1),translate .9s cubic-bezier(.45,0,.55,1);
+  transition:color .9s var(--ease-soft),translate .9s var(--ease-soft);
   display:flex;flex-direction:column;align-items:flex-end;
   --fs:128px;font-family:var(--display);font-weight:800;line-height:.8;letter-spacing:-.04em;font-size:var(--fs);color:#e9edf6}
 .hero__row{display:flex;gap:.24em}
 .hero__mask{display:block;flex:none;overflow:hidden;padding:0 .02em .04em}
 .hero__word{display:inline-block;white-space:nowrap}
 .hero__mask--role{padding:.1em .02em .1em}
-.hero__role{display:block;font-size:30px;letter-spacing:-.01em;line-height:1;white-space:nowrap;color:#fff;transition:color .9s cubic-bezier(.45,0,.55,1)}
-.hero__role em{font-style:normal;color:var(--blue-hi);transition:color .9s cubic-bezier(.45,0,.55,1)}
+.hero__role{display:block;font-size:30px;letter-spacing:-.01em;line-height:1;white-space:nowrap;color:#fff;transition:color .9s var(--ease-soft)}
+.hero__role em{font-style:normal;color:var(--blue-hi);transition:color .9s var(--ease-soft)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 /* focus list with blue crosshair bullets */
@@ -211,13 +215,13 @@ body::after{
 
 /* CTA card */
 .cta{position:absolute;z-index:6;right:36px;bottom:36px;width:310px;height:200px;border-radius:26px;padding:24px 26px;
-  translate:var(--mx,0px) var(--my,0px);transition:translate .5s var(--ease);
+  translate:var(--mx,0px) var(--my,0px);transition:translate .5s var(--ease),scale .16s var(--ease-out);
   display:flex;flex-direction:column;justify-content:space-between;color:#fff;overflow:hidden;
   background:linear-gradient(150deg,rgba(58,102,255,.85),rgba(23,71,255,.78) 50%,rgba(13,47,209,.85))!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -10px 30px rgba(0,0,60,.35),0 10px 28px -8px rgba(23,71,255,.55)!important}   /* glow ends above the scene's bottom edge, so it isn't cut into a line */
 .cta__text{font-family:var(--display);font-weight:800;font-size:25px;line-height:1.12;letter-spacing:-.01em;text-transform:uppercase}
 .cta__arrow{align-self:flex-end;width:62px;height:62px;transition:transform .5s var(--ease)}
-.cta:hover .cta__arrow{transform:translateX(6px) rotate(-45deg)}
+@media (hover:hover) and (pointer:fine){.cta:hover .cta__arrow{transform:translateX(6px) rotate(-45deg)}}
 .cta.glass{-webkit-backdrop-filter:none;backdrop-filter:none}
 .cta.glass::after{background:radial-gradient(300px circle at var(--gl-x,50%) var(--gl-y,0%),rgba(255,255,255,.15),rgba(255,255,255,.06) 40%,transparent 72%)}
 
@@ -312,7 +316,7 @@ body::after{
              radial-gradient(ellipse 30% 9% at 50% 80%,rgba(58,102,255,.45),rgba(58,102,255,.12) 55%,transparent 100%);
   will-change:opacity}
 .sk-panel.is-on .sk-face::after{visibility:visible}
-.sk-in{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;padding:26px 24px 22px;opacity:.4;transition:opacity .3s cubic-bezier(.22,.61,.36,1)}
+.sk-in{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;padding:26px 24px 22px;opacity:.4;transition:opacity .3s var(--ease-out)}
 .sk-panel.is-on .sk-in{opacity:1}
 .sk-n{display:flex;justify-content:space-between;color:var(--ice)}
 .sk-n b{font-weight:800;color:#fff}
@@ -332,7 +336,7 @@ body::after{
 .sk-panel{cursor:pointer;outline:none}
 .sk-panel.is-on{cursor:default}
 .sk-panel:focus-visible .sk-face{outline:2px solid var(--blue-hi);outline-offset:4px}
-.sk-panel:not(.is-on):hover .sk-in{opacity:.6}
+@media (hover:hover) and (pointer:fine){.sk-panel:not(.is-on):hover .sk-in{opacity:.6}}
 .sk-prog{position:absolute;right:clamp(20px,4vw,56px);bottom:clamp(20px,5vh,44px);z-index:6;display:flex;gap:10px;align-items:center;color:var(--dim)}
 .sk-prog b{color:#fff;font-weight:400}
 .sk-prog i{display:block;width:120px;height:2px;background:rgba(156,188,255,.15);overflow:hidden}
@@ -380,7 +384,7 @@ body::after{
 /* soft caustic highlight that follows the cursor (set by JS) */
 .glass::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;opacity:var(--gl-o,0);transition:opacity .4s;
   background:radial-gradient(120px circle at var(--gl-x,50%) var(--gl-y,0%),rgba(255,255,255,.22),transparent 60%)}
-.glass:hover{--gl-o:1}
+@media (hover:hover) and (pointer:fine){.glass:hover{--gl-o:1}}
 /* Chromium can refract what is behind the glass */
 .refract .glass{-webkit-backdrop-filter:url(#lg-refract) blur(14px) saturate(180%) brightness(1.08);backdrop-filter:url(#lg-refract) blur(14px) saturate(180%) brightness(1.08)}
 
@@ -417,7 +421,7 @@ body::after{
 .cell::before,.cell::after{content:"";position:absolute;width:18px;height:18px;border:0 solid var(--blue);opacity:0;transition:opacity .5s}
 .cell::before{left:-1px;top:-1px;border-top-width:2px;border-left-width:2px}
 .cell::after{right:-1px;bottom:-1px;border-bottom-width:2px;border-right-width:2px}
-.cell:hover::before,.cell:hover::after{opacity:1}
+@media (hover:hover) and (pointer:fine){.cell:hover::before,.cell:hover::after{opacity:1}}
 .cell__num{font-family:var(--display);font-weight:800;font-size:clamp(56px,6.6vw,104px);line-height:.9;letter-spacing:-.045em;color:var(--text);white-space:nowrap}
 .cell__lbl{margin:18px 0 0;color:var(--ice);font-size:12px}
 .count{font-variant-numeric:tabular-nums}
@@ -517,9 +521,9 @@ body::after{
 .cmore__btn{all:unset;box-sizing:border-box;position:relative;cursor:pointer;display:inline-flex;align-items:center;gap:12px;padding:17px 28px;border-radius:999px;color:var(--text);
   transition:scale .4s var(--ease)}
 .cmore__btn span{color:var(--blue-hi);font-size:14px;transition:translate .3s}
-.cmore__btn:hover{scale:1.03}
+@media (hover:hover) and (pointer:fine){.cmore__btn:hover{scale:1.03}}
 .cmore__btn:focus-visible{outline:2px solid var(--blue-hi);outline-offset:4px}
-.cmore__btn:hover span{translate:0 2px}
+@media (hover:hover) and (pointer:fine){.cmore__btn:hover span{translate:0 2px}}
 .crow__i{color:var(--ice)}
 /* folded list: the last of the top 3 fades towards the button */
 .clist.is-collapsed .crow--last{-webkit-mask-image:linear-gradient(#000 30%,rgba(0,0,0,.18));mask-image:linear-gradient(#000 30%,rgba(0,0,0,.18));transition:-webkit-mask-image .4s}
@@ -529,6 +533,9 @@ body::after{
 /* the button sits a little over the faded Kilinski row */
 .clist.is-collapsed .cmore{margin-top:-46px;position:relative;z-index:31;pointer-events:none}   /* above the logo card (z 30), so the card never covers the button */
 .clist.is-collapsed .cmore__btn{pointer-events:auto}
+/* press feedback: a quick, small give under the finger or cursor; release eases back on each element's own transition */
+.pill:active,.cmore__btn:active,.cview__btn:active,.cview__close:active,.ct-sendbtn.is-on:active{scale:.97;transition-duration:.16s}
+.cta:active{scale:.98}
 /* each year starts with a slightly heavier line */
 .crow:has(+ .crow--year){border-bottom-color:rgba(120,150,255,.34)}
 .crow.is-hot .crow__btn::before{transform:scaleX(1)}
@@ -576,7 +583,8 @@ body::after{
 .also__item{--lh:clamp(24px,2.3vw,34px)}
 .also__item img{display:block;height:var(--lh);width:auto;max-width:220px}
 .also__item span{font-family:var(--display);font-weight:800;font-size:clamp(18px,1.8vw,26px);letter-spacing:-.03em;text-transform:uppercase;color:#fff;white-space:nowrap}
-.also__item:hover,.also__item:focus-visible{opacity:1;translate:0 -3px}
+.also__item:focus-visible{opacity:1;translate:0 -3px}
+@media (hover:hover) and (pointer:fine){.also__item:hover{opacity:1;translate:0 -3px}}
 .also__item:focus-visible{outline:2px solid var(--blue-hi);outline-offset:6px;border-radius:6px}
 .also__track i{position:relative;width:12px;height:12px;flex:none}
 .also__track i::before,.also__track i::after{content:"";position:absolute;background:var(--blue)}
@@ -602,15 +610,15 @@ body::after{
 
 body.cview-open{overflow:hidden}
 /* ---------- case view ---------- */
-.cview{position:fixed;inset:0;z-index:90;visibility:hidden;opacity:0;transition:opacity .35s ease .45s,visibility 0s .8s;background:rgba(2,3,8,.6)}
+.cview{position:fixed;inset:0;z-index:90;visibility:hidden;opacity:0;transition:opacity .2s ease .2s,visibility 0s .4s;background:rgba(2,3,8,.6)}
 .cview.is-open{visibility:visible;opacity:1;transition:none}
 /* once the case view has finished opening, the page under it stops being drawn (the glass header and the cat cost a lot to composite) */
 .cview-settled .header,.cview-settled main{visibility:hidden}
 .cview__panel{position:absolute;inset:clamp(10px,1.4vw,20px);border-radius:22px;overflow:hidden;border:1px solid var(--line);
   background:radial-gradient(70% 90% at 22% 50%,color-mix(in srgb,var(--c,#1747ff) 38%,transparent),transparent 75%),#05070d;   /* the brand colour glows behind the glass */
   display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
-  clip-path:inset(100% 0 0 0 round 22px);transition:clip-path .8s cubic-bezier(.76,0,.24,1)}
-.cview.is-open .cview__panel{clip-path:inset(0 0 0 0 round 22px)}
+  clip-path:inset(100% 0 0 0 round 22px);transition:clip-path .34s var(--ease-drawer)}   /* closing: the system's response, quick */
+.cview.is-open .cview__panel{clip-path:inset(0 0 0 0 round 22px);transition-duration:.46s}   /* opening: fast start, long soft landing */
 .cview__media{position:relative;display:grid;padding:0;background:color-mix(in srgb,var(--c,#1747ff) 22%,#05070d);min-height:0}
 .cview.is-tenders .cview__media{padding:10px}
 .cview__fig{position:relative;margin:0;border-radius:0;overflow:hidden;min-height:0}   /* fills the left half edge to edge; the panel rounds the outer corners */
@@ -675,12 +683,14 @@ body.cview-open{overflow:hidden}
 .cview__stats p{margin:12px 0 0;color:var(--ice);font-size:11px}
 .cview__body{margin:clamp(24px,3vw,40px) 0 0;max-width:520px;font-size:14px;line-height:1.7;color:#9aa6c4}
 .cview__nav{margin-top:auto;padding-top:32px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.cview__btn{all:unset;cursor:pointer;color:var(--text);padding:12px 18px;border:1px solid var(--line);border-radius:999px;transition:border-color .3s,background .3s}
-.cview__btn:hover,.cview__btn:focus-visible{border-color:var(--blue-hi);background:rgba(23,71,255,.12)}
+.cview__btn{all:unset;cursor:pointer;color:var(--text);padding:12px 18px;border:1px solid var(--line);border-radius:999px;transition:border-color .3s,background .3s,scale .16s var(--ease-out)}
+.cview__btn:focus-visible{border-color:var(--blue-hi);background:rgba(23,71,255,.12)}
+@media (hover:hover) and (pointer:fine){.cview__btn:hover{border-color:var(--blue-hi);background:rgba(23,71,255,.12)}}
 .cview__count{color:var(--dim)}
 .cview__close{all:unset;cursor:pointer;position:absolute;right:18px;top:18px;z-index:3;width:48px;height:48px;border-radius:50%;background:rgba(6,9,18,.82);border:1px solid var(--line);
-  transition:rotate .5s var(--ease),border-color .3s}
-.cview__close:hover,.cview__close:focus-visible{rotate:90deg;border-color:var(--blue-hi)}
+  transition:rotate .5s var(--ease),border-color .3s,scale .16s var(--ease-out)}
+.cview__close:focus-visible{rotate:90deg;border-color:var(--blue-hi)}
+@media (hover:hover) and (pointer:fine){.cview__close:hover{rotate:90deg;border-color:var(--blue-hi)}}
 .cview__close i{position:absolute;left:14px;right:14px;top:23px;height:2px;background:#fff;rotate:45deg}
 .cview__close i+i{rotate:-45deg}
 /* contents rise in after the curtain, and again when switching cases */
@@ -742,8 +752,8 @@ body.cview-open{overflow:hidden}
   .also__viewport{width:100%}
   /* phones: the panel slides up and away. A clip-path closing to zero left a 1px line behind on iOS Safari */
   .cview__panel{inset:0;border-radius:0;border:0;grid-template-columns:minmax(0,1fr);grid-template-rows:42vh auto;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
-    clip-path:none;transform:translate3d(0,100%,0);transition:transform .7s cubic-bezier(.76,0,.24,1)}
-  .cview.is-open .cview__panel{clip-path:none;transform:none}
+    clip-path:none;transform:translate3d(0,100%,0);transition:transform .34s var(--ease-drawer)}
+  .cview.is-open .cview__panel{clip-path:none;transform:none;transition-duration:.46s}
   .cview__text{overflow:visible;padding:26px 20px 28px}
   .cview__text{-webkit-backdrop-filter:none;backdrop-filter:none;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02)),#070a14}   /* phones: the text scrolls, a live blur under it would cost every frame */
   .cview__panel:has(.has-shots){grid-template-rows:68vh auto}
@@ -833,7 +843,8 @@ body.cview-open{overflow:hidden}
 .ct-tip{position:absolute;left:50%;bottom:calc(100% + 14px);translate:-50% 6px;opacity:0;white-space:nowrap;padding:8px 12px;border-radius:10px;color:#fff;
   background:rgba(10,14,30,.88);border:1px solid rgba(255,255,255,.14);transition:opacity .3s,translate .3s var(--ease);pointer-events:none}
 .ct-tip--main{background:linear-gradient(180deg,#3a66ff,#1747ff);border-color:#7f9bff;box-shadow:0 10px 26px -8px rgba(23,71,255,.9)}
-.ct-app:hover .ct-tip,.ct-app:focus-visible .ct-tip,.ct-app.is-tip .ct-tip{opacity:1;translate:-50% 0}
+.ct-app:focus-visible .ct-tip,.ct-app.is-tip .ct-tip{opacity:1;translate:-50% 0}
+@media (hover:hover) and (pointer:fine){.ct-app:hover .ct-tip{opacity:1;translate:-50% 0}}
 .ct-app:focus-visible .ct-face{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 0 3px var(--blue-hi)}
 /* the call, picked out at the end of the intro sweep: a soft glow, no hard ring */
 .ct-app.is-lit .ct-face{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -6px 14px rgba(0,0,0,.18),0 0 34px 2px rgba(58,102,255,.75)}
@@ -875,7 +886,7 @@ body.cview-open{overflow:hidden}
 .ct-win__head small{display:block;margin-top:3px;font-family:var(--body);font-size:11.5px;color:#7fa0ff;transition:color .2s}
 .ct-win__head small.is-typing{color:var(--ice)}
 .ct-x{all:unset;cursor:pointer;position:relative;margin-left:auto;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.07);transition:background .2s}
-.ct-x:hover{background:rgba(255,255,255,.14)}
+@media (hover:hover) and (pointer:fine){.ct-x:hover{background:rgba(255,255,255,.14)}}
 .ct-x:focus-visible{outline:2px solid var(--blue-hi);outline-offset:2px}
 .ct-x i{position:absolute;left:11px;right:11px;top:17px;height:2px;border-radius:2px;background:#fff;rotate:45deg}
 .ct-x i + i{rotate:-45deg}
@@ -902,7 +913,7 @@ body.cview-open{overflow:hidden}
 .ct-kb:empty{display:none}
 .ct-chip{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:8px 10px;border-radius:12px;text-align:center;
   background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);font-family:var(--body);font-size:12px;color:#fff;transition:background .2s,border-color .2s,scale .2s var(--ease)}
-.ct-chip:hover{background:rgba(255,255,255,.12)}
+@media (hover:hover) and (pointer:fine){.ct-chip:hover{background:rgba(255,255,255,.12)}}
 .ct-chip:active{scale:.97}
 .ct-chip:focus-visible{outline:2px solid var(--blue-hi);outline-offset:2px}
 .ct-chip[aria-pressed="true"]{background:rgba(23,71,255,.35);border-color:#7f9bff}
@@ -916,7 +927,8 @@ body.cview-open{overflow:hidden}
 .ct-sendbtn{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:#fff;background:#26304f;transition:background .3s,scale .3s var(--ease),box-shadow .3s;pointer-events:none}
 .ct-sendbtn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .ct-sendbtn.is-on{background:linear-gradient(180deg,#3a66ff,#1747ff);box-shadow:0 10px 24px -8px rgba(23,71,255,.9);pointer-events:auto;animation:ctReady 1.6s ease-in-out infinite}
-.ct-sendbtn.is-on:hover{scale:1.06}
+@media (hover:hover) and (pointer:fine){.ct-sendbtn.is-on:hover{scale:1.06}}
+.ct-sendbtn.is-on:active{scale:.97;transition-duration:.16s}   /* after the hover rule, so a press wins over it */
 @keyframes ctReady{50%{box-shadow:0 0 0 6px rgba(58,102,255,.18),0 10px 24px -8px rgba(23,71,255,.9)}}
 .ct-hint{padding:0 14px 10px;font-family:var(--body);font-size:11px;color:#7f8fb8}
 .ct-hint:empty{display:none}
@@ -926,7 +938,7 @@ body.cview-open{overflow:hidden}
 .ct-foot__row{display:flex;justify-content:space-between;align-items:center;gap:8px 16px;flex-wrap:wrap}
 .ct-foot__row--sub{color:#4f5c80}
 .ct-foot__row--sub a{color:var(--dim)}
-.ct-foot a:hover{color:#fff}
+@media (hover:hover) and (pointer:fine){.ct-foot a:hover{color:#fff}}
 .ct-toast{position:fixed;left:50%;bottom:24px;z-index:300;translate:-50% 20px;opacity:0;padding:12px 18px;border-radius:999px;color:#fff;background:rgba(10,14,30,.9);border:1px solid rgba(255,255,255,.14);transition:opacity .3s,translate .3s var(--ease);pointer-events:none}
 .ct-toast.is-on{opacity:1;translate:-50% 0}
 @media (max-width:900px){
@@ -958,6 +970,7 @@ body.cview-open{overflow:hidden}
 }
 
 @media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.001s!important}
+  /* fewer and gentler, not none: fades and colour changes stay (they explain what changed), movement goes */
+  *,*::before,*::after{animation-duration:.001s!important;animation-iteration-count:1!important;transition-property:opacity,color,background-color,border-color,box-shadow,visibility!important}
   .hero{height:100vh}
 }

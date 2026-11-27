@@ -53,11 +53,13 @@
      so this scrolls the page to the spot where that panel is the lit one */
   const pinEl = section.querySelector(".skills__pin");
   const pinH = () => (pinEl ? pinEl.offsetHeight : innerHeight);   // the stage is the large viewport tall on phones, not innerHeight
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;   // the cards still follow the scroll, but don't turn, and nothing glides
   let gliding = false;
   const go = (i, dur = 1.1) => {
     i = clamp(i, 0, N - 1);
     const top = section.getBoundingClientRect().top + scrollY, len = section.offsetHeight - pinH();
     const y = top + len * (i / (N - 1));
+    if (reduce) { scrollTo(0, y); return; }
     gliding = true;
     if (window.__lenis) window.__lenis.scrollTo(y, { duration: dur, easing: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, onComplete: () => { gliding = false; } }); else { scrollTo({ top: y, behavior: "smooth" }); setTimeout(() => { gliding = false; }, dur * 1000); }
   };
@@ -97,6 +99,32 @@
   section.addEventListener("pointerleave", () => { mx = 0; });
 
   let tPrev = 0, wasT = 0;
+  /* The panels' path (slide, depth, turn, fade) is a paused Web Animation per panel, scrubbed by the camera,
+     instead of a transform string written every frame. Safari re-draws a layer whose 3D scale changes from script
+     on every frame (the depth and the turn change it all the time), so the cards stuttered there while Chrome was
+     smooth; a layer that is being animated keeps its drawing. One keyframe per twentieth of a card, linear between. */
+  const placeAt = (d, SP) => {
+    const ad = Math.abs(d);
+    const x = d * SP + Math.sign(d) * Math.min(ad, 1) * SP * .18;
+    const ry = reduce ? 0 : clamp(-d * 38, -58, 58), z = -Math.min(ad, 3) * 170;
+    return `translate3d(${x.toFixed(1)}px,0,${z.toFixed(1)}px) rotateY(${ry.toFixed(2)}deg)`;
+  };
+  // neighbours stay solid so the panels behind don't show through them; the third one is faint (~.12)
+  const opAt = ad => clamp(ad <= 1 ? 1 : ad <= 2 ? 1 - (ad - 1) * .5 : .5 - (ad - 2) * .38, 0, 1);
+  let anims = [];
+  function build(SP) {
+    anims.forEach(a => a && a.cancel());
+    const STEPS = (N - 1) * 20;
+    anims = panels.map((el, i) => {
+      if (!el.animate) return null;
+      const kf = [];
+      for (let k = 0; k <= STEPS; k++) { const c = k / 20, d = i - c; kf.push({ offset: k / STEPS, transform: placeAt(d, SP), opacity: opAt(Math.abs(d)).toFixed(3) }); }
+      el.style.transform = ""; el.style.opacity = "";
+      const a = el.animate(kf, { duration: (N - 1) * 1000, fill: "both", easing: "linear" });
+      a.pause(); a.currentTime = cam * 1000;
+      return a;
+    });
+  }
   function frame(now) {
     // the same easing at 60 and 120 Hz: the follow speed is per second, not per frame (0.14 per frame ran twice as fast,
     // and twice as twitchy, on ProMotion iPhones and 120 Hz monitors)
@@ -110,21 +138,16 @@
       const key = cam.toFixed(4) + "|" + sx.toFixed(4) + "|" + innerWidth;
       if (key !== last) {                           // nothing moved: write nothing
         last = key;
-        if (!pw) pw = panels[0] ? panels[0].offsetWidth : 320;     // measured once (and on resize), not every frame: a read after writes forced a layout per frame
-        const SP = pw * .7;                                          // neighbours tuck in behind the lit panel
+        if (!pw) { pw = panels[0] ? panels[0].offsetWidth : 320; build(pw * .7); }   // measured once (and on resize), not every frame
         const c = Math.round(cam);
         // stacking by rank (nearest panel on top), not by distance: the rank only changes when two panels swap order,
         // while a distance-based z-index changed every frame and made the browser repaint the whole page each time
         const rank = panels.map((_, i) => i).sort((a, b) => Math.abs(a - cam) - Math.abs(b - cam));
+        const tilt = reduce ? "" : `y ${(sx * 10).toFixed(2)}deg`;
         panels.forEach((el, i) => {
-          const d = i - cam, ad = Math.abs(d);
-          const x = d * SP + Math.sign(d) * Math.min(ad, 1) * SP * .18;
-          const ry = clamp(-d * 38, -58, 58) + sx * 10, z = -Math.min(ad, 3) * 170;
-          // neighbours stay solid so the panels behind don't show through them; the third one is faint (~.12)
-          const op = clamp(ad <= 1 ? 1 : ad <= 2 ? 1 - (ad - 1) * .5 : .5 - (ad - 2) * .38, 0, 1);
-          // write only what changed: Safari restyles even when a value is set to what it already was
-          set(el, "transform", `translate3d(${x.toFixed(1)}px,0,${z.toFixed(1)}px) rotateY(${ry.toFixed(2)}deg)`);
-          set(el, "opacity", op.toFixed(2));
+          const op = opAt(Math.abs(i - cam));
+          if (anims[i]) anims[i].currentTime = cam * 1000;            // the panel's place on its paused animation (see build)
+          set(el, "rotate", tilt);                                    // the cursor tilt rides on top, as its own property
           set(el, "visibility", op < .03 ? "hidden" : "visible");   // panels too far to see are not drawn at all
           set(el, "zIndex", String(100 - rank.indexOf(i)));
         });
