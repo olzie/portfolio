@@ -14,7 +14,7 @@
     en: [
       ["Strategy", "Positioning, content systems, channel launches from zero, end-to-end SMM direction.", ["Notion", "Jira", "Trello", "Asana"]],
       ["AI production", "AI video, virtual creators and content automation. 2× output with the same team.", ["Claude", "Midjourney", "Seedance", "Nano Banana", "Higgsfield"]],
-      ["Content", "Reels, TikTok, carousels and stories, localised for 7 languages at once.", ["Figma", "Canva", "CapCut", "Premiere Pro", "Final Cut Pro", "Lightroom"]],
+      ["Content", "Reels, TikTok, carousels and stories, localised into several languages.", ["Figma", "Canva", "CapCut", "Premiere Pro", "Final Cut Pro", "Lightroom"]],
       ["Platforms", "Native formats, tone and growth mechanics for each network, from feeds to messengers.", ["Instagram", "Facebook", "TikTok", "X (Twitter)", "YouTube", "Telegram", "WhatsApp", "Discord"]],
       ["Community", "Telegram, WhatsApp and Discord: VIP chats, promo drops, engagement and retention flows.", ["Telegram", "WhatsApp", "Discord"]],
       ["Influencers", "Creator collaborations and contract-based ambassadors.", ["TrendHero", "HypeAuditor"]],
@@ -23,7 +23,7 @@
     uk: [
       ["Стратегія", "Позиціонування, контент-системи, запуск каналів з нуля, SMM-напрям від початку до кінця.", ["Notion", "Jira", "Trello", "Asana"]],
       ["AI-продакшн", "AI-відео, віртуальні кріейтори й автоматизація контенту. Удвічі більше контенту тією ж командою.", ["Claude", "Midjourney", "Seedance", "Nano Banana", "Higgsfield"]],
-      ["Контент", "Reels, TikTok, каруселі й сторіс, локалізовані одразу на 7 мов.", ["Figma", "Canva", "CapCut", "Premiere Pro", "Final Cut Pro", "Lightroom"]],
+      ["Контент", "Reels, TikTok, каруселі й сторіс з локалізацією на кілька мов.", ["Figma", "Canva", "CapCut", "Premiere Pro", "Final Cut Pro", "Lightroom"]],
       ["Платформи", "Нативні формати, тон і механіки росту для кожної мережі, від стрічок до месенджерів.", ["Instagram", "Facebook", "TikTok", "X (Twitter)", "YouTube", "Telegram", "WhatsApp", "Discord"]],
       ["Ком'юніті", "Telegram, WhatsApp і Discord: VIP-чати, промо-дропи, залучення й утримання.", ["Telegram", "WhatsApp", "Discord"]],
       ["Інфлюенсери", "Колаборації з кріейторами та амбасадори за контрактом.", ["TrendHero", "HypeAuditor"]],

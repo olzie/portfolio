@@ -220,6 +220,7 @@ body::after{
   background:linear-gradient(150deg,rgba(58,102,255,.85),rgba(23,71,255,.78) 50%,rgba(13,47,209,.85))!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -10px 30px rgba(0,0,60,.35),0 10px 28px -8px rgba(23,71,255,.55)!important}   /* glow ends above the scene's bottom edge, so it isn't cut into a line */
 .cta__text{font-family:var(--display);font-weight:800;font-size:25px;line-height:1.12;letter-spacing:-.01em;text-transform:uppercase}
+@media (min-aspect-ratio:3/4){html[lang=uk] .cta__text{font-size:22px}}   /* "ПОПРАЦЮЄМО?" is one long word: a step smaller so it keeps the card padding */
 .cta__arrow{align-self:flex-end;width:62px;height:62px;transition:transform .5s var(--ease)}
 @media (hover:hover) and (pointer:fine){.cta:hover .cta__arrow{transform:translateX(6px) rotate(-45deg)}}
 .cta.glass{-webkit-backdrop-filter:none;backdrop-filter:none}
