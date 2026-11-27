@@ -358,7 +358,6 @@ body::after{
 /* short fade that hides menu jumps through the first block (main.js) */
 .veil{position:fixed;inset:0;z-index:44;background:var(--bg);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .26s ease,visibility 0s .26s}
 .veil.is-on{opacity:1;visibility:visible;transition:opacity .26s ease}
-.clist{transition:opacity .3s ease}.clist.is-folding{opacity:0;transition:opacity .16s ease}   /* "Show less": the rows change under a short fade */
 
 /* ============ LIQUID GLASS ============ */
 .glass{

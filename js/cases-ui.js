@@ -133,7 +133,7 @@
   /* "Show less" sits at the very end of the open list. The list folds and the page is shifted in the same frame so the
      button stays exactly where the finger/cursor is (it becomes "Show all"): nothing glides, nothing jumps, the visitor
      isn't thrown back to the start of the block. */
-  let openedAt = null, folding = false;
+  let openedAt = null;
   section.addEventListener("click", e => {
     const btnEl = e.target.closest(".cmore__btn");
     if (!btnEl) return;
@@ -143,29 +143,20 @@
       list.classList.add("is-opening"); section.classList.add("is-opening");
       return;
     }
-    /* folding brings the page back to where it was when "Show all" was pressed (the block at the same place on screen), smoothly:
-       the page glides up first, while the list is still open, and the list folds once it has arrived — the part that goes
-       away is then below the screen, so nothing jumps, and a short fade covers the rows changing in view */
-    if (folding) return;
-    folding = true;
+    /* The usual "show less" pattern (eBay's pulldown list, the standard scrollIntoView fix): restore the initial state and
+       return the reader to the start of the block — here to exactly where it sat when "Show all" was pressed.
+       Order matters on iOS: Safari can paint a DOM change one frame before a scroll change made in the same task (that was
+       the black flash). The return point lies above everything that gets removed, so we scroll first — the open list
+       starts with the same three rows as the folded one — and fold on the next painted frame. */
     const target = window.scrollY + section.getBoundingClientRect().top - (openedAt ?? 80);
     openedAt = null;
-    let done = false;
-    const fold = () => {
-      if (done) return; done = true;
-      list.classList.add("is-folding");
-      setTimeout(() => {
-        list.classList.remove("is-opening"); section.classList.remove("is-opening");
-        collapsed = true; render(true);
-        if (window.__lenis) window.__lenis.resize();
-        requestAnimationFrame(() => { list.classList.remove("is-folding"); folding = false; });
-      }, 170);
-    };
-    const far = Math.abs(window.scrollY - target);
-    if (far > 4 && window.__lenis) {
-      window.__lenis.scrollTo(target, { duration: Math.min(1.6, .7 + far / 4000), force: true, onComplete: fold });
-      setTimeout(fold, 2000);                                         // never left half-way if the glide is interrupted
-    } else { if (far > 4) window.scrollTo({ top: target, behavior: "smooth" }); setTimeout(fold, far > 4 ? 700 : 0); }
+    if (window.__lenis) window.__lenis.scrollTo(target, { immediate: true, force: true }); else window.scrollTo(0, target);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      list.classList.remove("is-opening"); section.classList.remove("is-opening");
+      collapsed = true; render(true);
+      if (window.__lenis) window.__lenis.resize();
+      const nb = list.querySelector(".cmore__btn"); if (nb) nb.focus({ preventScroll: true });   // focus stays on the toggle
+    }));
   });
 
   /* running line: tenders (one window), then small cases (their own windows). Built once: names don't change with the language */
