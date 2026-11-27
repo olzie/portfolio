@@ -106,7 +106,11 @@
   /* the swell must never stay stuck: a dock link opens a new tab, the window loses focus, and no pointerleave ever arrives */
   const unstick = () => { over = false; if (!sweeping) rest(); };
   addEventListener("blur", unstick);
-  document.addEventListener("visibilitychange", () => { if (document.hidden) unstick(); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) unstick(); else setTimeout(() => { if (!dock.matches(":hover")) unstick(); }, 60); });
+  addEventListener("focus", () => setTimeout(() => { if (!dock.matches(":hover")) unstick(); }, 60));
+  document.documentElement.addEventListener("mouseleave", unstick);              // pointer left the browser window
+  // watchdog: Safari can replay a stale pointer position when the tab comes back and never send pointerleave
+  setInterval(() => { if (pointerX !== null && !sweeping && fine.matches && !dock.matches(":hover")) unstick(); }, 400);
   document.addEventListener("pointermove", e => { if (pointerX !== null && !sweeping && !dock.contains(e.target)) unstick(); }, { passive: true });
   apps.forEach(a => a.addEventListener("click", () => { if (a.target === "_blank") setTimeout(unstick, 250); }));
   apps.forEach(a => a.addEventListener("click", () => { a.classList.remove("is-bounce"); void a.offsetWidth; a.classList.add("is-bounce", "is-ran"); }));
@@ -238,7 +242,7 @@
      Chat icon first and the rest pours in after it — the content is carried along, not just clipped. Opening plays it backwards
      (out of the icon, after the icon's launch bounce). Only transforms change during the animation. */
   const win = $("#ctWin"), chatIcon = $("[data-openchat]");
-  const SLICES = 28;
+  const SLICES = 20;
   let genie = null;
   const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
   const lerp = (a, b, t) => a + (b - a) * t, clamp01 = t => Math.min(1, Math.max(0, t));
@@ -258,7 +262,7 @@
     /* each slice is a band-sized box (so it costs only its own strip, not a whole window layer) holding a clone of the window
        shifted up to show just that band */
     for (let n = 0; n < SLICES; n++) {
-      const v0 = n / SLICES, v1 = (n + 1) / SLICES, top = v0 * H, h = (v1 - v0) * H + 1;   // +1px overlap: no hairline seams
+      const v0 = n / SLICES, v1 = (n + 1) / SLICES, top = Math.round(v0 * H), h = Math.round(v1 * H) - top;
       const el = document.createElement("div");
       el.className = "ct-slice"; el.setAttribute("aria-hidden", "true");
       el.style.cssText = `left:${r.left}px;top:${(T + top).toFixed(1)}px;width:${W}px;height:${h.toFixed(1)}px`;
@@ -267,17 +271,20 @@
       c.classList.add("ct-slice__win");
       c.style.top = `${(-top).toFixed(1)}px`;
       el.appendChild(c); sec.appendChild(el);
+      // clones must not create scrollers of their own (each would be a full-size layer — the Safari lag)
+      c.querySelectorAll(".ct-log,.ct-field").forEach(x => { x.style.overflow = "hidden"; });
       const lg = c.querySelector(".ct-log"); if (lg) lg.scrollTop = logTop;
-      slices.push({ el, v0, v1 });
+      slices.push({ el, v0: top / H, v1: (top + h) / H, h });
     }
     const place = p => {                                            // p: 0 = window open, 1 = inside the icon
       const a = inOut(clamp01(p / .5)), b = inOut(clamp01((p - .28) / .72)), tail = b * b * b;
-      slices.forEach(({ el, v0, v1 }) => {
+      slices.forEach(({ el, v0, v1, h }) => {
         const y0 = lerp(T + v0 * H, ib - ih + v0 * ih, b), y1 = lerp(T + v1 * H, ib - ih + v1 * ih, b), yc = (y0 + y1) / 2;
         const q = smooth(clamp01((yc - T) / (ib - T))) * a;          // how far down the funnel this band sits
         const width = lerp(lerp(W, iw, q), iw, tail), x = lerp(lerp(cx, ix, q), ix, tail);
-        const sy = Math.max(.001, (y1 - y0) / ((v1 - v0) * H)), dy = yc - (T + (v0 + v1) / 2 * H);
-        el.style.transform = `translate(${(x - cx).toFixed(2)}px,${dy.toFixed(2)}px) scale(${(width / W).toFixed(4)},${sy.toFixed(4)})`;
+        // each band is drawn 1.5 screen px taller than its share, so neighbours always overlap — no gaps when bands get squeezed
+        const sy = Math.max(.002, (y1 - y0 + 1.5) / h), dy = yc - (T + (v0 + v1) / 2 * H);
+        el.style.transform = `translate3d(${(x - cx).toFixed(2)}px,${dy.toFixed(2)}px,0) scale(${(width / W).toFixed(4)},${sy.toFixed(4)})`;
         el.style.opacity = p > .92 ? ((1 - p) / .08).toFixed(3) : "1";
       });
     };
@@ -295,7 +302,7 @@
   const bounceIcon = () => { chatIcon.classList.remove("is-bounce"); void chatIcon.offsetWidth; chatIcon.classList.add("is-bounce", "is-ran"); };
 
   const open = from => {
-    opener = from; rest(); sweeping = false;
+    opener = from; rest(); sweeping = false; apps.forEach(x => x.classList.remove("is-tip", "is-lit"));   // a sweep cut short by the chat leaves no tooltip behind
     sec.classList.remove("is-closing"); sec.classList.add("is-chat");
     if (!started) { started = true; flow().catch(() => {}); }
     if (!reduced()) { bounceIcon(); runGenie(1, 0, 640); }

@@ -829,8 +829,8 @@ body.cview-open{overflow:hidden}
 /* during the genie the keyframes drive the window: no CSS transition on top, and it stays visible while it closes */
 .contact.is-genie .ct-win:not(.ct-slice__win){visibility:hidden;transition:none}
 /* genie slices: clones of the window, one band each, moved by contact.js */
-.ct-slice{position:fixed;z-index:11;overflow:hidden;pointer-events:none;will-change:transform,opacity;transform-origin:50% 50%}
-.ct-slice__win{position:absolute!important;left:0!important;width:100%!important;translate:none!important;scale:1!important;opacity:1!important;visibility:visible!important;transition:none!important;box-shadow:none!important}
+.ct-slice{position:fixed;z-index:11;overflow:hidden;contain:strict;pointer-events:none;will-change:transform;transform-origin:50% 50%;backface-visibility:hidden}
+.ct-slice__win{position:absolute!important;left:0!important;width:100%!important;translate:none!important;scale:1!important;opacity:1!important;visibility:visible!important;transition:none!important;box-shadow:none!important;will-change:auto}
 .contact.is-genie .ct-app,.contact.is-genie .ct-sep,.contact.is-genie .ct-bar,.contact.is-genie .ct-dock::after{opacity:1}
 .contact.is-chat .ct-title,.contact.is-chat .ct-lead,.contact.is-chat .ct-status{opacity:.08;filter:blur(8px)}
 .contact.is-chat .ct-tip{opacity:0!important}
