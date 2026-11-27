@@ -64,6 +64,7 @@ window.I18N = {
     "contact.online": "online",
     "contact.copy": "© 2026 Olga Akimova",
     "contact.top": "Back to top ↑",
+    "contact.role": "Senior SMM Manager · strategy, content, community",
     "skills.title": "Skills",
     "skills.note": "What I do, from strategy to reports",
   },
@@ -129,6 +130,7 @@ window.I18N = {
     "contact.online": "в мережі",
     "contact.copy": "© 2026 Ольга Акімова",
     "contact.top": "Нагору ↑",
+    "contact.role": "Senior SMM Manager · стратегія, контент, ком’юніті",
     "skills.title": "Навички",
     "skills.note": "Що я роблю, від стратегії до звітів",
   }

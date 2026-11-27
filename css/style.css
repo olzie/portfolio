@@ -744,8 +744,8 @@ body.cview-open{overflow:hidden}
 /* ============ CONTACT ============
    The closing scene echoes the first screen: dollar wall, the same beam, a floor. On the floor stands a glass dock:
    every channel is an "app"; icons swell under the cursor, the call is the main one, Brief opens the chat window. */
-.contact{position:relative;z-index:2;min-height:100vh;min-height:100svh;overflow:visible;overflow-x:clip;background:#000;display:flex;flex-direction:column;isolation:isolate;
-  padding:clamp(64px,9vh,100px) 0 clamp(150px,20vh,200px)}
+.contact{position:relative;z-index:2;overflow:visible;overflow-x:clip;background:#000;display:flex;flex-direction:column;isolation:isolate;
+  padding:clamp(64px,9vh,100px) 0 0}
 .ct-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;--hz:76%}
 .ct-pattern{position:absolute;left:0;right:0;top:0;height:var(--hz);overflow:hidden}
 .ct-pattern::before{content:"";position:absolute;inset:0;opacity:.03;background:url(../assets/dollars.svg) 0 0/400px 400px repeat}
@@ -762,7 +762,7 @@ body.cview-open{overflow:hidden}
              radial-gradient(ellipse 80% 75% at 50% 50%,transparent 50%,rgba(0,0,0,.7) 100%)}
 .ct-corner{position:absolute;z-index:6;width:34px;height:34px;pointer-events:none}
 .ct-corner--tl{left:clamp(16px,2.5vw,36px);top:clamp(40px,6vh,64px);border-left:2px solid var(--blue);border-top:2px solid var(--blue)}
-.ct-corner--br{right:clamp(16px,2.5vw,36px);bottom:clamp(70px,9vh,90px)}
+.ct-corner--br{right:clamp(16px,2.5vw,36px);bottom:clamp(110px,14vh,130px)}
 .ct-corner--br::before,.ct-corner--br::after{content:"";position:absolute;background:var(--blue)}
 .ct-corner--br::before{left:16px;top:0;bottom:0;width:2px}
 .ct-corner--br::after{top:16px;left:0;right:0;height:2px}
@@ -827,8 +827,11 @@ body.cview-open{overflow:hidden}
   transition:scale .55s var(--ease),opacity .3s,visibility 0s .55s}
 .contact.is-chat .ct-win{scale:1;opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s}
 /* during the genie the keyframes drive the window: no CSS transition on top, and it stays visible while it closes */
-.contact.is-genie .ct-win{transition:none;transform-origin:50% 100%;will-change:transform,clip-path}
-.contact.is-closing .ct-win{scale:1;opacity:1;visibility:visible;pointer-events:none}
+.contact.is-genie .ct-win:not(.ct-slice__win){visibility:hidden;transition:none}
+/* genie slices: clones of the window, one band each, moved by contact.js */
+.ct-slice{position:fixed;z-index:11;overflow:hidden;pointer-events:none;will-change:transform,opacity;transform-origin:50% 50%}
+.ct-slice__win{position:absolute!important;left:0!important;width:100%!important;translate:none!important;scale:1!important;opacity:1!important;visibility:visible!important;transition:none!important;box-shadow:none!important}
+.contact.is-genie .ct-app,.contact.is-genie .ct-sep,.contact.is-genie .ct-bar,.contact.is-genie .ct-dock::after{opacity:1}
 .contact.is-chat .ct-title,.contact.is-chat .ct-lead,.contact.is-chat .ct-status{opacity:.08;filter:blur(8px)}
 .contact.is-chat .ct-tip{opacity:0!important}
 .contact.is-chat .ct-in{z-index:8}
@@ -892,12 +895,16 @@ body.cview-open{overflow:hidden}
 .ct-hint:empty{display:none}
 .ct-hint button{all:unset;cursor:pointer;color:#9cbcff;text-decoration:underline;text-underline-offset:3px}
 
-.ct-foot{position:absolute;left:0;right:0;bottom:0;z-index:6;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px clamp(20px,4vw,56px);color:var(--dim);border-top:1px solid rgba(120,150,255,.1)}
+.ct-foot{position:relative;z-index:6;display:grid;gap:8px;margin-top:clamp(40px,6vh,64px);padding:18px clamp(20px,4vw,56px) 20px;color:var(--dim);border-top:1px solid rgba(120,150,255,.1)}
+.ct-foot__row{display:flex;justify-content:space-between;align-items:center;gap:8px 16px;flex-wrap:wrap}
+.ct-foot__row--sub{color:#4f5c80}
+.ct-foot__row--sub a{color:var(--dim)}
 .ct-foot a:hover{color:#fff}
 .ct-toast{position:fixed;left:50%;bottom:24px;z-index:300;translate:-50% 20px;opacity:0;padding:12px 18px;border-radius:999px;color:#fff;background:rgba(10,14,30,.9);border:1px solid rgba(255,255,255,.14);transition:opacity .3s,translate .3s var(--ease);pointer-events:none}
 .ct-toast.is-on{opacity:1;translate:-50% 0}
 @media (max-width:900px){
-  .contact{padding-top:110px;padding-bottom:150px}
+  .contact{padding-top:110px;padding-bottom:0}
+  .ct-foot__row{justify-content:center;text-align:center}
   .ct-in::before{top:24%;height:70vw}
   .ct-title{font-size:var(--tfs,clamp(60px,19vw,150px));white-space:normal;line-height:.82}
   .ct-dock{gap:6px;height:auto;margin-top:clamp(56px,9vh,90px);padding:8px 10px 24px}

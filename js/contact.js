@@ -233,65 +233,83 @@
   }
   hint.addEventListener("click", e => { if (e.target.closest("[data-again]")) flow().catch(() => {}); });
 
-  /* genie: the window pours out of the Chat icon in the dock and is sucked back into it.
-     Built from transform + clip-path keyframes (Web Animations): the bottom pinches to the icon's width first, then the whole
-     window shrinks and slides into the icon. Only compositor-friendly properties animate. */
+  /* genie, the macOS way: the window itself bends. It is cut into horizontal slices (live clones of the window, each clipped
+     to its band); every frame each slice is moved and squeezed on its own, so the sides curve, the bottom funnels into the
+     Chat icon first and the rest pours in after it — the content is carried along, not just clipped. Opening plays it backwards
+     (out of the icon, after the icon's launch bounce). Only transforms change during the animation. */
   const win = $("#ctWin"), chatIcon = $("[data-openchat]");
-  let genieAnim = null;
-  function genieFrames() {
-    const w = win.getBoundingClientRect(), ic = chatIcon.querySelector(".ct-face").getBoundingClientRect();
-    const dx = (ic.left + ic.width / 2) - (w.left + w.width / 2), dy = ic.bottom - w.bottom;
-    const k = Math.max(4, ic.width / w.width * 50);                    // half the icon's width, in % of the window
-    const sy = Math.max(.06, ic.height / w.height);
-    /* the window's outline: a polygon with curved sides. `pinch` pulls the bottom in to the icon's width along an S-curve
-       (the top stays wide), `squeeze` then narrows the top too, until the window is an icon-wide ribbon. */
-    const N = 12, smooth = t => t * t * (3 - 2 * t);
-    const shape = (pinch, squeeze) => {
-      const L = [], R = [];
-      for (let n = 0; n <= N; n++) {
-        const y = n / N, maxIn = 50 - k;
-        const inset = maxIn * Math.min(1, smooth(y) * pinch + (1 - smooth(y)) * squeeze);
-        L.push(`${inset.toFixed(2)}% ${(y * 100).toFixed(2)}%`); R.unshift(`${(100 - inset).toFixed(2)}% ${(y * 100).toFixed(2)}%`);
-      }
-      const v = `polygon(${L.concat(R).join(",")})`;
-      return { clipPath: v, webkitClipPath: v };
-    };
-    return [
-      { offset: 0,   transform: "translate(0px,0px) scale(1,1)", opacity: 1, ...shape(0, 0), easing: "cubic-bezier(.45,0,.55,1)" },
-      { offset: .38, transform: `translate(${dx * .12}px,0px) scale(1,1)`, opacity: 1, ...shape(1, 0), easing: "cubic-bezier(.5,0,.7,.4)" },
-      { offset: .72, transform: `translate(${dx * .7}px,${dy * .6}px) scale(1,${(.35 + sy * .65).toFixed(3)})`, opacity: 1, ...shape(1, .7), easing: "cubic-bezier(.3,.6,.4,1)" },
-      { offset: 1,   transform: `translate(${dx}px,${dy}px) scale(1,${sy.toFixed(3)})`, opacity: .35, ...shape(1, 1) }
-    ];
-  }
-
+  const SLICES = 28;
+  let genie = null;
   const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const lerp = (a, b, t) => a + (b - a) * t, clamp01 = t => Math.min(1, Math.max(0, t));
+  const smooth = t => t * t * (3 - 2 * t), inOut = t => t < .5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+  function stopGenie() {
+    if (!genie) return;
+    cancelAnimationFrame(genie.raf); genie.slices.forEach(s => s.el.remove()); genie = null;
+    sec.classList.remove("is-genie");
+  }
+  function runGenie(from, to, ms, done) {
+    stopGenie();
+    sec.classList.add("is-genie");                                  // real window hidden, dock kept bright while it plays
+    const r = win.getBoundingClientRect(), ic = chatIcon.querySelector(".ct-face").getBoundingClientRect();
+    const logTop = $("#ctLog").scrollTop, H = r.height, W = r.width, T = r.top, cx = r.left + W / 2;
+    const ix = ic.left + ic.width / 2, iw = ic.width, ih = ic.height, ib = ic.bottom;
+    const slices = [];
+    /* each slice is a band-sized box (so it costs only its own strip, not a whole window layer) holding a clone of the window
+       shifted up to show just that band */
+    for (let n = 0; n < SLICES; n++) {
+      const v0 = n / SLICES, v1 = (n + 1) / SLICES, top = v0 * H, h = (v1 - v0) * H + 1;   // +1px overlap: no hairline seams
+      const el = document.createElement("div");
+      el.className = "ct-slice"; el.setAttribute("aria-hidden", "true");
+      el.style.cssText = `left:${r.left}px;top:${(T + top).toFixed(1)}px;width:${W}px;height:${h.toFixed(1)}px`;
+      const c = win.cloneNode(true);
+      c.removeAttribute("id"); c.querySelectorAll("[id]").forEach(x => x.removeAttribute("id"));
+      c.classList.add("ct-slice__win");
+      c.style.top = `${(-top).toFixed(1)}px`;
+      el.appendChild(c); sec.appendChild(el);
+      const lg = c.querySelector(".ct-log"); if (lg) lg.scrollTop = logTop;
+      slices.push({ el, v0, v1 });
+    }
+    const place = p => {                                            // p: 0 = window open, 1 = inside the icon
+      const a = inOut(clamp01(p / .5)), b = inOut(clamp01((p - .28) / .72)), tail = b * b * b;
+      slices.forEach(({ el, v0, v1 }) => {
+        const y0 = lerp(T + v0 * H, ib - ih + v0 * ih, b), y1 = lerp(T + v1 * H, ib - ih + v1 * ih, b), yc = (y0 + y1) / 2;
+        const q = smooth(clamp01((yc - T) / (ib - T))) * a;          // how far down the funnel this band sits
+        const width = lerp(lerp(W, iw, q), iw, tail), x = lerp(lerp(cx, ix, q), ix, tail);
+        const sy = Math.max(.001, (y1 - y0) / ((v1 - v0) * H)), dy = yc - (T + (v0 + v1) / 2 * H);
+        el.style.transform = `translate(${(x - cx).toFixed(2)}px,${dy.toFixed(2)}px) scale(${(width / W).toFixed(4)},${sy.toFixed(4)})`;
+        el.style.opacity = p > .92 ? ((1 - p) / .08).toFixed(3) : "1";
+      });
+    };
+    place(from);
+    const t0 = performance.now();
+    genie = { slices, raf: 0 };
+    const step = now => {
+      const k = Math.min(1, (now - t0) / ms);
+      place(lerp(from, to, k));
+      if (k < 1) genie.raf = requestAnimationFrame(step);
+      else { stopGenie(); done && done(); }
+    };
+    genie.raf = requestAnimationFrame(step);
+  }
+  const bounceIcon = () => { chatIcon.classList.remove("is-bounce"); void chatIcon.offsetWidth; chatIcon.classList.add("is-bounce", "is-ran"); };
+
   const open = from => {
     opener = from; rest(); sweeping = false;
-    if (genieAnim) genieAnim.cancel();
-    sec.classList.remove("is-closing"); sec.classList.add("is-chat", "is-genie");
-    if (!reduced()) { genieAnim = win.animate(genieFrames().reverse().map(f => ({ ...f, offset: 1 - f.offset })), { duration: 720, easing: "linear" });
-      genieAnim.onfinish = () => { genieAnim = null; sec.classList.remove("is-genie"); }; }
-    else sec.classList.remove("is-genie");
+    sec.classList.remove("is-closing"); sec.classList.add("is-chat");
     if (!started) { started = true; flow().catch(() => {}); }
+    if (!reduced()) { bounceIcon(); runGenie(1, 0, 640); }
     setTimeout(() => xBtn.focus({ preventScroll: true }), 300);
   };
   // the window is fixed on screen: if the visitor scrolls away from the contact block, it closes
   new IntersectionObserver(es => { if (!es[0].isIntersecting && sec.classList.contains("is-chat")) close(); }, { threshold: .15 }).observe(sec);
   const close = viaKey => {
     if (!sec.classList.contains("is-chat")) return;
-    if (genieAnim) genieAnim.cancel();
-    const frames = reduced() ? null : genieFrames();
-    sec.classList.add("is-closing", "is-genie"); sec.classList.remove("is-chat");     // the dock comes back while the window pours into it
-    // order matters: hide the window while transitions are still off, then drop the finished animation, then re-enable transitions
-    const done = anim => {
-      sec.classList.remove("is-closing");
-      if (anim) anim.cancel();
-      genieAnim = null;
-      requestAnimationFrame(() => { if (!sec.classList.contains("is-chat")) sec.classList.remove("is-genie"); });
-      chatIcon.classList.remove("is-bounce"); void chatIcon.offsetWidth; chatIcon.classList.add("is-bounce");
-    };
-    if (frames) { const anim = genieAnim = win.animate(frames, { duration: 660, easing: "linear", fill: "forwards" }); anim.onfinish = () => { if (genieAnim === anim) done(anim); }; }
-    else done(null);
+    if (reduced()) { stopGenie(); sec.classList.remove("is-chat"); }
+    else {
+      runGenie(0, 1, 600, () => sec.classList.remove("is-closing"));
+      sec.classList.add("is-closing"); sec.classList.remove("is-chat");                // the dock and the heading come back while it pours in
+    }
     if (viaKey === true && opener) opener.focus({ preventScroll: true });   // keyboard users get focus back on the icon; a mouse close leaves no tooltip hanging
   };
   $$("[data-openchat]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); sec.classList.contains("is-chat") ? close() : open(a); }));
