@@ -115,7 +115,8 @@ body::after{
 .hero__bg{position:absolute;inset:0}
 /* the scene fades to pure black at the bottom, so it meets the next block without a step.
    It sits above the background and the front haze (z 2) but under the cat and the button (board, z 3). */
-.hero__pin::after{content:"";position:absolute;left:0;right:0;bottom:var(--cut,0px);height:18%;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,0),#000 80%)}
+.hero__pin::after{content:"";position:absolute;left:0;right:0;bottom:0;height:calc(18% + var(--cut,0px));z-index:2;pointer-events:none;
+  background:linear-gradient(#000,#000) bottom/100% var(--cut,0px) no-repeat,linear-gradient(180deg,rgba(0,0,0,0),#000 80%) top/100% calc(100% - var(--cut,0px)) no-repeat}   /* phones: the fade ends where Results starts (--cut, main.js) and it's solid black below, also while the scene is still pinned */
 
 /* atmosphere (full bleed, outside the artboard) */
 /* dollar pattern on the wall: thin, very faint, diagonal, static.
