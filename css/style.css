@@ -259,8 +259,9 @@ body::after{
 }
 
 /* ---------- skills: glass panels on the studio stage (js/skills.js) ---------- */
-.skills{position:relative;z-index:1;height:400vh;background:var(--bg);margin-top:clamp(-90px,-6vw,-40px)}
-.cases:not(.is-collapsed) + .skills{margin-top:0}   /* list open: the stage must not cover "Show less" under the running line */   /* the empty top of the stage slides under the cases block's end */
+.skills{position:relative;z-index:1;height:400vh;background:var(--bg);margin-top:-24px}   /* small overlap under the cases block (which is on top): the heading glow isn't cut by its edge */
+.cases.is-collapsed #cmoreEnd{display:none}   /* the empty end-of-list slot took 36–56px under "Show all": the folded list was taller below the button than the open one, so everything after it jumped */
+.cases{z-index:2}   /* the cases block lies over the stage's empty top (open or folded), so its button is never covered; the cases block lies over the stage's empty top, so "Show less" isn't covered. The overlap itself never changes (it used to switch to 0 here, and everything under the button jumped when the list folded) */
 .skills__pin{position:sticky;top:0;height:100vh;height:100lvh;overflow:hidden;--hz:78%}   /* the large viewport: when Safari's bars collapse the stage still fills the screen, no empty strip under it */
 /* the bottom of the stage fades to pure black (over the floor and the reflection, under the counter), so it meets the
    contact block's black without a line */
@@ -335,7 +336,7 @@ body::after{
 .sk-prog i{display:block;width:120px;height:2px;background:rgba(156,188,255,.15);overflow:hidden}
 .sk-prog s{display:block;height:100%;background:var(--blue);box-shadow:0 0 8px var(--blue);transform:scaleX(0);transform-origin:0 50%;text-decoration:none;will-change:transform}
 @media (max-width:760px){
-  .skills{height:380vh}
+  .skills{height:380vh;margin-top:-64px}   /* phones: the heading comes right after "Show all" */
   /* phones: the stage still fills the large viewport (no empty strip when Safari's bars collapse), but the cards are placed
      in the SMALL viewport: with Safari's bottom bar showing they stay above it, right under the heading */
   :root{--skph:clamp(300px,calc(100svh - 326px),420px)}
@@ -449,7 +450,7 @@ body::after{
 }
 
 /* ============ CASES OUTSIDE iGAMING ============ */
-.cases{position:relative;z-index:1;background:var(--bg);padding:clamp(40px,4.6vw,68px) 0 clamp(20px,2.4vw,36px);overflow:hidden;overflow:clip}
+.cases{position:relative;background:linear-gradient(180deg,var(--bg) calc(100% - 70px),rgba(4,6,12,0));   /* the bottom fades out, so the Skills heading glow behind it isn't cut by an edge */padding:clamp(40px,4.6vw,68px) 0 clamp(20px,2.4vw,36px);overflow:hidden;overflow:clip}
 .cases__in{max-width:1368px;margin:0 auto;padding:0 clamp(20px,3vw,36px)}
 .cases__head{position:relative;display:grid;grid-template-columns:1fr auto;align-items:stretch;gap:16px 40px;margin-bottom:clamp(28px,3.4vw,52px)}
 /* blue haze behind the heading, like the one under "Results" */
