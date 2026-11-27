@@ -12,6 +12,11 @@
   const fine = matchMedia("(hover:hover) and (pointer:fine)");
   const wide = matchMedia("(min-width:901px)");
   const TG = "https://t.me/itsolz";
+  /* when the page last moved: heavy one-off work (the window picture, the intro sweep) waits until it has been still */
+  let lastMove = 0;
+  addEventListener("scroll", () => { lastMove = performance.now(); }, { passive: true });
+  addEventListener("touchmove", () => { lastMove = performance.now(); }, { passive: true });
+  const whenStill = (fn, ms = 300) => { const t = () => performance.now() - lastMove < ms ? setTimeout(t, 120) : fn(); setTimeout(t, 0); };
 
   /* ---------- title fit + floor line ---------- */
   function layout() {
@@ -85,8 +90,8 @@
         k++;
       }
     });
-    bar.style.left = G(0 - (sp ?? 0)).toFixed(2) + "px";
-    bar.style.right = (-G(dockW - (sp ?? dockW))).toFixed(2) + "px";
+    const bl = G(0 - (sp ?? 0)), br = -G(dockW - (sp ?? dockW));   // how far each end of the glass reaches out (negative = outwards)
+    bar.style.transform = `translate3d(${bl.toFixed(2)}px,0,0) scaleX(${((dockW - bl - br) / dockW).toFixed(4)})`;   // a transform, not left/right: no layout on every frame
     if (moving) raf = requestAnimationFrame(frame);
   }
   const kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
@@ -145,7 +150,7 @@
     };
     requestAnimationFrame(step);
   }
-  const io = new IntersectionObserver(es => { if (es[0].isIntersecting) { io.disconnect(); setTimeout(sweep, 450); } }, { threshold: .6 });
+  const io = new IntersectionObserver(es => { if (es[0].isIntersecting) { io.disconnect(); setTimeout(() => whenStill(sweep), 350); } }, { threshold: .6 });   // starts once the scroll has settled: it doesn't compete with the scrolling, and it's actually seen
   io.observe(dock);
 
   /* ---------- toast, CV placeholder ---------- */
@@ -391,9 +396,7 @@
   }
   /* the picture is prepared ahead of time, so a click starts the animation at once instead of waiting for the capture:
      whenever the window's content settles (new message, answer, scroll, resize, language), a fresh picture is taken in idle time */
-  let pic = null, picT = 0, lastMove = 0;
-  addEventListener("scroll", () => { lastMove = performance.now(); }, { passive: true });
-  addEventListener("touchmove", () => { lastMove = performance.now(); }, { passive: true });
+  let pic = null, picT = 0;
   const idle = fn => ("requestIdleCallback" in window ? requestIdleCallback(fn, { timeout: 500 }) : setTimeout(fn, 60));
   const refreshPic = (delay = 150) => {
     pic = null; clearTimeout(picT);
