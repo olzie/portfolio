@@ -186,15 +186,26 @@
         const url = im.dataset[lang === "ua" ? "srcUa" : "srcEn"];
         if (im.getAttribute("src") === url) return;
         if (!im.getAttribute("src")) { im.src = url; if (im.decode) im.decode().catch(() => {}); return; }
-        const pre = new Image(); pre.src = url;
-        (pre.decode ? pre.decode() : Promise.resolve()).catch(() => {}).then(() => { if (cvLang === lang) im.src = url; });
+        warm(url).then(() => { if (cvLang === lang) im.src = url; });
       });
     };
-    const cvLoad = () => { if (!cvLang) setCv(siteCv()); };
+    /* every page, both languages, is fetched and decoded ahead in idle time and kept in memory, so the first switch of
+       language swaps at once instead of waiting for two big images (that was the freeze after the first switch) */
+    const warmed = new Map();
+    const warm = url => {
+      if (!warmed.has(url)) { const im = new Image(); im.src = url; warmed.set(url, { im, done: (im.decode ? im.decode() : Promise.resolve()).catch(() => {}) }); }
+      return warmed.get(url).done;
+    };
+    const cvLoad = () => {
+      if (!cvLang) setCv(siteCv());
+      const other = cvLang === "ua" ? "srcEn" : "srcUa";
+      Promise.all(pages.map(im => (im.decode ? im.decode() : Promise.resolve()).catch(() => {}))).then(() => idle(() => pages.forEach(im => warm(im.dataset[other]))));   // the shown language first, then the other
+    };
     lbs.forEach(b => b.addEventListener("click", () => { cvPicked = true; setCv(b.dataset.cvlang); }));
     new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { o.disconnect(); idle(cvLoad); } }, { rootMargin: "800px" }).observe(sec);
     const cvOpen = from => {
-      if (!cvPicked) setCv(siteCv()); else cvLoad();                 // the site's language, unless the visitor chose one in the window
+      if (!cvPicked) setCv(siteCv());                                // the site's language, unless the visitor chose one in the window
+      cvLoad();
       cvBack = from || document.activeElement;
       paper.scrollTop = 0;
       cvv.classList.add("is-open"); cvv.setAttribute("aria-hidden", "false");
