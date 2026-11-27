@@ -364,7 +364,7 @@
     /* the hand-over between the picture and the live window: the live window is fully shown underneath (it is opaque) and only
        the picture fades on top of it, so nothing behind ever shows through and small differences read as a quick dissolve:
        opening ends with the picture dissolving off the window, closing starts with the picture dissolving onto it */
-    const opening = from > to, FADE = opening ? .16 : .18;
+    const opening = from > to, FADE = opening ? .2 : .18;
     const showWin = on => { win.style.visibility = on ? "visible" : ""; win.style.opacity = on ? "1" : ""; };
     const at = k => {
       if (opening) {
@@ -442,7 +442,7 @@
     const begin = () => { if (!started && sec.classList.contains("is-chat")) { started = true; flow().catch(() => {}); } };
     if (picP) {
       bounceIcon(); sec.classList.add("is-genie");                  // laid out but hidden until its picture has poured out of the icon
-      picP.then(c => { if (sec.classList.contains("is-chat")) playGenie(c, 1, 0, 920, begin); else sec.classList.remove("is-genie"); })
+      picP.then(c => { if (sec.classList.contains("is-chat")) playGenie(c, 1, 0, 640, begin); else sec.classList.remove("is-genie"); })
           .catch(() => { sec.classList.remove("is-genie"); begin(); });
     } else begin();
     setTimeout(() => xBtn.focus({ preventScroll: true }), 300);
