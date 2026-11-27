@@ -29,7 +29,7 @@ html.lenis,html.lenis body{height:auto}
 .lenis.lenis-smooth{scroll-behavior:auto!important}
 body{margin:0;font-family:var(--body);background:var(--bg);overflow-x:hidden;-webkit-font-smoothing:antialiased}
 body.is-loading{overflow:hidden;height:100vh;touch-action:none;overscroll-behavior:none}
-html:has(body.is-loading){overflow:hidden}   /* iOS ignores overflow on body alone */
+html.is-loading{overflow:hidden}   /* iOS ignores overflow on body alone; a class, not :has() — :has() on html re-styled the whole page whenever Lenis toggled its classes */
 a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
 img{display:block;max-width:100%}
@@ -55,7 +55,7 @@ body::after{
 .progress{position:fixed;top:0;left:0;right:0;height:3px;z-index:60;pointer-events:none;background:rgba(120,150,255,.08)}
 .progress i{display:block;height:100%;width:100%;transform:scaleX(0);transform-origin:left center;
   background:linear-gradient(90deg,var(--blue) 0%,var(--blue-hi) 70%,var(--ice) 100%);
-  box-shadow:0 0 12px rgba(23,71,255,.8),0 0 2px rgba(156,188,255,.9)}
+  box-shadow:0 0 12px rgba(23,71,255,.8),0 0 2px rgba(156,188,255,.9);will-change:transform}   /* own layer: scaling it on scroll doesn't repaint the page */
 
 /* ============ HEADER ============ */
 .header{position:fixed;top:0;left:0;right:0;z-index:50;height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 var(--pad);pointer-events:none}
@@ -333,7 +333,7 @@ body::after{
 .sk-prog{position:absolute;right:clamp(20px,4vw,56px);bottom:clamp(20px,5vh,44px);z-index:6;display:flex;gap:10px;align-items:center;color:var(--dim)}
 .sk-prog b{color:#fff;font-weight:400}
 .sk-prog i{display:block;width:120px;height:2px;background:rgba(156,188,255,.15);overflow:hidden}
-.sk-prog s{display:block;height:100%;background:var(--blue);box-shadow:0 0 8px var(--blue);transform:scaleX(0);transform-origin:0 50%;text-decoration:none}
+.sk-prog s{display:block;height:100%;background:var(--blue);box-shadow:0 0 8px var(--blue);transform:scaleX(0);transform-origin:0 50%;text-decoration:none;will-change:transform}
 @media (max-width:760px){
   .skills{height:380vh}
   /* phones: the stage still fills the large viewport (no empty strip when Safari's bars collapse), but the cards are placed
@@ -789,8 +789,8 @@ body.cview-open{overflow:hidden}
   background:linear-gradient(180deg,#f4f6fb 0%,#e9edf6 45%,#8fa6e6 100%);-webkit-background-clip:text;background-clip:text}
 .ct-lead{margin:clamp(28px,4.4vh,48px) 0 0;color:var(--ice);max-width:560px}
 .ct-status{display:inline-flex;align-items:center;gap:9px;margin-top:clamp(18px,2.6vh,26px);padding:7px 12px 7px 10px;border-radius:999px;color:#fff;background:rgba(61,220,132,.08);border:1px solid rgba(61,220,132,.3)}
-.ct-status::before{content:"";width:7px;height:7px;border-radius:50%;background:#3ddc84;box-shadow:0 0 10px #3ddc84;animation:ctPulse 2s infinite}
-@keyframes ctPulse{50%{box-shadow:0 0 2px #3ddc84}}
+.ct-status::before{content:"";width:7px;height:7px;border-radius:50%;background:#3ddc84;box-shadow:0 0 10px #3ddc84;animation:ctPulse 2s infinite;will-change:opacity}
+@keyframes ctPulse{50%{opacity:.45}}   /* opacity on its own layer, not box-shadow: a box-shadow pulse repainted the whole contact block (giant heading included) 60 times a second, even while scrolling Skills */
 .ct-title,.ct-lead,.ct-status{transition:opacity .45s var(--ease)}
 
 /* the dock */
@@ -836,7 +836,7 @@ body.cview-open{overflow:hidden}
 .ct-win{--winh:min(660px,calc(100svh - 108px));position:fixed;left:50%;top:var(--wintop,calc(78px + (100svh - 78px - var(--winh)) / 2));z-index:10;width:min(420px,calc(100vw - 24px));height:var(--winh);
   display:flex;flex-direction:column;text-align:left;border-radius:28px;overflow:hidden;color:var(--text);
   background:#0a0f20;border:1px solid rgba(255,255,255,.14);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 50px 110px -30px rgba(0,0,0,.95),0 30px 120px -50px rgba(23,71,255,.7);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 18px 44px -22px rgba(0,0,0,.85);
   translate:-50% 0;opacity:0;visibility:hidden;pointer-events:none;
   transition:opacity .25s,visibility 0s .25s}   /* no scale on the window: the genie does the motion (Safari froze a scaled window small) */
 .contact.is-chat .ct-win{opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s}

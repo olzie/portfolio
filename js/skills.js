@@ -109,6 +109,9 @@
         if (!pw) pw = panels[0] ? panels[0].offsetWidth : 320;     // measured once (and on resize), not every frame: a read after writes forced a layout per frame
         const SP = pw * .7;                                          // neighbours tuck in behind the lit panel
         const c = Math.round(cam);
+        // stacking by rank (nearest panel on top), not by distance: the rank only changes when two panels swap order,
+        // while a distance-based z-index changed every frame and made the browser repaint the whole page each time
+        const rank = panels.map((_, i) => i).sort((a, b) => Math.abs(a - cam) - Math.abs(b - cam));
         panels.forEach((el, i) => {
           const d = i - cam, ad = Math.abs(d);
           const x = d * SP + Math.sign(d) * Math.min(ad, 1) * SP * .18;
@@ -119,7 +122,7 @@
           set(el, "transform", `translate3d(${x.toFixed(1)}px,0,${z.toFixed(1)}px) rotateY(${ry.toFixed(2)}deg)`);
           set(el, "opacity", op.toFixed(2));
           set(el, "visibility", op < .03 ? "hidden" : "visible");   // panels too far to see are not drawn at all
-          set(el, "zIndex", String(100 - Math.round(ad * 10)));
+          set(el, "zIndex", String(100 - rank.indexOf(i)));
         });
         if (c !== cur) {
           cur = c;

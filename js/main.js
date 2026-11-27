@@ -373,18 +373,22 @@
   /* ---------- scroll: progress bar, cat frame, scene states ---------- */
   const bar = $("#scrollProgress"), huds = $$(".hud"), beam = $(".hero__light--wide");
   const hudAt = [0.14, 0.4, 0.64], HUD_OUT = 0.86;
-  let heroTop = 0, heroLen = 1, docLen = 1;
+  let heroTop = 0, heroLen = 1, docLen = 1, lastP = -1;
   const measure = () => {
     heroTop = hero.offsetTop;
     heroLen = Math.max(1, hero.offsetHeight - innerHeight);
     window.__heroTop = heroTop;
     window.__heroEnd = heroTop + heroLen;               // the menu fades instead of scrolling through this range
     docLen = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    lastP = -1;                                         // re-apply the scene state after any re-measure
   };
   function onScroll() {
     const y = lenis ? lenis.scroll : scrollY;
     bar.style.transform = `scaleX(${clamp(y / docLen, 0, 1).toFixed(4)})`;
     const p = clamp((y - heroTop) / heroLen, 0, 1);
+    remember(y);
+    if (p === lastP) return;                            // past the scene (or before it): nothing in it changes, write nothing
+    lastP = p;                                          // (Safari restyles even when a value is set to what it already was)
     beam.style.setProperty("--beam", p.toFixed(3));
     /* one full turn between 4% and 82% of the scene, then a long hold facing forward until the
        next block arrives. (Ending the turn at 92% put its last frame step right where people
@@ -398,7 +402,6 @@
     huds.forEach((h, i) => h.classList.toggle("is-in", isMobile()
       ? p >= (i ? hudAt[i] : -1) && p < (hudAt[i + 1] ?? HUD_OUT)
       : p >= hudAt[i] && p < HUD_OUT));
-    remember(y);
   }
   lenis ? lenis.on("scroll", onScroll) : addEventListener("scroll", onScroll, { passive: true });
 
@@ -453,7 +456,7 @@
   // Everything is laid out and drawn before the loader leaves, so the page appears complete.
   function finishLoader() {
     scrollTo(0, 0);                                      // undo any scroll that slipped in during loading
-    body.classList.remove("is-loading");
+    body.classList.remove("is-loading"); document.documentElement.classList.remove("is-loading");
     setScale(); fitTitle(); fit(); measure();
     if (lenis) lenis.scrollTo(0, { immediate: true, force: true });
     onScroll();
