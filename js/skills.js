@@ -55,13 +55,15 @@
   const pinH = () => (pinEl ? pinEl.offsetHeight : innerHeight);   // the stage is the large viewport tall on phones, not innerHeight
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;   // the cards still follow the scroll, but don't turn, and nothing glides
   let gliding = false;
-  const go = (i, dur = 1.1) => {
+  const easeOut = t => 1 - Math.pow(1 - t, 3), easeInOut = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  // a click answers at once (ease-out: the cards start moving on the same frame); the settle after a scroll eases in and out
+  const go = (i, dur = .9, easing = easeOut) => {
     i = clamp(i, 0, N - 1);
     const top = section.getBoundingClientRect().top + scrollY, len = section.offsetHeight - pinH();
     const y = top + len * (i / (N - 1));
     if (reduce) { scrollTo(0, y); return; }
     gliding = true;
-    if (window.__lenis) window.__lenis.scrollTo(y, { duration: dur, easing: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, onComplete: () => { gliding = false; } }); else { scrollTo({ top: y, behavior: "smooth" }); setTimeout(() => { gliding = false; }, dur * 1000); }
+    if (window.__lenis) window.__lenis.scrollTo(y, { duration: dur, easing, onComplete: () => { gliding = false; } }); else { scrollTo({ top: y, behavior: "smooth" }); setTimeout(() => { gliding = false; }, dur * 1000); }
   };
   track.addEventListener("click", e => { const p = e.target.closest(".sk-panel"); if (p) go(+p.dataset.i); });
   /* when scrolling stops inside the block, one card settles under the light — the next one in the direction the visitor
@@ -80,7 +82,7 @@
       i = dir > 0 ? Math.ceil(p) : dir < 0 ? Math.floor(p) : Math.round(p);   // onward: pulling back against the swipe felt like a jerk
     } else i = dir > 0 ? (f > .05 ? Math.ceil(p) : Math.floor(p)) : dir < 0 ? (f < .95 ? Math.floor(p) : Math.ceil(p)) : Math.round(p);
     if (Math.abs(p - i) * len / (N - 1) < 6) return;                // already there
-    go(i, .85);
+    go(i, .85, easeInOut);
   };
   const touch = matchMedia("(pointer:coarse)").matches;
   const onScroll = () => { if (fromY === null) { fromY = scrollY; fromPinned = pinned(); } clearTimeout(snapT); snapT = setTimeout(snap, touch ? 240 : 160); };
