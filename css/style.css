@@ -264,6 +264,10 @@ body::after{
 .sk-snap{position:absolute;left:0;width:1px;height:1px;pointer-events:none;scroll-snap-align:start}
 @media (pointer:coarse){html.sk-snap-on:not(.no-snap){scroll-snap-type:y proximity}}   /* only while the stage is pinned (js) */
 .skills__pin{position:sticky;top:0;height:100vh;height:100lvh;overflow:hidden;--hz:78%}   /* the large viewport: when Safari's bars collapse the stage still fills the screen, no empty strip under it */
+/* the bottom of the stage fades to pure black (over the floor and the reflection, under the counter), so it meets the
+   contact block's black without a line */
+.skills__pin::after{content:"";position:absolute;left:0;right:0;bottom:0;height:min(22%,190px);z-index:5;pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.35) 35%,rgba(0,0,0,.8) 70%,#000 100%)}
 .sk-studio{position:absolute;inset:0;background:#000}   /* opaque: Safari doesn't have to blend the stage with the page under it */
 /* the top of the stage is the cases block's colour, fading to black: an opaque layer over the beam and the shade, no masks */
 .sk-studio::after{content:"";position:absolute;left:0;right:0;top:0;height:62%;z-index:3;pointer-events:none;
@@ -341,6 +345,8 @@ body::after{
   /* the stage is the large viewport tall, but only its top (heading, cards, counter) is used: the contact block slides
      up over the empty floor under the counter, so there's no long black gap between the two blocks */
   .skills + .contact{margin-top:min(0px,calc(330px + var(--skph) - 100lvh))}
+  /* the contact block covers the stage's floor here: a short fade above its edge, so the reflection doesn't end on a line */
+  .contact::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:36px;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,0),#000)}
   .sk-track,.sk-halo{--ph:inherit}
   .sk-prog{bottom:auto;top:calc(var(--hz) + 44px)}
   .sk-corner--br{bottom:auto;top:calc(var(--hz) + 34px)}
