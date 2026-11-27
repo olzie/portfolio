@@ -74,7 +74,7 @@
   const section = $("#cases");
 
   /* ---------- list + running line ---------- */
-  function render() {
+  function render(noFlip) {
     const L = lang();
     let lastYear = "";
     let restN = 0;
@@ -102,7 +102,7 @@
     const btn = `<button class="cmore__btn glass mono" type="button" aria-expanded="${!collapsed}">${collapsed ? t("cases.more").replace("{n}", REST.length) : t("cases.less")}<span aria-hidden="true">${collapsed ? "↓" : "↑"}</span></button>`;
     // the top rows slide to their new places instead of jumping (FLIP: measure, re-render, play the difference back)
     const before = {};
-    list.querySelectorAll(".crow--top .crow__btn").forEach(b => before[b.dataset.i] = b.getBoundingClientRect().top);
+    if (!noFlip) list.querySelectorAll(".crow--top .crow__btn").forEach(b => before[b.dataset.i] = b.getBoundingClientRect().top);
     list.innerHTML = collapsed
       ? TOP.map((ci, n) => row(ci, n, true)).join("") + `<li class="cmore">${btn}</li>`
       : MAIN.map((ci, n) => row(ci, n, !!ALL[ci].top)).join("");
@@ -130,32 +130,26 @@
   });
 
   /* everything after the top 3 opens with the button under them */
-  /* "Show less" sits at the very end of the open list. Folding first and scrolling after made everything below jump
-     (Skills shot up under the cursor, then the page slid back). Now the page glides up to the top of the list while
-     it is still open, and only then the list folds — below the fold, where nothing visible moves. */
-  let folding = false;
+  /* "Show less" sits at the very end of the open list. The list folds and the page is shifted in the same frame so the
+     button stays exactly where the finger/cursor is (it becomes "Show all"): nothing glides, nothing jumps, the visitor
+     isn't thrown back to the start of the block. */
   section.addEventListener("click", e => {
-    if (!e.target.closest(".cmore__btn") || folding) return;
+    const btnEl = e.target.closest(".cmore__btn");
+    if (!btnEl) return;
     if (collapsed) {
       collapsed = false; render();
       list.classList.add("is-opening"); section.classList.add("is-opening");
       return;
     }
-    folding = true;
-    let done = false;
-    const fold = () => {
-      if (done) return; done = true;
-      list.classList.remove("is-opening"); section.classList.remove("is-opening");
-      collapsed = true; render();
-      if (window.__lenis) window.__lenis.resize();
-      folding = false;
-    };
-    const y = list.getBoundingClientRect().top + window.scrollY - Math.min(innerHeight * .35, 300);   // the heading and the folded list end up in view
-    if (window.__lenis && Math.abs(window.scrollY - y) > 4) {
-      const far = Math.abs(window.scrollY - y);
-      window.__lenis.scrollTo(y, { duration: Math.min(1.4, .6 + far / 4000), force: true, onComplete: fold });
-      setTimeout(fold, 1800);                                       // never left half-way if the glide gets interrupted
-    } else fold();
+    const before = btnEl.getBoundingClientRect().top;
+    list.classList.remove("is-opening"); section.classList.remove("is-opening");
+    collapsed = true; render(true);
+    const nb = list.querySelector(".cmore__btn");
+    if (nb) {
+      const y = window.scrollY + nb.getBoundingClientRect().top - before;
+      if (window.__lenis) { window.__lenis.resize(); window.__lenis.scrollTo(y, { immediate: true, force: true }); }
+      else window.scrollTo(0, y);
+    }
   });
 
   /* running line: tenders (one window), then small cases (their own windows). Built once: names don't change with the language */
