@@ -363,17 +363,22 @@
     dock.insertBefore(canvas, dock.firstChild);                   // inside the dock, under the icons: the window pours INTO the Chat icon and vanishes behind it, as on a Mac
     const ctx = canvas.getContext("2d", { alpha: true }); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = phone ? "low" : "high";
     sec.classList.add("is-genie");
+    const closing = to > from;
     const ROW = 2, rows = Math.ceil(H / ROW), srcRow = pic.height / rows;   // 2px rows everywhere: on phones 3px rows showed as fine steps on the edges
     const draw = p => {                                              // p: 0 = window open, 1 = inside the icon
       const a = smoother(clamp01(p / .55)), b = smoother(clamp01((p - .22) / .78)), tail = b * b * b;   // the pinch and the slide overlap more: one continuous motion
       ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.setTransform(dpr, 0, 0, dpr, -bx * dpr, -by * dpr);
-      ctx.globalAlpha = 1 - smooth(clamp01((p - .6) / .34));      // near the icon it melts away (the eye kept catching the last bit)
+      // closing: the whole stream melts away well before it reaches the icon, and the part already pouring into it is see-through;
+      // opening keeps the window solid (only its very first bit, out of the icon, fades in)
+      const fade = closing ? 1 - smooth(clamp01((p - .42) / .43)) : 1 - smooth(clamp01((p - .6) / .34));
+      const zone = ih * 2.6, sink = closing ? .8 : 0;
       const yTop = lerp(T, ib - ih, b), span = lerp(H, ih, b) / rows;  // rows are evenly spaced at every moment
       for (let n = 0; n < rows; n++) {
         const y0 = yTop + n * span, yc = y0 + span / 2;
         const q = smooth(clamp01((yc - T) / (ib - T))) * a;
         const w = lerp(lerp(W, iw, q), iw, tail), x = lerp(lerp(cx, ix, q), ix, tail);
+        ctx.globalAlpha = fade * (1 - sink * smooth(clamp01((yc - (ib - zone)) / zone)) * a);
         ctx.drawImage(pic, 0, n * srcRow, pic.width, srcRow, x - w / 2, y0, w, span + .7);
       }
     };
@@ -461,7 +466,7 @@
     const begin = () => { if (!started && sec.classList.contains("is-chat")) { started = true; flow().catch(() => {}); } };
     if (picP) {
       bounceIcon(); sec.classList.add("is-genie");                  // laid out but hidden until its picture has poured out of the icon
-      picP.then(c => { if (sec.classList.contains("is-chat")) playGenie(c, 1, 0, 480, begin); else sec.classList.remove("is-genie"); })
+      picP.then(c => { if (sec.classList.contains("is-chat")) playGenie(c, 1, 0, 400, begin); else sec.classList.remove("is-genie"); })
           .catch(() => { sec.classList.remove("is-genie"); begin(); });
     } else begin();
     setTimeout(() => xBtn.focus({ preventScroll: true }), 300);
@@ -484,7 +489,7 @@
       const r = win.getBoundingClientRect();
       sec.classList.add("is-closing"); sec.classList.remove("is-chat");                // the dock and the heading come back while it pours in
       withTimeout(freshPic(), 600)
-        .then(c => playGenie(c, 0, 1, 520, () => sec.classList.remove("is-closing")))
+        .then(c => playGenie(c, 0, 1, 420, () => sec.classList.remove("is-closing")))
         .catch(() => sec.classList.remove("is-closing"));
     }
     if (viaKey === true && opener) opener.focus({ preventScroll: true });   // keyboard users get focus back on the icon; a mouse close leaves no tooltip hanging
