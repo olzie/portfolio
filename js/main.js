@@ -335,10 +335,13 @@
     const numsEl = document.getElementById("numbers"), ctaEl = board.querySelector(".cta");
     if (numsEl && pin.clientWidth !== pullW) {
       pullW = pin.clientWidth;                          // browser bars sliding must not move the page under the finger
-      numsEl.style.marginTop = "";
+      numsEl.style.marginTop = ""; pin.style.removeProperty("--cut");
       if (mob && ctaEl) {
         const gap = pin.clientHeight - (ctaEl.getBoundingClientRect().bottom - pin.getBoundingClientRect().top);
-        if (gap > 40) numsEl.style.marginTop = -Math.round(gap - 24) + "px";
+        if (gap > 40) {
+          numsEl.style.marginTop = -Math.round(gap - 24) + "px";
+          pin.style.setProperty("--cut", Math.round(gap - 24) + "px");   // the scene's fade to black ends where "Results" now starts, not under it
+        }
       }
     }
     if (cw) fit();

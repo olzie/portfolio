@@ -53,11 +53,13 @@
      so this scrolls the page to the spot where that panel is the lit one */
   const pinEl = section.querySelector(".skills__pin");
   const pinH = () => (pinEl ? pinEl.offsetHeight : innerHeight);   // the stage is the large viewport tall on phones, not innerHeight
+  let gliding = false;
   const go = (i, dur = 1.1) => {
     i = clamp(i, 0, N - 1);
     const top = section.getBoundingClientRect().top + scrollY, len = section.offsetHeight - pinH();
     const y = top + len * (i / (N - 1));
-    if (window.__lenis) window.__lenis.scrollTo(y, { duration: dur }); else scrollTo({ top: y, behavior: "smooth" });
+    gliding = true;
+    if (window.__lenis) window.__lenis.scrollTo(y, { duration: dur, onComplete: () => { gliding = false; } }); else { scrollTo({ top: y, behavior: "smooth" }); setTimeout(() => { gliding = false; }, dur * 1000); }
   };
   track.addEventListener("click", e => { const p = e.target.closest(".sk-panel"); if (p) go(+p.dataset.i); });
   /* when scrolling stops inside the block, one card settles under the light — the next one in the direction the visitor
@@ -79,38 +81,13 @@
     go(i, .7);
   };
   const touch = matchMedia("(pointer:coarse)").matches;
-  if (!touch) {
-    const onScroll = () => { if (fromY === null) { fromY = scrollY; fromPinned = pinned(); } clearTimeout(snapT); snapT = setTimeout(snap, 160); };
-    if (window.__lenis) window.__lenis.on("scroll", onScroll); else addEventListener("scroll", onScroll, { passive: true });
-  } else {
-    /* phones: the browser snaps natively (CSS scroll-snap, "proximity"), so a card settles as part of the swipe's own
-       momentum. A JS glide after the swipe fought the momentum, and a fast flick through the block then sent the page
-       racing through the next blocks. Invisible markers stand at the scroll spots where each card is centred. */
-    for (let i = 0; i < N; i++) {
-      const m = document.createElement("i");
-      m.className = "sk-snap"; m.setAttribute("aria-hidden", "true");
-      m.style.top = `calc((100% - ${pinEl ? "100lvh" : "100vh"}) * ${i} / ${N - 1})`;
-      section.appendChild(m);
-    }
-    /* snapping is switched on only while the stage is pinned: a swipe that ends outside the block (in Cases or Contact)
-       is never pulled back to a card */
-    const root = document.documentElement, L = window.__lenis;
-    let snapRaf = 0;
-    const zone = () => { snapRaf = 0; root.classList.toggle("sk-snap-on", pinned()); };
-    addEventListener("scroll", () => { if (!snapRaf) snapRaf = requestAnimationFrame(zone); }, { passive: true });
-    zone();
-    /* a programmatic glide (menu, "Back to top", tapping a card) must not be caught by the snap points it passes */
-    if (L) {
-      const orig = L.scrollTo.bind(L);
-      let restoreT = 0;
-      L.scrollTo = (target, o = {}) => {
-        root.classList.add("no-snap"); clearTimeout(restoreT);
-        const done = o.onComplete, back = () => { clearTimeout(restoreT); restoreT = setTimeout(() => root.classList.remove("no-snap"), 60); };
-        restoreT = setTimeout(back, ((o.immediate ? 0 : (o.duration || 1.2)) * 1000) + 300);
-        return orig(target, { ...o, onComplete: (...a) => { back(); done && done(...a); } });
-      };
-    }
-  }
+  const onScroll = () => { if (fromY === null) { fromY = scrollY; fromPinned = pinned(); } clearTimeout(snapT); snapT = setTimeout(snap, touch ? 240 : 160); };
+  if (window.__lenis) window.__lenis.on("scroll", onScroll); else addEventListener("scroll", onScroll, { passive: true });
+  // a finger on the screen always wins: a glide in progress stops at once instead of fighting the swipe
+  addEventListener("touchstart", () => {
+    clearTimeout(snapT); fromY = null;
+    if (gliding && window.__lenis) { gliding = false; window.__lenis.scrollTo(scrollY, { immediate: true, force: true }); }
+  }, { passive: true });
   track.addEventListener("keydown", e => { const p = e.target.closest(".sk-panel"); if (p && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); go(+p.dataset.i); } });
   const set = (el, k, v) => { const c = el._s || (el._s = {}); if (c[k] !== v) { c[k] = v; el.style[k] = v; } };
   const progress = () => { const r = section.getBoundingClientRect(); return clamp(-r.top / (r.height - pinH()), 0, 1); };

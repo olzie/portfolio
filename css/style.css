@@ -115,7 +115,7 @@ body::after{
 .hero__bg{position:absolute;inset:0}
 /* the scene fades to pure black at the bottom, so it meets the next block without a step.
    It sits above the background and the front haze (z 2) but under the cat and the button (board, z 3). */
-.hero__pin::after{content:"";position:absolute;left:0;right:0;bottom:0;height:18%;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,0),#000 80%)}
+.hero__pin::after{content:"";position:absolute;left:0;right:0;bottom:var(--cut,0px);height:18%;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,0),#000 80%)}
 
 /* atmosphere (full bleed, outside the artboard) */
 /* dollar pattern on the wall: thin, very faint, diagonal, static.
@@ -260,9 +260,6 @@ body::after{
 /* ---------- skills: glass panels on the studio stage (js/skills.js) ---------- */
 .skills{position:relative;z-index:1;height:400vh;background:var(--bg);margin-top:clamp(-90px,-6vw,-40px)}
 .cases:not(.is-collapsed) + .skills{margin-top:0}   /* list open: the stage must not cover "Show less" under the running line */   /* the empty top of the stage slides under the cases block's end */
-/* phones: native snap points at each card (js/skills.js adds the markers); only these markers snap, the rest of the page scrolls freely */
-.sk-snap{position:absolute;left:0;width:1px;height:1px;pointer-events:none;scroll-snap-align:start}
-@media (pointer:coarse){html.sk-snap-on:not(.no-snap){scroll-snap-type:y proximity}}   /* only while the stage is pinned (js) */
 .skills__pin{position:sticky;top:0;height:100vh;height:100lvh;overflow:hidden;--hz:78%}   /* the large viewport: when Safari's bars collapse the stage still fills the screen, no empty strip under it */
 /* the bottom of the stage fades to pure black (over the floor and the reflection, under the counter), so it meets the
    contact block's black without a line */
