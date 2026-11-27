@@ -896,7 +896,7 @@ body.cview-open{overflow:hidden}
 .ct-hint:empty{display:none}
 .ct-hint button{all:unset;cursor:pointer;color:#9cbcff;text-decoration:underline;text-underline-offset:3px}
 
-.ct-foot{position:relative;z-index:6;display:grid;gap:8px;margin-top:clamp(40px,6vh,64px);padding:18px clamp(20px,4vw,56px) 20px;color:var(--dim);border-top:1px solid rgba(120,150,255,.1)}
+.ct-foot{position:relative;z-index:6;display:grid;gap:8px;margin-top:clamp(18px,3vh,28px);padding:18px clamp(20px,4vw,56px) 20px;color:var(--dim);border-top:1px solid rgba(120,150,255,.1)}
 .ct-foot__row{display:flex;justify-content:space-between;align-items:center;gap:8px 16px;flex-wrap:wrap}
 .ct-foot__row--sub{color:#4f5c80}
 .ct-foot__row--sub a{color:var(--dim)}
