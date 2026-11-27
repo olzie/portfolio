@@ -241,7 +241,7 @@ body::after{
   .board .mono{font-size:10.5px}
   .corner--tl{left:10px;top:70px;width:26px;height:26px}
   .corner--br,.hero__list,.hero__scroll{display:none}
-  .hero__title{left:26px;right:16px;top:84px;margin:0;width:auto;align-items:flex-start;z-index:4}   /* in front of the cat: its ears tuck behind the letters */
+  .hero__title{left:26px;right:16px;top:84px;margin:0;width:auto;align-items:flex-start}
   .hero__row{flex-direction:column;gap:0}
   .hero__role{font-size:15px}
   .hero__stage{left:-40px;top:300px;width:470px;height:470px}   /* real size and place are set by JS */

@@ -302,7 +302,7 @@
     const titleBottom = title.offsetTop + title.offsetHeight;
     const hudH = Math.max(...huds.map(h => h.offsetHeight), 40);
     const solesMax = bh - 138 - hudH - 14;            // above the note (CSS: .hud bottom 138), leaving a little room for the reflection
-    const earsMin = titleBottom - 16;                  // the ear tips reach a little into the role line, behind the letters (the title is drawn on top)
+    const earsMin = titleBottom - 14;                  // the ear tips reach a little onto the role line, drawn over the letters
     const span = solesMax - earsMin;                    // ears-to-soles is 70% of the stage
     const size = clamp(span / 0.70, 340, 600);         // the cat is the hero of the first screen: as big as the space allows
     const soles = solesMax - Math.max(0, span - 0.70 * size) * 0.35;   // tall screens: the cat stays close to the note under it
@@ -391,7 +391,7 @@
     turn.target = clamp((p - 0.04) / 0.78, 0, 1) * (FRAMES - 1);
     kick();
     hero.classList.toggle("is-scrolled", p > 0.02);              // CSS hides the list and the scroll hint
-    hero.classList.toggle("is-turning", p > 0.02 && p < 0.74);   // CSS dims the name while the cat turns
+    hero.classList.toggle("is-turning", p > 0.06 && p < 0.74);   // not at the first few pixels: Safari's bounce at the top mustn't flash the name grey   // CSS dims the name while the cat turns
     huds.forEach((h, i) => h.classList.toggle("is-in", isMobile()
       ? p >= (i ? hudAt[i] : -1) && p < (hudAt[i + 1] ?? HUD_OUT)
       : p >= hudAt[i] && p < HUD_OUT));
