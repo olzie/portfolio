@@ -311,6 +311,7 @@
   function stopGenie() {
     if (!genie) return;
     cancelAnimationFrame(genie.raf); genie.canvas.remove(); genie = null;
+    win.style.visibility = ""; win.style.opacity = "";
     sec.classList.remove("is-genie");
   }
   function playGenie(pic, from, to, ms, done) {
@@ -344,14 +345,28 @@
         ctx.drawImage(pic, 0, n * srcRow, pic.width, srcRow, x - w / 2, y0, w, span + .7);
       }
     };
-    draw(from);
+    /* the hand-over between the picture and the live window is a short cross-fade with both perfectly flat and in the same
+       place, so small differences between them (text rendering, a pixel of position) never read as a jump:
+       opening ends with the picture fading into the window, closing starts with the window fading into the picture */
+    const opening = from > to, FADE = .2;
+    const fadeWin = o => { win.style.visibility = o > 0 ? "visible" : ""; win.style.opacity = o > 0 ? o.toFixed(3) : ""; };
+    const at = k => {
+      if (opening) {
+        const m = Math.min(1, k / (1 - FADE)); draw(lerp(from, to, m));
+        const f = clamp01((k - (1 - FADE)) / FADE); fadeWin(f); canvas.style.opacity = (1 - f).toFixed(3);
+      } else {
+        const f = clamp01(k / FADE); fadeWin(1 - f); canvas.style.opacity = f.toFixed(3);
+        draw(lerp(from, to, clamp01((k - FADE) / (1 - FADE))));
+      }
+    };
+    at(0);
     const t0 = performance.now();
     genie = { canvas, raf: 0 };
     const step = now => {
       const k = Math.min(1, (now - t0) / ms);
-      draw(lerp(from, to, k));
+      at(k);
       if (k < 1) genie.raf = requestAnimationFrame(step);
-      else { stopGenie(); done && done(); }
+      else { fadeWin(0); win.style.opacity = ""; stopGenie(); done && done(); }
     };
     genie.raf = requestAnimationFrame(step);
   }
@@ -405,7 +420,7 @@
     if (!started) { started = true; flow().catch(() => {}); }
     if (picP) {
       bounceIcon(); sec.classList.add("is-genie");                  // laid out but hidden until its picture has poured out of the icon
-      picP.then(c => { if (sec.classList.contains("is-chat")) playGenie(c, 1, 0, 800); else sec.classList.remove("is-genie"); })
+      picP.then(c => { if (sec.classList.contains("is-chat")) playGenie(c, 1, 0, 920); else sec.classList.remove("is-genie"); })
           .catch(() => sec.classList.remove("is-genie"));
     }
     setTimeout(() => xBtn.focus({ preventScroll: true }), 300);
@@ -428,7 +443,7 @@
       const r = win.getBoundingClientRect();
       sec.classList.add("is-closing"); sec.classList.remove("is-chat");                // the dock and the heading come back while it pours in
       withTimeout(freshPic(), 600)
-        .then(c => playGenie(c, 0, 1, 650, () => sec.classList.remove("is-closing")))
+        .then(c => playGenie(c, 0, 1, 760, () => sec.classList.remove("is-closing")))
         .catch(() => sec.classList.remove("is-closing"));
     }
     if (viaKey === true && opener) opener.focus({ preventScroll: true });   // keyboard users get focus back on the icon; a mouse close leaves no tooltip hanging
