@@ -133,24 +133,28 @@
   /* "Show less" sits at the very end of the open list. The list folds and the page is shifted in the same frame so the
      button stays exactly where the finger/cursor is (it becomes "Show all"): nothing glides, nothing jumps, the visitor
      isn't thrown back to the start of the block. */
+  let openedAt = null;
   section.addEventListener("click", e => {
     const btnEl = e.target.closest(".cmore__btn");
     if (!btnEl) return;
     if (collapsed) {
+      openedAt = section.getBoundingClientRect().top;               // where the block sat on screen when the list was opened
       collapsed = false; render();
       list.classList.add("is-opening"); section.classList.add("is-opening");
       return;
     }
+    /* folding brings the page back to exactly where it was when "Show all" was pressed (the block at the same place on screen),
+       so closing the list undoes opening it */
     const fold = () => {
       const before = btnEl.getBoundingClientRect().top;
       list.classList.remove("is-opening"); section.classList.remove("is-opening");
       collapsed = true; render(true);
-      const nb = list.querySelector(".cmore__btn");
-      if (nb) {
-        const y = window.scrollY + nb.getBoundingClientRect().top - before;
-        if (window.__lenis) { window.__lenis.resize(); window.__lenis.scrollTo(y, { immediate: true, force: true }); }
-        else window.scrollTo(0, y);
-      }
+      let y;
+      if (openedAt !== null) y = window.scrollY + section.getBoundingClientRect().top - openedAt;
+      else { const nb = list.querySelector(".cmore__btn"); y = nb ? window.scrollY + nb.getBoundingClientRect().top - before : window.scrollY; }
+      openedAt = null;
+      if (window.__lenis) { window.__lenis.resize(); window.__lenis.scrollTo(y, { immediate: true, force: true }); }
+      else window.scrollTo(0, y);
     };
     /* iOS Safari paints the shortened page one frame before it applies the scroll correction, which flashed a black frame
        (the Skills stage at the old position). On touch screens the fold happens under a very quick veil */
