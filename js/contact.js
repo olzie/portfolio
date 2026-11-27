@@ -127,21 +127,28 @@
   /* ---------- intro sweep: once, the first time the dock is in view ---------- */
   const center = a => { if (!rest0) measure(); return dock.getBoundingClientRect().left + rest0[apps.indexOf(a)]; };
   const tipAt = x => { let best = null, bd = 1e9; apps.forEach(a => { const d = Math.abs(x - center(a)); if (d < bd) { bd = d; best = a; } }); apps.forEach(a => a.classList.toggle("is-tip", a === best)); };
+  /* the sweep is a hint for someone who hasn't touched the dock yet: a press on any icon (or a key on one) before it starts
+     cancels it for good, and a press during it cuts it short, so it never plays after the visitor has already used the dock */
+  let introOff = false, endSweep = null;
+  const cancelIntro = () => { introOff = true; if (sweeping && endSweep) endSweep(); };
+  dock.addEventListener("pointerdown", cancelIntro, true);
+  dock.addEventListener("keydown", cancelIntro, true);
   function sweep() {
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (introOff || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     sweeping = true; measure();
     const finish = () => {
-      sweeping = false; apps.forEach(a => a.classList.remove("is-tip", "is-lit"));
+      sweeping = false; endSweep = null; apps.forEach(a => a.classList.remove("is-tip", "is-lit"));
       over && lastX !== null && !chatOpen() ? magnify(lastX) : rest();
     };
     const x0 = center(apps[0]) - 20, x1 = center(apps[apps.length - 1]) + 20, xc = center(apps[0]);
-    const T1 = 2200, T2 = 700, t0 = performance.now(), withTips = wide.matches;
+    endSweep = finish;
+    const T1 = 1700, T2 = 600, t0 = performance.now(), withTips = wide.matches;
     const step = now => {
       if (!sweeping) return;                                       // the chat was opened mid-sweep
       const t = now - t0;
       if (t >= T1 + T2) {
         magnify(xc); if (withTips) tipAt(xc); apps[0].classList.add("is-lit");
-        setTimeout(() => { if (sweeping) finish(); }, 1700);
+        setTimeout(() => { if (sweeping) finish(); }, 1300);
         return;
       }
       let x;
@@ -152,7 +159,7 @@
     };
     requestAnimationFrame(step);
   }
-  const io = new IntersectionObserver(es => { if (es[0].isIntersecting) { io.disconnect(); setTimeout(() => whenStill(sweep), 350); } }, { threshold: .6 });   // starts once the scroll has settled: it doesn't compete with the scrolling, and it's actually seen
+  const io = new IntersectionObserver(es => { if (es[0].isIntersecting) { io.disconnect(); setTimeout(() => whenStill(sweep, 220), 120); } }, { threshold: .6 });   // starts as soon as the scroll has settled (~0.35 s after the dock is in view): it doesn't compete with the scrolling, and it's actually seen
   io.observe(dock);
 
   /* ---------- toast, CV placeholder ---------- */
@@ -163,8 +170,15 @@
   if (cvv) {
     const cvX = document.getElementById("cvvClose"), paper = document.getElementById("cvvPaper");
     let cvBack = null;
+    /* the pages are fetched and decoded in idle time once the visitor is near this block, so the first open doesn't
+       decode two big images in the middle of its animation (that was the stutter on the first launch) */
+    const cvLoad = () => cvv.querySelectorAll("img[data-src]").forEach(im => {
+      im.src = im.dataset.src; im.removeAttribute("data-src");
+      if (im.decode) im.decode().catch(() => {});
+    });
+    new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { o.disconnect(); idle(cvLoad); } }, { rootMargin: "800px" }).observe(sec);
     const cvOpen = from => {
-      cvv.querySelectorAll("img[data-src]").forEach(im => { im.src = im.dataset.src; im.removeAttribute("data-src"); });   // the pages load on first open only
+      cvLoad();                                                      // in case the visitor got here faster than idle time
       cvBack = from || document.activeElement;
       paper.scrollTop = 0;
       cvv.classList.add("is-open"); cvv.setAttribute("aria-hidden", "false");
