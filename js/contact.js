@@ -197,10 +197,17 @@
 
   const log = $("#ctLog"), kb = $("#ctKb"), field = $("#ctField"), sendBtn = $("#ctSend"), hint = $("#ctHint"), state = $("#ctState"), xBtn = $("#ctClose");
   let gen = 0, started = false, opener = null;
+  /* the conversation stays pinned to its latest message: when the answer chips or the ready message appear under it, the
+     log gets shorter, and without this the last bubble slid half out of view */
+  let stick = true;
+  let userScroll = 0;                                             // only the visitor's own scrolling un-pins it, not ours
+  ["wheel", "touchmove"].forEach(ev => log.addEventListener(ev, () => { userScroll = performance.now(); }, { passive: true }));
+  log.addEventListener("scroll", () => { if (performance.now() - userScroll < 400) stick = log.scrollHeight - log.clientHeight - log.scrollTop < 40; }, { passive: true });
+  if ("ResizeObserver" in window) new ResizeObserver(() => { if (stick) log.scrollTop = log.scrollHeight; }).observe(log);
   const add = (cls, html, meta) => {
     const m = document.createElement("div"); m.className = "ct-msg " + cls;
     m.innerHTML = html + (meta ? `<span class="meta">${now()}${cls === "me" ? TICKS : ""}</span>` : "");
-    log.appendChild(m); log.scrollTop = log.scrollHeight; return m;
+    log.appendChild(m); stick = true; log.scrollTop = log.scrollHeight; return m;
   };
   const composer = (text, ready, href) => {
     field.textContent = text; field.classList.toggle("is-ready", !!ready);
@@ -427,7 +434,7 @@
 
   /* the window stands above the dock, like a Mac app window over its Dock: its bottom sits just over the icons,
      its height is whatever fits between the site header and the dock (up to 660px) */
-  const HEADER = 80, GAP = 16, WANT = 660, MIN = 380;
+  const HEADER = 80, GAP = 16, WANT = 660, MIN = 470;   // under 470px above the dock (small phones) the chat may cover the dimmed dock instead
   const placeWin = () => {
     const top = dock.getBoundingClientRect().top, room = top - GAP - HEADER;
     if (room >= MIN) {
@@ -435,7 +442,7 @@
       win.style.setProperty("--winh", h + "px");
       win.style.setProperty("--wintop", (top - GAP - h) + "px");
     } else {                                                        // small phone: the chat may cover the (dimmed) dock rather than be cramped
-      const h = Math.min(MIN, innerHeight - HEADER - GAP);
+      const h = Math.min(MIN, innerHeight - HEADER - GAP);           // tall enough that the answer chips don't squeeze the conversation to one line
       win.style.setProperty("--winh", h + "px");
       win.style.setProperty("--wintop", HEADER + "px");
     }

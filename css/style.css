@@ -928,7 +928,7 @@ body.cview-open{overflow:hidden}
   .ct-tip{display:none}
   .ct-lbl{display:block;position:absolute;left:50%;top:calc(100% + 5px);translate:-50% 0;font-family:var(--body);font-size:9px;color:#c9d4ee;white-space:nowrap}
   .ct-dot{bottom:-4px}
-  .ct-win{width:calc(100vw - 16px);border-radius:24px}
+  .ct-win{width:min(520px,calc(100vw - 16px));border-radius:24px}   /* tablets: a phone-like chat, not a stretched one */
   .ct-corner--tl{top:70px}
 }
 @media (prefers-reduced-motion:reduce){.ct-app,.ct-win,.ct-title,.ct-lead,.ct-status{transition:none}.ct-app.is-bounce .ct-face{animation:none}}

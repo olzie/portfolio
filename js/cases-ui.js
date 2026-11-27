@@ -286,7 +286,7 @@
   function story(c, shots) {
     clearTimeout(stT);
     const slides = [`<div class="st__slide st__slide--logo">${tile(c)}</div>`].concat(shots.map((x, k) =>
-      `<div class="st__slide" style="--bg:url('assets/cases/shots/${x[0]}')"><img src="assets/cases/shots/${x[0]}" width="${x[1]}" height="${x[2]}" alt="${c.name}, ${t("cases.example")} ${k + 1}" decoding="async"></div>`));
+      `<div class="st__slide" style="--bg:url('${new URL(`assets/cases/shots/${x[0]}`, document.baseURI).href}')"><img src="assets/cases/shots/${x[0]}" width="${x[1]}" height="${x[2]}" alt="${c.name}, ${t("cases.example")} ${k + 1}" decoding="async"></div>`));
     vMedia.innerHTML = `<div class="st" style="--c:${c.color}">
       <div class="st__bars">${slides.map(() => "<i></i>").join("")}</div>
       <div class="st__head"><span class="st__ava">${logo(c)}</span><b>${c.name}</b></div>
