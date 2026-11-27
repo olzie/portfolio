@@ -260,6 +260,9 @@ body::after{
 /* ---------- skills: glass panels on the studio stage (js/skills.js) ---------- */
 .skills{position:relative;z-index:1;height:400vh;background:var(--bg);margin-top:clamp(-90px,-6vw,-40px)}
 .cases:not(.is-collapsed) + .skills{margin-top:0}   /* list open: the stage must not cover "Show less" under the running line */   /* the empty top of the stage slides under the cases block's end */
+/* phones: native snap points at each card (js/skills.js adds the markers); only these markers snap, the rest of the page scrolls freely */
+.sk-snap{position:absolute;left:0;width:1px;height:1px;pointer-events:none;scroll-snap-align:start}
+@media (pointer:coarse){html.sk-snap-on:not(.no-snap){scroll-snap-type:y proximity}}   /* only while the stage is pinned (js) */
 .skills__pin{position:sticky;top:0;height:100vh;height:100lvh;overflow:hidden;--hz:78%}   /* the large viewport: when Safari's bars collapse the stage still fills the screen, no empty strip under it */
 .sk-studio{position:absolute;inset:0;background:#000}   /* opaque: Safari doesn't have to blend the stage with the page under it */
 /* the top of the stage is the cases block's colour, fading to black: an opaque layer over the beam and the shade, no masks */
@@ -333,7 +336,11 @@ body::after{
   .skills{height:380vh}
   /* phones: the stage still fills the large viewport (no empty strip when Safari's bars collapse), but the cards are placed
      in the SMALL viewport: with Safari's bottom bar showing they stay above it, right under the heading */
-  .skills__pin{--ph:clamp(300px,calc(100svh - 326px),420px);--hz:calc(230px + var(--ph))}   /* cards start right under the subtitle */
+  :root{--skph:clamp(300px,calc(100svh - 326px),420px)}
+  .skills__pin{--ph:var(--skph);--hz:calc(230px + var(--ph))}   /* cards start right under the subtitle */
+  /* the stage is the large viewport tall, but only its top (heading, cards, counter) is used: the contact block slides
+     up over the empty floor under the counter, so there's no long black gap between the two blocks */
+  .skills + .contact{margin-top:min(0px,calc(330px + var(--skph) - 100lvh))}
   .sk-track,.sk-halo{--ph:inherit}
   .sk-prog{bottom:auto;top:calc(var(--hz) + 44px)}
   .sk-corner--br{bottom:auto;top:calc(var(--hz) + 34px)}
