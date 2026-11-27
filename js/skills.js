@@ -36,14 +36,14 @@
       <div class="sk-big" aria-hidden="true">${pad(i + 1)}</div>
       <h3 class="sk-t">${s[0]}</h3><p class="sk-d mono">${s[1]}</p>
       <div class="sk-chips">${s[2].map(x => `<span>${x}</span>`).join("")}</div>`;
-  let panels = [], mx = 0, sx = 0, cam = 0, last = null, cur = -1;
+  let panels = [], mx = 0, sx = 0, cam = 0, last = null, cur = -1, pw = 0;
   function render() {
     track.innerHTML = SK[lang()].map((s, i) => `<article class="sk-panel" data-i="${i}" tabindex="0" aria-label="${pad(i + 1)} ${s[0]}">
       <div class="sk-face"><div class="sk-in">${inner(s, i)}</div></div>
       <div class="sk-refl" aria-hidden="true"><div class="sk-face"><div class="sk-in">${inner(s, i)}</div></div></div>
     </article>`).join("");
     panels = [...track.children];
-    last = null; cur = -1;                          // force one full write
+    last = null; cur = -1; pw = 0;                  // force one full write
   }
   render();
   window.addEventListener("langchange", render);
@@ -104,7 +104,8 @@
       const key = cam.toFixed(4) + "|" + sx.toFixed(4) + "|" + innerWidth;
       if (key !== last) {                           // nothing moved: write nothing
         last = key;
-        const pw = panels[0] ? panels[0].offsetWidth : 320, SP = pw * .7;   // neighbours tuck in behind the lit panel
+        if (!pw) pw = panels[0] ? panels[0].offsetWidth : 320;     // measured once (and on resize), not every frame: a read after writes forced a layout per frame
+        const SP = pw * .7;                                          // neighbours tuck in behind the lit panel
         const c = Math.round(cam);
         panels.forEach((el, i) => {
           const d = i - cam, ad = Math.abs(d);
@@ -128,7 +129,16 @@
         set(halo, "opacity", clamp(1 - Math.abs(cam - Math.round(cam)) * 2.4, 0, 1).toFixed(2));
       }
     }
-    requestAnimationFrame(frame);
+    raf = running ? requestAnimationFrame(frame) : 0;
   }
-  requestAnimationFrame(frame);
+  /* the loop runs only while the block is within a screen of the viewport */
+  let raf = 0, running = true;
+  addEventListener("resize", () => { pw = 0; last = null; });
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(es => {
+      running = es[0].isIntersecting;
+      if (running && !raf) raf = requestAnimationFrame(frame);
+    }, { rootMargin: "100% 0px" }).observe(section);
+  }
+  raf = requestAnimationFrame(frame);
 })();

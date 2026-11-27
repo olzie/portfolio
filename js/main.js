@@ -477,10 +477,14 @@
   /* ---------- resize / browser zoom ----------
      Page height depends on the viewport, so after a zoom the same scrollY means a different
      spot. Remember the position as a fraction (from before the zoom) and go back there. */
-  let rz, keep = null, lastW = innerWidth, frac = 0;
+  let rz, keep = null, lastW = innerWidth, lastSafeH = -1, frac = 0;
   function remember(y) { frac = y / docLen; }
   addEventListener("resize", () => {
-    if (innerWidth === lastW) { setScale(); fit(); return; }   // phone address bar: width unchanged
+    if (innerWidth === lastW) {                                 // phone address bar: width unchanged
+      const h = safeH(); if (h === lastSafeH) return;           // the layout uses the small viewport, which doesn't change while the bars slide
+      lastSafeH = h; setScale(); fit(); return;
+    }
+    lastSafeH = safeH();
     lastW = innerWidth;
     if (keep === null) keep = frac;
     setScale(); fit(); fitTitle(); placePill(window.currentLang);

@@ -35,7 +35,8 @@
   }
   layout();
   if (document.fonts) document.fonts.ready.then(layout);
-  addEventListener("resize", layout);
+  let layoutW = innerWidth;
+  addEventListener("resize", () => { if (innerWidth !== layoutW) { layoutW = innerWidth; layout(); } });   // Safari fires resize while its bars slide mid-swipe: refitting the giant heading then made the swipe hang
   addEventListener("langchange", () => requestAnimationFrame(layout));
 
   /* ---------- magnify + bounce ----------
@@ -352,7 +353,7 @@
       const a = inOut(clamp01(p / .5)), b = inOut(clamp01((p - .28) / .72)), tail = b * b * b;
       ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.setTransform(dpr, 0, 0, dpr, -bx * dpr, -by * dpr);
-      ctx.globalAlpha = p > .92 ? (1 - p) / .08 : 1;
+      ctx.globalAlpha = 1 - smooth(clamp01((p - .6) / .34));      // near the icon it melts away (the eye kept catching the last bit)
       const yTop = lerp(T, ib - ih, b), span = lerp(H, ih, b) / rows;  // rows are evenly spaced at every moment
       for (let n = 0; n < rows; n++) {
         const y0 = yTop + n * span, yc = y0 + span / 2;
@@ -390,12 +391,14 @@
   }
   /* the picture is prepared ahead of time, so a click starts the animation at once instead of waiting for the capture:
      whenever the window's content settles (new message, answer, scroll, resize, language), a fresh picture is taken in idle time */
-  let pic = null, picT = 0;
+  let pic = null, picT = 0, lastMove = 0;
+  addEventListener("scroll", () => { lastMove = performance.now(); }, { passive: true });
+  addEventListener("touchmove", () => { lastMove = performance.now(); }, { passive: true });
   const idle = fn => ("requestIdleCallback" in window ? requestIdleCallback(fn, { timeout: 500 }) : setTimeout(fn, 60));
   const refreshPic = (delay = 150) => {
     pic = null; clearTimeout(picT);
     picT = setTimeout(() => idle(() => {
-      if (genie) return refreshPic(200);
+      if (genie || performance.now() - lastMove < 450) return refreshPic(250);   // only when the page has been still for a moment
       const r = winBox();
       if (r.width < 50 || r.height < 50) return;
       snapshot(r).then(c => { if (!pic) pic = { c, w: Math.round(r.width), h: Math.round(r.height) }; }).catch(() => {});
@@ -407,7 +410,8 @@
   };
   new MutationObserver(() => refreshPic()).observe(win, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["aria-pressed", "class", "disabled"] });
   $("#ctLog").addEventListener("scroll", () => refreshPic(), { passive: true });
-  addEventListener("resize", () => refreshPic(400));
+  let picW = innerWidth;
+  addEventListener("resize", () => { if (innerWidth !== picW) { picW = innerWidth; refreshPic(400); } });
   addEventListener("langchange", () => refreshPic(400));
   // first picture: as soon as the block is near, with the window laid out where it will open
   new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { o.disconnect(); setTimeout(() => { placeWin(); refreshPic(0); }, 300); } }, { rootMargin: "300px" }).observe(sec);
