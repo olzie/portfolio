@@ -300,9 +300,8 @@ body::after{
   background:linear-gradient(135deg,rgba(255,255,255,.13) 0%,rgba(255,255,255,.04) 45%,rgba(120,150,255,.07) 100%),#080b17;   /* opaque glass: the panels behind don't show through */
   box-shadow:inset 0 1px 0 rgba(255,255,255,.38),inset 0 -1px 0 rgba(255,255,255,.08),inset 1px 0 0 rgba(255,255,255,.10),inset 0 0 22px rgba(156,188,255,.10),0 10px 30px rgba(0,0,0,.35)}
 .sk-face{border:1px solid rgba(255,255,255,.16);border-top-color:rgba(255,255,255,.34);border-left-color:rgba(255,255,255,.24)}   /* hairline rim, no mask: masks cost a render pass each */
-/* lit state: cross-fades (.5s). The fading parts of the two panels involved (.is-on and the one that just lost it, .was-on)
-   get their own GPU layers for the switch, so the fade doesn't repaint the moving panel every frame */
-.sk-face::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;visibility:hidden;opacity:0;transition:opacity .5s cubic-bezier(.22,.61,.36,1),visibility 0s .5s;
+/* lit state: switched at once (one repaint per switch; a fade would repaint the moving panel every frame, which Safari feels) */
+.sk-face::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;visibility:hidden;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 0 40px rgba(58,102,255,.25),0 0 0 1px rgba(58,102,255,.55)}
 /* the big blue glow stays put under the spotlight and fades while the panels move (js/skills.js sets its opacity),
    instead of jumping from one moving panel to the next halfway through the switch */
@@ -312,8 +311,8 @@ body::after{
   background:radial-gradient(ellipse 34% 40% at 50% 52%,rgba(23,71,255,.30),rgba(23,71,255,.12) 55%,transparent 100%),
              radial-gradient(ellipse 30% 9% at 50% 80%,rgba(58,102,255,.45),rgba(58,102,255,.12) 55%,transparent 100%);
   will-change:opacity}
-.sk-panel.is-on .sk-face::after{visibility:visible;opacity:1;transition:opacity .5s cubic-bezier(.22,.61,.36,1),visibility 0s}
-.sk-in{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;padding:26px 24px 22px;opacity:.4;transition:opacity .5s cubic-bezier(.22,.61,.36,1)}
+.sk-panel.is-on .sk-face::after{visibility:visible}
+.sk-in{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;padding:26px 24px 22px;opacity:.4;transition:opacity .3s cubic-bezier(.22,.61,.36,1)}
 .sk-panel.is-on .sk-in{opacity:1}
 .sk-n{display:flex;justify-content:space-between;color:var(--ice)}
 .sk-n b{font-weight:800;color:#fff}
@@ -324,12 +323,12 @@ body::after{
 .sk-chips{display:flex;flex-wrap:wrap;gap:6px}
 .sk-chips span{font-family:var(--display);font-size:10.5px;letter-spacing:.04em;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:#fff;white-space:nowrap}
 /* reflection on the floor: a flipped copy that moves with its panel */
-.sk-refl{position:absolute;left:0;right:0;top:calc(100% + 6px);height:100%;transform:scaleY(-1);pointer-events:none;opacity:0;visibility:hidden;transition:opacity .5s cubic-bezier(.22,.61,.36,1),visibility 0s .5s;
+.sk-refl{position:absolute;left:0;right:0;top:calc(100% + 6px);height:100%;transform:scaleY(-1);pointer-events:none;opacity:.22;visibility:hidden;
   }
 .sk-refl::after{content:"";position:absolute;inset:-2px;background:linear-gradient(180deg,#020309 0%,#020309 52%,rgba(2,3,9,.55) 80%,rgba(2,3,9,0) 100%);pointer-events:none}   /* fades the copy into the floor */
-.sk-panel.is-on .sk-refl{visibility:visible;opacity:.22;transition:opacity .5s cubic-bezier(.22,.61,.36,1),visibility 0s}
-.sk-refl .sk-in,.sk-panel .sk-refl .sk-in{opacity:1;transition:none}   /* the copy fades as a whole */
-.skills.is-near .sk-panel:is(.is-on,.was-on,.is-nb) :is(.sk-face>.sk-in,.sk-refl),.skills.is-near .sk-panel:is(.is-on,.was-on,.is-nb)>.sk-face::after{will-change:opacity}   /* only the lit panel is reflected: masked layers are costly */
+.sk-panel.is-on .sk-refl{visibility:visible}   /* only the lit panel is reflected: masked layers are costly */
+.sk-refl .sk-in,.sk-panel .sk-refl .sk-in{opacity:1;transition:none}
+.skills.is-near .sk-panel:is(.is-on,.was-on)>.sk-face>.sk-in{will-change:opacity}   /* the text of the two panels in the switch fades on its own layer */
 .sk-panel{cursor:pointer;outline:none}
 .sk-panel.is-on{cursor:default}
 .sk-panel:focus-visible .sk-face{outline:2px solid var(--blue-hi);outline-offset:4px}

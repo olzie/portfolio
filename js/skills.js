@@ -59,7 +59,7 @@
     const top = section.getBoundingClientRect().top + scrollY, len = section.offsetHeight - pinH();
     const y = top + len * (i / (N - 1));
     gliding = true;
-    if (window.__lenis) window.__lenis.scrollTo(y, { duration: dur, easing: t => 1 - Math.pow(1 - t, 3), onComplete: () => { gliding = false; } }); else { scrollTo({ top: y, behavior: "smooth" }); setTimeout(() => { gliding = false; }, dur * 1000); }
+    if (window.__lenis) window.__lenis.scrollTo(y, { duration: dur, easing: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, onComplete: () => { gliding = false; } }); else { scrollTo({ top: y, behavior: "smooth" }); setTimeout(() => { gliding = false; }, dur * 1000); }
   };
   track.addEventListener("click", e => { const p = e.target.closest(".sk-panel"); if (p) go(+p.dataset.i); });
   /* when scrolling stops inside the block, one card settles under the light — the next one in the direction the visitor
@@ -74,8 +74,8 @@
     const p = clamp(-r.top / len, 0, 1) * (N - 1), f = p - Math.floor(p);
     let i;
     if (entered) {                                                // a swipe that just arrived from above or below: let it land where it
-      if (Math.min(f, 1 - f) < .2) return;                        // stopped, only straighten a card that is clearly half-way
-      i = Math.round(p);
+      if (Math.min(f, 1 - f) < .2) return;                        // stopped, only straighten a card that is clearly half-way, and always
+      i = dir > 0 ? Math.ceil(p) : dir < 0 ? Math.floor(p) : Math.round(p);   // onward: pulling back against the swipe felt like a jerk
     } else i = dir > 0 ? (f > .05 ? Math.ceil(p) : Math.floor(p)) : dir < 0 ? (f < .95 ? Math.floor(p) : Math.ceil(p)) : Math.round(p);
     if (Math.abs(p - i) * len / (N - 1) < 6) return;                // already there
     go(i, .85);
@@ -127,7 +127,6 @@
           set(el, "opacity", op.toFixed(2));
           set(el, "visibility", op < .03 ? "hidden" : "visible");   // panels too far to see are not drawn at all
           set(el, "zIndex", String(100 - rank.indexOf(i)));
-          const nb = ad < 1.6; if (el._nb !== nb) { el._nb = nb; el.classList.toggle("is-nb", nb); }   // the next panel to light up has its fade layers ready before the switch
         });
         if (c !== cur) {
           const prev = cur; cur = c;
