@@ -141,15 +141,27 @@
       list.classList.add("is-opening"); section.classList.add("is-opening");
       return;
     }
-    const before = btnEl.getBoundingClientRect().top;
-    list.classList.remove("is-opening"); section.classList.remove("is-opening");
-    collapsed = true; render(true);
-    const nb = list.querySelector(".cmore__btn");
-    if (nb) {
-      const y = window.scrollY + nb.getBoundingClientRect().top - before;
-      if (window.__lenis) { window.__lenis.resize(); window.__lenis.scrollTo(y, { immediate: true, force: true }); }
-      else window.scrollTo(0, y);
-    }
+    const fold = () => {
+      const before = btnEl.getBoundingClientRect().top;
+      list.classList.remove("is-opening"); section.classList.remove("is-opening");
+      collapsed = true; render(true);
+      const nb = list.querySelector(".cmore__btn");
+      if (nb) {
+        const y = window.scrollY + nb.getBoundingClientRect().top - before;
+        if (window.__lenis) { window.__lenis.resize(); window.__lenis.scrollTo(y, { immediate: true, force: true }); }
+        else window.scrollTo(0, y);
+      }
+    };
+    /* iOS Safari paints the shortened page one frame before it applies the scroll correction, which flashed a black frame
+       (the Skills stage at the old position). On touch screens the fold happens under a very quick veil */
+    const veil = document.querySelector(".veil");
+    if (veil && matchMedia("(pointer:coarse)").matches) {
+      veil.classList.add("is-quick", "is-on");
+      setTimeout(() => {
+        fold();
+        requestAnimationFrame(() => requestAnimationFrame(() => { veil.classList.remove("is-on"); setTimeout(() => veil.classList.remove("is-quick"), 300); }));
+      }, 110);
+    } else fold();
   });
 
   /* running line: tenders (one window), then small cases (their own windows). Built once: names don't change with the language */

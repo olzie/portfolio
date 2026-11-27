@@ -358,6 +358,7 @@ body::after{
 /* short fade that hides menu jumps through the first block (main.js) */
 .veil{position:fixed;inset:0;z-index:44;background:var(--bg);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .26s ease,visibility 0s .26s}
 .veil.is-on{opacity:1;visibility:visible;transition:opacity .26s ease}
+.veil.is-quick{transition:opacity .1s ease,visibility 0s .1s}.veil.is-quick.is-on{transition:opacity .1s ease}   /* "Show less" on touch screens */
 
 /* ============ LIQUID GLASS ============ */
 .glass{
