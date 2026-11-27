@@ -158,7 +158,32 @@
   /* ---------- toast, CV placeholder ---------- */
   const toastEl = document.getElementById("ctToast");
   const toast = t => { toastEl.textContent = t; toastEl.classList.add("is-on"); clearTimeout(toastEl._t); toastEl._t = setTimeout(() => toastEl.classList.remove("is-on"), 1600); };
-  $$("[data-cv]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); toast(L().cvSoon); }));   // until the PDF is in place
+  /* ---------- CV window: the PDF's pages on paper inside a glass window, Download PDF on top ---------- */
+  const cvv = document.getElementById("cvView");
+  if (cvv) {
+    const cvX = document.getElementById("cvvClose"), paper = document.getElementById("cvvPaper");
+    let cvBack = null;
+    const cvOpen = from => {
+      cvv.querySelectorAll("img[data-src]").forEach(im => { im.src = im.dataset.src; im.removeAttribute("data-src"); });   // the pages load on first open only
+      cvBack = from || document.activeElement;
+      paper.scrollTop = 0;
+      cvv.classList.add("is-open"); cvv.setAttribute("aria-hidden", "false");
+      document.body.classList.add("cvv-open");
+      if (window.__lenis) window.__lenis.stop();
+      setTimeout(() => cvX.focus({ preventScroll: true }), 60);
+    };
+    const cvClose = () => {
+      if (!cvv.classList.contains("is-open")) return;
+      cvv.classList.remove("is-open"); cvv.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("cvv-open");
+      if (window.__lenis) window.__lenis.start();
+      if (cvBack) cvBack.focus({ preventScroll: true });
+    };
+    $$("[data-cv]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); cvOpen(a); }));
+    cvX.addEventListener("click", cvClose);
+    cvv.addEventListener("click", e => { if (e.target === cvv) cvClose(); });            // a click on the dimmed page around the window
+    document.addEventListener("keydown", e => { if (e.key === "Escape") cvClose(); });
+  }
 
   /* ---------- chat ---------- */
   const T = {
