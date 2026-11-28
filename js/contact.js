@@ -176,12 +176,13 @@
        language's pages are decoded first and only then swapped in, so the paper never goes blank */
     const dl = document.getElementById("cvvDl"), pages = [...cvv.querySelectorAll(".cvv__page")], lbs = [...cvv.querySelectorAll("[data-cvlang]")];
     const PDF = { en: "Olha_Akimova_CV.pdf", ua: "Olha_Akimova_CV_UA.pdf" };
+    const CV_V = "20261128";   // bump with every CV rebuild, matches the ?v on the page images in index.html, so nobody gets a cached old CV
     let cvLang = null, cvPicked = false;
     const siteCv = () => (window.currentLang === "uk" ? "ua" : "en");
     const setCv = lang => {
       cvLang = lang;
       lbs.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.cvlang === lang)));
-      dl.href = "assets/cv/" + PDF[lang]; dl.download = PDF[lang];
+      dl.href = "assets/cv/" + PDF[lang] + "?v=" + CV_V; dl.download = PDF[lang];
       pages.forEach(im => {
         const url = im.dataset[lang === "ua" ? "srcUa" : "srcEn"];
         if (im.getAttribute("src") === url) return;

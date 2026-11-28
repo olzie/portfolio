@@ -50,5 +50,6 @@ p{margin:0}
 .early .row p{color:var(--text);margin-top:.5mm}
 .foot{display:flex;justify-content:space-between;padding-top:3mm;border-top:1px solid var(--line);font-family:"Unbounded";font-size:6pt;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
 /* page 1: two rows across both columns, so "Professional courses" starts on the same line as "Work experience" */
-.cols--p1{grid-template-rows:auto minmax(0,1fr);row-gap:5.4mm}
-.cols--p1 > *{min-width:0}
+.cols--p1,.cols--p2{grid-template-rows:auto minmax(0,1fr);row-gap:5.4mm}
+.cols--p1 > *,.cols--p2 > *{min-width:0}
+/* page 2 the same way: "Tech stack" starts on the line of "Earlier experience" */
