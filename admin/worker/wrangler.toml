@@ -1,0 +1,15 @@
+# Only needed if you deploy with the command line (npx wrangler deploy). The dashboard route works without it.
+name = "itsolga-api"
+main = "worker.js"
+compatibility_date = "2026-06-01"
+routes = [{ pattern = "itsolga.com/api/*", zone_name = "itsolga.com" }]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "itsolga"
+database_id = "PASTE-THE-D1-ID-HERE"
+
+[vars]
+ACCESS_TEAM = "PASTE-TEAM-NAME"
+ACCESS_AUD = "PASTE-AUDIENCE-TAG"
+ADMIN_EMAIL = "hello@itsolga.com"

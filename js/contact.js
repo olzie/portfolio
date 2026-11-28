@@ -316,6 +316,8 @@
     const m = t.msg(s);
     await say(t.q4);
     composer(m, true, `${TG}?text=${encodeURIComponent(m)}`);
+    // the brief goes to the admin page as a lead (track.js sends it; nothing is sent off itsolga.com)
+    document.dispatchEvent(new CustomEvent("brief:ready", { detail: { need: (s.need || []).join(", "), market: s.market, start: s.start, msg: m } }));
     hint.innerHTML = `${t.ready} · <button type="button" data-again>${t.again}</button>`;
   }
   hint.addEventListener("click", e => { if (e.target.closest("[data-again]")) flow().catch(() => {}); });

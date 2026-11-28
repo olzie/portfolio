@@ -412,7 +412,10 @@
     if (s.kind === "c") { if (animate) requestAnimationFrame(() => spin(vStats, 0.35)); else spin(vStats, 0); }
   }
   let firstT = 0;
+  // the visit stats (track.js) count which cases get opened
+  const tell = s => document.dispatchEvent(new CustomEvent("case:open", { detail: s.kind === "t" ? "tenders" : (ALL[s.i] || {}).id }));
   function openView(s) {
+    tell(s);
     lastFocus = document.activeElement;
     cur = s; show(s);
     view.setAttribute("aria-hidden", "false");
@@ -437,7 +440,7 @@
   const go = d => {
     if (!cur || cur.kind !== "c" || cur.group.length < 2) return;
     const g = cur.group, k = (g.indexOf(cur.i) + d + g.length) % g.length;
-    cur = { kind: "c", i: g[k], group: g }; show(cur);
+    cur = { kind: "c", i: g[k], group: g }; show(cur); tell(cur);
   };
   list.addEventListener("click", e => { const b = e.target.closest(".crow__btn"); if (b) openView({ kind: "c", i: +b.dataset.i, group: shownOrder() }); });
   track.addEventListener("click", e => {
