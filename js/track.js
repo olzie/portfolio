@@ -6,6 +6,14 @@
 (() => {
   const host = location.hostname.replace(/^www\./, "");
   if (host !== "itsolga.com") return;
+  // read the utm tags (from a short link like itsolga.com/go/li) and take them off the address bar, so the page shows
+  // a clean itsolga.com and a copied link doesn't carry someone else's tags along
+  const q = new URLSearchParams(location.search);
+  const utm = ["utm_source", "utm_medium", "utm_campaign"].map(k => (q.get(k) || "").slice(0, 60));
+  if (utm.some(Boolean)) {
+    ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"].forEach(k => q.delete(k));
+    try { history.replaceState(history.state, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash); } catch (e) {}
+  }
   if (navigator.doNotTrack === "1" || window.doNotTrack === "1" || navigator.globalPrivacyControl) return;
 
   const visit = Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -16,8 +24,6 @@
   // where the visit came from: the referring site's name only, and the utm tags people put on links in posts and bios
   let ref = "";
   try { const r = document.referrer && new URL(document.referrer); if (r && r.hostname.replace(/^www\./, "") !== host) ref = r.hostname.replace(/^www\./, ""); } catch (e) {}
-  const q = new URLSearchParams(location.search);
-  const utm = ["utm_source", "utm_medium", "utm_campaign"].map(k => (q.get(k) || "").slice(0, 60));
   const device = innerWidth < 700 ? "mobile" : innerWidth < 1100 ? "tablet" : "desktop";
 
   function flush() {
