@@ -412,7 +412,7 @@
     if (s.kind === "c") { if (animate) requestAnimationFrame(() => spin(vStats, 0.35)); else spin(vStats, 0); }
   }
   let firstT = 0;
-  // the visit stats (track.js) count which cases get opened
+  // the visit stats (scroll.js) count which cases get opened
   const tell = s => document.dispatchEvent(new CustomEvent("case:open", { detail: s.kind === "t" ? "tenders" : (ALL[s.i] || {}).id }));
   function openView(s) {
     tell(s);
